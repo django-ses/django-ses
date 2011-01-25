@@ -13,7 +13,11 @@ implementation::
 
     pip install -e git://github.com/hmarr/boto@ses#egg=boto
 
-Download django-ses, then add the following to your settings.py::
+Install django-ses the same way (it'll be coming to PyPI before too long)::
+
+    pip install -e git://github.com/hmarr/django-ses#egg=django_ses
+
+Add the following to your settings.py::
 
     EMAIL_BACKEND = 'django_ses.SESBackend'
 

@@ -1,0 +1,4 @@
+include AUTHORS
+include LICENSE
+recursive-include example *
+

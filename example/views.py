@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 
 def email_form(request):
     return HttpResponse("""
@@ -18,6 +18,9 @@ def email_form(request):
             <label for="message">Message:</label>
             <textarea name="message" id="message"></textarea>
             <br />
+            <label for="message">HTML:</label>
+            <input type="checkbox" name="html-message" id="html-message" />
+            <br />
             <input type="submit" value="Send Email" />
         </form>
     """.format(send_email_url=reverse('send-email')))
@@ -27,9 +30,13 @@ def send_email(request):
         subject = request.POST['subject']
         message = request.POST['message']
         from_email = request.POST['from']
+        html_message = bool(request.POST.get('html-message', False))
         recipient_list = [request.POST['to']]
 
-        send_mail(subject, message, from_email, recipient_list)
+        email = EmailMessage(subject, message, from_email, recipient_list)
+        if html_message:
+            email.content_subtype = 'html'
+        email.send()
     except KeyError:
         return HttpResponse('Please fill in all fields')
 

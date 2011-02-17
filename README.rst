@@ -30,3 +30,11 @@ Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
 Check out the ``example`` directory for more information.
+
+Error Handling
+==============
+Since other pluggable Django applications often expect SMTP exceptions when
+handling email, django-ses attempts to wrap certain AWS exceptions to their
+corresponding SMTP exception. This allows django-ses to be used transparently
+with applications like Django-Mailer while doing the Right Thing for certain
+kinds of errors.

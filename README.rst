@@ -31,6 +31,14 @@ send the messages by default.
 
 Check out the ``example`` directory for more information.
 
+Django Builtin-in Error Emails
+==============================
+
+If you'd like Django's `Bultin Email Error Reporting`_ to function properly
+(actually send working emails), you'll have to explicitly set the
+``SERVER_EMAIL`` setting to one of your SES-verified addresses. Otherwise, your
+error emails will all fail and you'll be blissfully unaware of a problem.
+
 Error Handling
 ==============
 Since other pluggable Django applications often expect SMTP exceptions when
@@ -38,3 +46,5 @@ handling email, django-ses attempts to wrap certain AWS exceptions to their
 corresponding SMTP exception. This allows django-ses to be used transparently
 with applications like Django-Mailer while doing the Right Thing for certain
 kinds of errors.
+
+.. _Builtin Email Error Reporting: http://docs.djangoproject.com/en/1.2/howto/error-reporting/

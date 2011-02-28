@@ -4,16 +4,37 @@ Django-SES
 :Info: A Django email backend for Amazon's Simple Email Service
 :Author: Harry Marr (http://github.com/hmarr, http://twitter.com/harrymarr)
 
+A bird's eye view
+=================
+Django-SES is a drop-in mail backend for Django_. Instead of sending emails
+through a traditional SMTP mail server, Django-SES routes email through
+Amazon Web Services' excellent Simple Email Service (SES_).
+
+Why SES instead of SMTP?
+========================
+Configuring, maintaining, and dealing with some complicated edge cases can be
+time-consuming. Sending emails with Django-SES might be attractive to you if:
+
+* You don't want to maintain mail servers.
+* You are already deployed on EC2 (In-bound traffic to SES is free from EC2
+  instances).
+* You need to send a high volume of email.
+* You don't want to have to worry about PTR records, Reverse DNS, email
+  whitelist/blacklist services.
+* Django-SES is a truely drop-in replacement for the default mail backend.
+  Your code should require no changes.
+  
 Getting going
 =============
-Assuming you've got Django installed, you'll need Boto, a Python library that
-wraps the AWS API. At this stage there is no support for SES in the stable
-version of Boto so you'll need to install my fork, which contains an
-implementation::
+Assuming you've got Django_ installed, you'll need Boto_ 2.0b4 or higher. Boto_
+is a Python library that wraps the AWS API. 
 
-    pip install -e git://github.com/hmarr/boto@ses#egg=boto
+You can do the following to install boto 2.0b4 (we're using --upgrade here to 
+make sure you get 2.0b4)::
 
-Install django-ses the same way (it'll be coming to PyPI before too long)::
+    pip install --upgrade boto
+
+Install django-ses (it'll be coming to PyPI before too long)::
 
     pip install -e git://github.com/hmarr/django-ses#egg=django_ses
 
@@ -47,4 +68,11 @@ corresponding SMTP exception. This allows django-ses to be used transparently
 with applications like Django-Mailer while doing the Right Thing for certain
 kinds of errors.
 
+*Note:* You will need to sign up for SES_ and verify any emails you're going
+to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
+has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py
+
 .. _Builtin Email Error Reporting: http://docs.djangoproject.com/en/1.2/howto/error-reporting/
+.. _Django: http://djangoproject.com
+.. _Boto: http://boto.cloudhackers.com/
+.. _SES: http://aws.amazon.com/ses/

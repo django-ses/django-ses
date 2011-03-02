@@ -70,14 +70,6 @@ If you'd like Django's `Bultin Email Error Reporting`_ to function properly
 ``SERVER_EMAIL`` setting to one of your SES-verified addresses. Otherwise, your
 error emails will all fail and you'll be blissfully unaware of a problem.
 
-Error Handling
-==============
-Since other pluggable Django applications often expect SMTP exceptions when
-handling email, django-ses attempts to wrap certain AWS exceptions to their
-corresponding SMTP exception. This allows django-ses to be used transparently
-with applications like Django-Mailer while doing the Right Thing for certain
-kinds of errors.
-
 *Note:* You will need to sign up for SES_ and verify any emails you're going
 to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
 has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py

@@ -23,13 +23,13 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
   whitelist/blacklist services.
 * Django-SES is a truely drop-in replacement for the default mail backend.
   Your code should require no changes.
-  
+
 Getting going
 =============
 Assuming you've got Django_ installed, you'll need Boto_ 2.0b4 or higher. Boto_
-is a Python library that wraps the AWS API. 
+is a Python library that wraps the AWS API.
 
-You can do the following to install boto 2.0b4 (we're using --upgrade here to 
+You can do the following to install boto 2.0b4 (we're using --upgrade here to
 make sure you get 2.0b4)::
 
     pip install --upgrade boto
@@ -51,6 +51,16 @@ Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
 Check out the ``example`` directory for more information.
+
+SES Stats Report
+================
+
+A very simple read-only report on your quota, verified email addresses and
+sending statistics is included.
+
+If you wish to use the SES sending statistics reports, you must include
+``django_ses`` in your INSTALLED_APPS and you must include ``django_ses.urls``
+in your ``urls.py``.
 
 Django Builtin-in Error Emails
 ==============================

@@ -9,7 +9,7 @@ try:
 except:
     pass
 
-# Dirty hack to get version number from django_ses/__init__.py - we can't 
+# Dirty hack to get version number from django_ses/__init__.py - we can't
 # import it as it depends on boto and boto isn't installed until this
 # file is read
 init = os.path.join(os.path.dirname(__file__), 'django_ses', '__init__.py')

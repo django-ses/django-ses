@@ -15,7 +15,6 @@ except:
 init = os.path.join(os.path.dirname(__file__), 'django_ses', '__init__.py')
 version_line = filter(lambda l: l.startswith('__version__'), open(init))[0]
 version = version_line.split('=')[-1].strip().strip("'")
-print version
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',

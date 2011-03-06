@@ -65,7 +65,7 @@ in your ``urls.py``.
 Django Builtin-in Error Emails
 ==============================
 
-If you'd like Django's `Bultin Email Error Reporting`_ to function properly
+If you'd like Django's `Builtin Email Error Reporting`_ to function properly
 (actually send working emails), you'll have to explicitly set the
 ``SERVER_EMAIL`` setting to one of your SES-verified addresses. Otherwise, your
 error emails will all fail and you'll be blissfully unaware of a problem.

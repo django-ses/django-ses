@@ -34,9 +34,9 @@ make sure you get 2.0b4)::
 
     pip install --upgrade boto
 
-Install django-ses (it'll be coming to PyPI before too long)::
+Install django-ses::
 
-    pip install -e git://github.com/hmarr/django-ses#egg=django_ses
+    pip install django-ses
 
 Add the following to your settings.py::
 

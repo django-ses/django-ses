@@ -70,11 +70,13 @@ class SESBackend(BaseEmailBackend):
             num_sent = 0
             for message in email_messages:
                 try:
-                    self.connection.send_raw_email(
+                    response = self.connection.send_raw_email(
                         source=message.from_email,
                         destinations=message.recipients(),
                         raw_message=message.message().as_string(),
                     )
+                    send_result = response['SendRawEmailResponse']['SendRawEmailResult']
+                    message.extra_headers['Message-Id'] = send_result['MessageId']
                     num_sent += 1
                 except SESConnection.ResponseError:
                     if not self.fail_silently:

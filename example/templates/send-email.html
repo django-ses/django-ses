@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form method="post" action="{% url send-email %}">
+        <label for="from">From:</label>
+        <input type="text" name="from" id="from" />
+        <br />
+        <label for="to">To:</label>
+        <input type="text" name="to" id="to" />
+        <br />
+        <label for="subject">Subject:</label>
+        <input type="text" name="subject" id="subject" />
+        <br />
+        <label for="message">Message:</label>
+        <textarea name="message" id="message"></textarea>
+        <br />
+        <label for="message">HTML:</label>
+        <input type="checkbox" name="html-message" id="html-message" />
+        <br />
+        <input type="submit" value="Send Email" />
+    </form>
+{% endblock %} 
+

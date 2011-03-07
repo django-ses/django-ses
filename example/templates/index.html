@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <ul>
+        <li><a href="{% url send-email %}">Send an Email</a></li>
+        <li><a href="{% url django_ses_stats %}">View SES Stats</a></li>
+    </ul>
+{% endblock %}

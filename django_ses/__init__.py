@@ -24,7 +24,6 @@ class SESBackend(BaseEmailBackend):
                                      SESConnection.DefaultHost)
 
         self.connection = None
-        self._lock = threading.RLock()
 
     def open(self):
         """Create a connection to the AWS API server. This can be reused for
@@ -60,31 +59,31 @@ class SESBackend(BaseEmailBackend):
         if not email_messages:
             return
 
-        self._lock.acquire()
-        try:
-            new_conn_created = self.open()
-            if not self.connection:
-                # Failed silently
-                return
+        new_conn_created = self.open()
+        if not self.connection:
+            # Failed silently
+            return
 
-            num_sent = 0
-            for message in email_messages:
-                try:
-                    self.connection.send_raw_email(
-                        source=message.from_email,
-                        destinations=message.recipients(),
-                        raw_message=message.message().as_string(),
-                    )
-                    num_sent += 1
-                except SESConnection.ResponseError:
-                    if not self.fail_silently:
-                        raise
-                    pass
+        num_sent = 0
+        for message in email_messages:
+            try:
+                response = self.connection.send_raw_email(
+                    source=message.from_email,
+                    destinations=message.recipients(),
+                    raw_message=message.message().as_string(),
+                )
+                send_response = response['SendRawEmailResponse']
+                send_result = send_response['SendRawEmailResult']
+                message.extra_headers['Message-Id'] = send_result['MessageId']
 
-            if new_conn_created:
-                self.close()
+                num_sent += 1
+            except SESConnection.ResponseError:
+                if not self.fail_silently:
+                    raise
+                pass
 
-        finally:
-            self._lock.release()
+        if new_conn_created:
+            self.close()
+
         return num_sent
 

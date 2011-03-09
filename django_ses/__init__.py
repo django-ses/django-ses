@@ -1,8 +1,6 @@
 from django.core.mail.backends.base import BaseEmailBackend
 from django.conf import settings
 
-import threading
-
 from boto.ses import SESConnection
 
 
@@ -74,13 +72,17 @@ class SESBackend(BaseEmailBackend):
                 )
                 send_response = response['SendRawEmailResponse']
                 send_result = send_response['SendRawEmailResult']
-                message.extra_headers['Message-Id'] = send_result['MessageId']
-
+                message.extra_headers['status'] = 200
+                message.extra_headers['message_id'] = send_result['MessageId']
+                message.extra_headers['request_id'] = send_result['ResponseMetadata']['RequestId']
                 num_sent += 1
-            except SESConnection.ResponseError:
+            except SESConnection.ResponseError, err:
+                # Store failure information so you can post process it if required
+                error_keys = ['status', 'reason', 'body', 'request_id', 'error_code', 'error_message']
+                for key in error_keys:
+                    message.extra_headers[key] = getattr(err, key, None)
                 if not self.fail_silently:
                     raise
-                pass
 
         if new_conn_created:
             self.close()

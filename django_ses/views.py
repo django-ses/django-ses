@@ -1,20 +1,11 @@
 from boto.ses import SESConnection
 
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-def superuser_only(view_func):
-    """
-    Limit a view to superuser only.
-    """
-    def _inner(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied
-        return view_func(request, *args, **kwargs)
-    return _inner
 
 def stats_to_list(stats_dict):
     """
@@ -66,7 +57,7 @@ def sum_stats(stats_data):
         'Rejects': t_rejects,
     }
 
-@superuser_only
+@user_passes_test(lambda u: u.is_superuser)
 def dashboard(request):
     """
     Graph SES send statistics over time.

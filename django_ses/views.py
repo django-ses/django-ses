@@ -92,6 +92,7 @@ def dashboard(request):
     summary = sum_stats(ordered_data)
 
     extra_context = {
+        'title': 'SES Statistics',
         'datapoints': ordered_data,
         '24hour_quota': quota['Max24HourSend'],
         '24hour_sent': quota['SentLast24Hours'],
@@ -101,6 +102,7 @@ def dashboard(request):
         'summary': summary,
         'access_key': ses_conn.gs_access_key_id,
     }
+    
     response = render_to_response(
         'django_ses/send_stats.html',
         extra_context,

@@ -70,11 +70,9 @@ class SESBackend(BaseEmailBackend):
                     destinations=message.recipients(),
                     raw_message=message.message().as_string(),
                 )
-                send_response = response['SendRawEmailResponse']
-                send_result = send_response['SendRawEmailResult']
                 message.extra_headers['status'] = 200
-                message.extra_headers['message_id'] = send_result['MessageId']
-                message.extra_headers['request_id'] = send_result['ResponseMetadata']['RequestId']
+                message.extra_headers['message_id'] = response['SendRawEmailResponse']['SendRawEmailResult']['MessageId']
+                message.extra_headers['request_id'] = response['SendRawEmailResponse']['ResponseMetadata']['RequestId']
                 num_sent += 1
             except SESConnection.ResponseError, err:
                 # Store failure information so you can post process it if required

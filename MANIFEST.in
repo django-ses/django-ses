@@ -1,5 +1,6 @@
 include AUTHORS
 include LICENSE
 include README.rst
+recursive-include django_ses *
 recursive-include example *
 

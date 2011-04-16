@@ -59,8 +59,8 @@ A very simple read-only report on your quota, verified email addresses and
 sending statistics is included.
 
 If you wish to use the SES sending statistics reports, you must include
-``django_ses`` in your INSTALLED_APPS and you must include ``django_ses.urls``
-in your ``urls.py``.
+``django.contrib.admin``(for templates) and ``django_ses`` in your 
+INSTALLED_APPSand you must include ``django_ses.urls`` in your ``urls.py``.
 
 Django Management Command
 =========================

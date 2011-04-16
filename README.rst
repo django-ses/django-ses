@@ -62,6 +62,15 @@ If you wish to use the SES sending statistics reports, you must include
 ``django_ses`` in your INSTALLED_APPS and you must include ``django_ses.urls``
 in your ``urls.py``.
 
+Django Management Command
+=========================
+
+Manage verified email addresses through the management command.
+
+``./manage.py ses_email_address -l``
+
+To use you must include ``django_ses`` in your INSTALLED_APPS.
+
 Django Builtin-in Error Emails
 ==============================
 

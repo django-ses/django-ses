@@ -137,4 +137,5 @@ setup(
     platforms=['any'],
     classifiers=CLASSIFIERS,
     install_requires=['boto'],
+    include_package_data=True,
 )

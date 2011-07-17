@@ -50,6 +50,16 @@ Add the following to your settings.py::
 Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
+Since SES imposes a rate limit and will reject emails after the limit has been
+reached, django-ses will attempt to conform to the rate limit by querying the
+API for your current limit and then sending no more than that number of
+messages in a two-second period (which is half of the rate limit, just to
+be sure to stay clear of the limit). This is controlled by the following setting:
+
+    AWS_SES_AUTO_THROTTLE = 0.5 # (default; safety factor applied to rate limit)
+    
+To turn off automatic throttling, set this to None.
+
 Check out the ``example`` directory for more information.
 
 SES Stats Report

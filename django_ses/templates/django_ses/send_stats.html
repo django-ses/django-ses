@@ -5,6 +5,40 @@
   <style>table {width: 100%;}</style>
 {% endblock %}
 
+{% block extrahead %}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Time');
+        data.addColumn('number', 'Delivery Attempts');
+        data.addColumn('number', 'Bounces');
+        data.addColumn('number', 'Complaints');
+        data.addColumn('number', 'Rejected');
+        data.addRows({{ datapoints|length }});
+        {% for datapoint in datapoints %}
+            data.setValue({{ forloop.counter0 }}, 0, '{{ datapoint.Timestamp|slice:"11:19" }} {{ datapoint.Timestamp|slice:":10" }}');
+            data.setValue({{ forloop.counter0 }}, 1, {{ datapoint.DeliveryAttempts }});
+            data.setValue({{ forloop.counter0 }}, 2, {{ datapoint.Bounces }});
+            data.setValue({{ forloop.counter0 }}, 3, {{ datapoint.Complaints }});
+            data.setValue({{ forloop.counter0 }}, 4, {{ datapoint.Rejects }});
+        {% endfor %}
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart'));
+        chart.draw(data, {
+            width: 498,
+            height: 300,
+            title: 'Sending Activity',
+            hAxis: {textPosition: 'none'},
+            chartArea: {left:30,top:30,width:460,height:230},
+            legend: 'bottom'
+        });
+      }
+    </script>
+{% endblock %}
+
 {% block bodyclass %}dashboard{% endblock %}
 {% block content_title %}<h1>SES Stats</h1>{% endblock %}
 
@@ -36,7 +70,7 @@
 
     <div class="module">
         <table id="sending_totals">
-            <caption>Sending Totals</caption>
+            <caption>Sending Stats</caption>
             <thead>
                 <tr>
                     <th>Delivery Attempts</th>
@@ -54,32 +88,7 @@
                 </tr>
             </tbody>
         </table>
-    </div>
-
-    <div class="module">
-        <table id="sending_stats">
-            <caption>Sending Activity</caption>
-            <thead>
-            <tr>
-                <th>Delivery Attempts</th>
-                <th>Bounces</th>
-                <th>Complaints</th>
-                <th>Rejected</th>
-                <th>Timestamp</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for datapoint in datapoints %}
-            <tr>
-                <td>{{ datapoint.DeliveryAttempts }}</td>
-                <td>{{ datapoint.Bounces }}</td>
-                <td>{{ datapoint.Complaints }}</td>
-                <td>{{ datapoint.Rejects }}</td>
-                <td>{{ datapoint.Timestamp }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div id="chart"></div>
     </div>
 </div>
 {% endblock %}

@@ -72,6 +72,10 @@ If you wish to use the SES sending statistics reports, you must include
 ``django.contrib.admin``(for templates) and ``django_ses`` in your 
 INSTALLED_APPSand you must include ``django_ses.urls`` in your ``urls.py``.
 
+Additionally, you can install ``pytz`` to localize the Amazon timestamp 
+(assumed UTC) to your locale. This will also make the date more readable,
+using Django's default formatting.
+
 Django Management Command
 =========================
 

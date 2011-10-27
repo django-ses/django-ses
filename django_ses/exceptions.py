@@ -19,7 +19,7 @@ class BlacklistedAddressException(BotoServerError):
         BotoServerError.__init__(self, status=400, reason='Bad Request', body=body, *args)
 
     def __repr__(self):
-        return '%s: %s' % self.__class__.__name__, self.message
+        return '%s: %s' % (self.__class__.__name__, self.message)
 
     def __str__(self):
         return self.__repr__()

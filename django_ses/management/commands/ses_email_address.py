@@ -32,7 +32,9 @@ class Command(BaseCommand):
         access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
         access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
         api_endpoint = getattr(settings, 'AWS_SES_API_HOST',
-                                     SESConnection.DefaultHost)
+                                     '%s.%s' % (
+                                        SESConnection.DefaultRegionName,
+                                        SESConnection.DefaultRegionEndpoint))
         
         connection = SESConnection(
                 aws_access_key_id=access_key_id,

@@ -79,7 +79,9 @@ def dashboard(request):
     ses_conn = SESConnection(
         aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
         aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-        host=getattr(settings, 'AWS_SES_API_HOST', SESConnection.DefaultHost),
+        host=getattr(settings, 'AWS_SES_API_HOST', '%s.%s' % (
+                        SESConnection.DefaultRegionName,
+                        SESConnection.DefaultRegionEndpoint)),
     )
 
     quota_dict = ses_conn.get_send_quota()

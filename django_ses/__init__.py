@@ -18,9 +18,7 @@ class SESBackend(BaseEmailBackend):
 
         self._access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
         self._access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
-        self._api_endpoint = getattr(settings, 'AWS_SES_API_HOST',
-                                     SESConnection.DefaultHost)
-
+        
         self.connection = None
 
     def open(self):
@@ -34,7 +32,6 @@ class SESBackend(BaseEmailBackend):
             self.connection = SESConnection(
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
-                host=self._api_endpoint,
             )
         except:
             if not self.fail_silently:

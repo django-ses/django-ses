@@ -52,6 +52,14 @@ send the messages by default.
 
 Check out the ``example`` directory for more information.
 
+Optional Settings
+=================
+
+Instruct Amazon SES to forward bounced emails and complaints to this email.
+For more information please refer to http://aws.amazon.com/ses/faqs/#38
+
+    SES_RETURN_PATH = 'bounces@example.com'
+
 SES Stats Report
 ================
 

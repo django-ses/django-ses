@@ -64,9 +64,10 @@ class SESBackend(BaseEmailBackend):
 
         num_sent = 0
         for message in email_messages:
+            source = getattr(settings, 'SES_RETURN_PATH', message.from_email)
             try:
                 response = self.connection.send_raw_email(
-                    source=message.from_email,
+                    source=source,
                     destinations=message.recipients(),
                     raw_message=message.message().as_string(),
                 )

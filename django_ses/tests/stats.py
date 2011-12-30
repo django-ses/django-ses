@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from django_ses.views import stats_to_list, quota_parse, sum_stats, emails_parse
+from django_ses.views import (emails_parse, stats_to_list, quota_parse,
+    sum_stats)
 
 # Mock of what boto's SESConnection.get_send_statistics() returns
 STATS_DICT = {

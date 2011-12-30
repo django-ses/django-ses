@@ -14,6 +14,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
+
 def superuser_only(view_func):
     """
     Limit a view to superuser only.
@@ -24,10 +25,11 @@ def superuser_only(view_func):
         return view_func(request, *args, **kwargs)
     return _inner
 
+
 def stats_to_list(stats_dict):
     """
-    Parse the output of ``SESConnection.get_send_statistics()`` in to an ordered
-    list of 15-minute summaries.
+    Parse the output of ``SESConnection.get_send_statistics()`` in to an
+    ordered list of 15-minute summaries.
     """
     result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
     datapoints = []
@@ -47,21 +49,25 @@ def stats_to_list(stats_dict):
 
     return datapoints
 
+
 def quota_parse(quota_dict):
     """
     Parse the output of ``SESConnection.get_send_quota()`` to just the results.
     """
     return quota_dict['GetSendQuotaResponse']['GetSendQuotaResult']
 
+
 def emails_parse(emails_dict):
     """
     Parse the output of ``SESConnection.list_verified_emails()`` and get
     a list of emails.
     """
-    result = emails_dict['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']
+    result = emails_dict['ListVerifiedEmailAddressesResponse'][
+        'ListVerifiedEmailAddressesResult']
     emails = [email for email in result['VerifiedEmailAddresses']]
 
     return sorted(emails)
+
 
 def sum_stats(stats_data):
     """
@@ -84,6 +90,7 @@ def sum_stats(stats_data):
         'DeliveryAttempts': t_delivery_attempts,
         'Rejects': t_rejects,
     }
+
 
 @superuser_only
 def dashboard(request):
@@ -120,18 +127,19 @@ def dashboard(request):
         'datapoints': ordered_data,
         '24hour_quota': quota['Max24HourSend'],
         '24hour_sent': quota['SentLast24Hours'],
-        '24hour_remaining': float(quota['Max24HourSend']) - float(quota['SentLast24Hours']),
+        '24hour_remaining': float(quota['Max24HourSend']) -
+                            float(quota['SentLast24Hours']),
         'persecond_rate': quota['MaxSendRate'],
         'verified_emails': verified_emails,
         'summary': summary,
         'access_key': ses_conn.gs_access_key_id,
         'local_time': True if pytz else False,
     }
-    
+
     response = render_to_response(
         'django_ses/send_stats.html',
         extra_context,
         context_instance=RequestContext(request))
 
-    cache.set(cache_key, response, 60*15) # Cache for 15 minutes
+    cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response

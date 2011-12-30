@@ -114,11 +114,15 @@ Full List of Settings
 =====================
 
 ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``
-  Your API keys from Amazon SES.
+  *Required.* Your API keys from Amazon SES.
 
 ``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
   Optionally specify what region your SES service is using. Details:
   http://readthedocs.org/docs/boto/en/latest/ref/ses.html#boto.ses.regions
+
+``AWS_SES_RETURN_PATH``
+  Instruct Amazon SES to forward bounced emails and complaints to this email.
+  For more information please refer to http://aws.amazon.com/ses/faqs/#38
 
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:

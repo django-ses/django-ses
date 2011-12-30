@@ -7,7 +7,7 @@ from boto.ses import SESConnection
 from datetime import datetime, timedelta
 from time import sleep
 
-__version__ = '0.1'
+__version__ = '0.2.1_pre'
 __author__ = 'Harry Marr'
 __all__ = ('SESBackend',)
 
@@ -79,6 +79,7 @@ class SESBackend(BaseEmailBackend):
             return
 
         num_sent = 0
+        source = getattr(settings, 'AWS_SES_RETURN_PATH', None)
         for message in email_messages:
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a
@@ -125,7 +126,7 @@ class SESBackend(BaseEmailBackend):
 
             try:
                 response = self.connection.send_raw_email(
-                    source=message.from_email,
+                    source=source or message.from_email,
                     destinations=message.recipients(),
                     raw_message=message.message().as_string(),
                 )

@@ -31,13 +31,10 @@ class Command(BaseCommand):
         
         access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
         access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
-        api_endpoint = getattr(settings, 'AWS_SES_API_HOST',
-                                     SESConnection.DefaultHost)
         
         connection = SESConnection(
                 aws_access_key_id=access_key_id,
                 aws_secret_access_key=access_key,
-                host=api_endpoint,
             )
         
         if add_email:
@@ -55,4 +52,3 @@ class Command(BaseCommand):
             emails = response['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
             for email in emails:
                 print email
-        

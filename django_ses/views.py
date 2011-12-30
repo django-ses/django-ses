@@ -1,4 +1,11 @@
+from datetime import datetime
+
 from boto.ses import SESConnection
+try:
+    import pytz
+except ImportError:
+    pytz = None
+
 
 from django.conf import settings
 from django.core.cache import cache
@@ -22,7 +29,18 @@ def stats_to_list(stats_dict):
     list of 15-minute summaries.
     """
     result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
-    datapoints = [dp for dp in result['SendDataPoints']]
+    datapoints = []
+    if pytz:
+        current_tz = pytz.timezone(settings.TIME_ZONE)
+    else:
+        current_tz = None
+    for dp in result['SendDataPoints']:
+        if current_tz:
+            utc_dt = datetime.strptime(dp['Timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+            utc_dt = pytz.utc.localize(utc_dt)
+            dp['Timestamp'] = current_tz.normalize(
+                utc_dt.astimezone(current_tz))
+        datapoints.append(dp)
 
     datapoints.sort(key=lambda x: x['Timestamp'])
 
@@ -101,6 +119,7 @@ def dashboard(request):
         'verified_emails': verified_emails,
         'summary': summary,
         'access_key': ses_conn.gs_access_key_id,
+        'local_time': True if pytz else False,
     }
     
     response = render_to_response(

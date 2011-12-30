@@ -26,11 +26,11 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 
 Getting going
 =============
-Assuming you've got Django_ installed, you'll need Boto_ 2.0b4 or higher. Boto_
+Assuming you've got Django_ installed, you'll need Boto_ 2.1.0 or higher. Boto_
 is a Python library that wraps the AWS API.
 
-You can do the following to install boto 2.0b4 (we're using --upgrade here to
-make sure you get 2.0b4)::
+You can do the following to install boto 2.1.0 (we're using --upgrade here to
+make sure you get 2.1.0)::
 
     pip install --upgrade boto
 
@@ -106,9 +106,12 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
 
+Requirements
+============
+django-ses requires boto version 2.1.0 or later.
 
 Full List of Settings
-==============================
+=====================
 
 ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``
   Your API keys from Amazon SES.

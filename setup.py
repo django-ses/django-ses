@@ -136,6 +136,6 @@ setup(
     long_description=LONG_DESCRIPTION,
     platforms=['any'],
     classifiers=CLASSIFIERS,
-    install_requires=['boto'],
+    install_requires=['boto>=2.1.0'],
     include_package_data=True,
 )

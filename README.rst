@@ -47,6 +47,10 @@ Add the following to your settings.py::
     AWS_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
     AWS_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
 
+    # Additionally, you can specify an optional region, like so:
+    AWS_SES_REGION_NAME = 'us-east-1'
+    AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+
 Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
@@ -101,3 +105,18 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
+
+
+Full List of Settings
+==============================
+
+``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``
+  Your API keys from Amazon SES.
+
+``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
+  Optionally specify what region your SES service is using. Details:
+  http://readthedocs.org/docs/boto/en/latest/ref/ses.html#boto.ses.regions
+
+``TIME_ZONE``
+  Default Django setting, optionally set this. Details:
+  https://docs.djangoproject.com/en/dev/ref/settings/#time-zone

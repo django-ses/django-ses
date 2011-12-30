@@ -1,6 +1,7 @@
 from django.core.mail.backends.base import BaseEmailBackend
 from django.conf import settings
 
+from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
 from datetime import datetime, timedelta
@@ -27,6 +28,11 @@ class SESBackend(BaseEmailBackend):
 
         self._access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
         self._access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        self._region = RegionInfo(
+            name=getattr(settings, 'AWS_SES_REGION_NAME',
+                SESConnection.DefaultRegionName),
+            endpoint=getattr(settings, 'AWS_SES_REGION_ENDPOINT',
+                SESConnection.DefaultRegionEndpoint))
         self._throttle = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
 
         self.connection = None
@@ -42,6 +48,7 @@ class SESBackend(BaseEmailBackend):
             self.connection = SESConnection(
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
+                region=self._region,
             )
         except:
             if not self.fail_silently:

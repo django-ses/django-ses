@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from boto.ses import SESConnection
 try:
     import pytz
 except ImportError:
     pytz = None
 
+from boto.regioninfo import RegionInfo
+from boto.ses import SESConnection
 
 from django.conf import settings
 from django.core.cache import cache
@@ -94,10 +95,16 @@ def dashboard(request):
     if cached_view:
         return cached_view
 
+    region = RegionInfo(
+        name=getattr(settings, 'AWS_SES_REGION_NAME',
+            SESConnection.DefaultRegionName),
+        endpoint=getattr(settings, 'AWS_SES_REGION_ENDPOINT',
+            SESConnection.DefaultRegionEndpoint))
+
     ses_conn = SESConnection(
         aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
         aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-    )
+        region=region)
 
     quota_dict = ses_conn.get_send_quota()
     verified_emails_dict = ses_conn.list_verified_email_addresses()

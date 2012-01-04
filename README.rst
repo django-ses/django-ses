@@ -128,3 +128,9 @@ Full List of Settings
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
+
+Running Tests
+=============
+To run the tests (valid ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` needed)::
+
+    python manage.py test django_ses

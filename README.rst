@@ -131,6 +131,6 @@ Full List of Settings
 
 Running Tests
 =============
-To run the tests (valid ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` needed)::
+To run the tests::
 
     python manage.py test django_ses

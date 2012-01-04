@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 
 try:
@@ -26,21 +27,23 @@ def superuser_only(view_func):
     return _inner
 
 
-def stats_to_list(stats_dict):
+def stats_to_list(stats_dict, localize=pytz):
     """
     Parse the output of ``SESConnection.get_send_statistics()`` in to an
     ordered list of 15-minute summaries.
     """
     result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
+    # Make a copy, so we don't change the original stats_dict.
+    result = copy.deepcopy(result)
     datapoints = []
-    if pytz:
-        current_tz = pytz.timezone(settings.TIME_ZONE)
+    if localize:
+        current_tz = localize.timezone(settings.TIME_ZONE)
     else:
         current_tz = None
     for dp in result['SendDataPoints']:
         if current_tz:
             utc_dt = datetime.strptime(dp['Timestamp'], '%Y-%m-%dT%H:%M:%SZ')
-            utc_dt = pytz.utc.localize(utc_dt)
+            utc_dt = localize.utc.localize(utc_dt)
             dp['Timestamp'] = current_tz.normalize(
                 utc_dt.astimezone(current_tz))
         datapoints.append(dp)

@@ -62,7 +62,7 @@ messages in a two-second period (which is half of the rate limit, just to
 be sure to stay clear of the limit). This is controlled by the following setting:
 
     AWS_SES_AUTO_THROTTLE = 0.5 # (default; safety factor applied to rate limit)
-    
+
 To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
@@ -74,10 +74,10 @@ A very simple read-only report on your quota, verified email addresses and
 sending statistics is included.
 
 If you wish to use the SES sending statistics reports, you must include
-``django.contrib.admin``(for templates) and ``django_ses`` in your 
+``django.contrib.admin``(for templates) and ``django_ses`` in your
 INSTALLED_APPSand you must include ``django_ses.urls`` in your ``urls.py``.
 
-Additionally, you can install ``pytz`` to localize the Amazon timestamp 
+Additionally, you can install ``pytz`` to localize the Amazon timestamp
 (assumed UTC) to your locale. This will also make the date more readable,
 using Django's default formatting.
 
@@ -128,6 +128,19 @@ Full List of Settings
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
+
+Contributing
+============
+If you'd like to fix a bug, add a feature, etc
+
+    1. *Start by opening an issue.* Be explicit so that project collaborators
+    can understand and reproduce the issue, or decide whether the feature
+    falls within the project's goals. Code examples can be useful, too.
+    2. *File a pull request.* You may write a prototype or suggested fix.
+    3. *Check your code for errors, complaints.* Use check.py:
+    https://github.com/jbalogh/check
+    4. *Write and run tests.* Write your own test showing the issue has been
+    resolved, or the feature works as intended.
 
 Running Tests
 =============

@@ -1,4 +1,4 @@
-from unittest import TestCase
+from django.test import TestCase
 
 from django_ses.views import (emails_parse, stats_to_list, quota_parse,
     sum_stats)
@@ -149,7 +149,7 @@ class StatParsingTest(TestCase):
                 u'Timestamp': u'2011-03-01T13:20:00Z',
             },
         ]
-        actual = stats_to_list(self.stats_dict)
+        actual = stats_to_list(self.stats_dict, localize=False)
 
         self.assertEqual(len(actual), len(expected_list))
         self.assertEqual(actual, expected_list)

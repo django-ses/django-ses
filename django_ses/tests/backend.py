@@ -11,7 +11,7 @@ from boto.ses import SESConnection
 class FakeSESConnection(SESConnection):
     '''
     A fake SES connection for testing purposes.It behaves similarly
-    to django's dummy backend 
+    to django's dummy backend
     (https://docs.djangoproject.com/en/dev/topics/email/#dummy-backend)
 
     Emails sent with send_raw_email is stored in ``outbox`` attribute
@@ -21,7 +21,6 @@ class FakeSESConnection(SESConnection):
 
     def __init__(self, *args, **kwargs):
         pass
-
 
     def send_raw_email(self, **kwargs):
         self.outbox.append(kwargs)
@@ -43,7 +42,7 @@ class FakeSESBackend(django_ses.SESBackend):
     A fake SES backend for testing purposes. It overrides the real SESBackend's
     get_rate_limit method so we can run tests without valid AWS credentials.
     '''
-    
+
     def get_rate_limit(self):
         return 10
 
@@ -67,7 +66,7 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
-    
+
     def test_return_path(self):
         '''
         Ensure that the 'source' argument sent into send_raw_email uses

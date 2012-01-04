@@ -1,1 +1,2 @@
 from backend import SESBackendTest
+from commands import SESCommandTest

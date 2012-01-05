@@ -75,14 +75,38 @@ Django SES comes with two ways of viewing sending statistics.
 The first one is a simple read-only report on your 24 hour sending quota,
 verified email addresses and bi-weekly sending statistics.
 
-If you wish to use the SES sending statistics reports, you must include
-``django.contrib.admin``(for templates) and ``django_ses`` in your
-INSTALLED_APPS and you must include ``django_ses.urls`` in your ``urls.py``.
+To generate and view SES sending statistics reports, include, update
+``INSTALLED_APPS``:
 
-Additionally, you can install ``pytz`` to localize the Amazon timestamp
+    INSTALLED_APPS = (
+        # ...
+        'django.contrib.admin',
+        'django_ses',
+        # ...
+    )
+
+... and ``urls.py``:
+
+    urlpatterns += (url(r'^admin/django-ses/', include('django_ses.urls')),)
+
+*Optional enhancements to stats:*
+
+
+Localized datetime in the stats dashboard
+-----------------------------------------
+You can install ``pytz`` to localize the Amazon timestamp
 (assumed UTC) to your locale. This will also make the date more readable,
 using Django's default formatting.
 
+Link the dashboard from the admin
+---------------------------------
+You can use adminplus for this (https://github.com/jsocol/django-adminplus):
+
+    from django_ses.views import dashboard
+    admin.site.register_view('django-ses', dashboard, 'Django SES Stats')
+
+Store daily stats
+-----------------
 If you need to keep send statistics around for longer than two weeks,
 django-ses also comes with a model that lets you store these. To use this
 feature you'll need to first run ``syncdb``:

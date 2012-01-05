@@ -7,7 +7,8 @@ from boto.ses import SESConnection
 from datetime import datetime, timedelta
 from time import sleep
 
-__version__ = '0.2.1_pre'
+VERSION = (0, 2)
+__version__ = '.'.join([str(x) for x in VERSION])
 __author__ = 'Harry Marr'
 __all__ = ('SESBackend',)
 

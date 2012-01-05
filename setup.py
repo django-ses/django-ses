@@ -95,7 +95,7 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
     return out
 
 
-excluded_directories = standard_exclude_directories + ["example", "test"]
+excluded_directories = standard_exclude_directories + ["example", "tests"]
 package_data = find_package_data(exclude_directories=excluded_directories)
 
 DESCRIPTION = "A Django email backend for Amazon's Simple Email Service"

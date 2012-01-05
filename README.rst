@@ -76,7 +76,7 @@ The first one is a simple read-only report on your 24 hour sending quota,
 verified email addresses and bi-weekly sending statistics.
 
 To generate and view SES sending statistics reports, include, update
-``INSTALLED_APPS``:
+``INSTALLED_APPS``::
 
     INSTALLED_APPS = (
         # ...
@@ -85,7 +85,7 @@ To generate and view SES sending statistics reports, include, update
         # ...
     )
 
-... and ``urls.py``:
+... and ``urls.py``::
 
     urlpatterns += (url(r'^admin/django-ses/', include('django_ses.urls')),)
 

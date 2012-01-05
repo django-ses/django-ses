@@ -83,7 +83,7 @@ Additionally, you can install ``pytz`` to localize the Amazon timestamp
 (assumed UTC) to your locale. This will also make the date more readable,
 using Django's default formatting.
 
-If you need to keep sending statistics around for longer than two weeks,
+If you need to keep send statistics around for longer than two weeks,
 django-ses also comes with a model that lets you store these. To use this
 feature you'll need to first run ``syncdb``:
 

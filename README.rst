@@ -67,28 +67,57 @@ To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
 
-SES Stats Report
-================
+SES Sending Stats 
+=================
 
-A very simple read-only report on your quota, verified email addresses and
-sending statistics is included.
+Django SES comes with two ways of viewing sending statistics.
+
+The first one is a simple read-only report on your 24 hour sending quota,
+verified email addresses and bi-weekly sending statistics.
 
 If you wish to use the SES sending statistics reports, you must include
 ``django.contrib.admin``(for templates) and ``django_ses`` in your
-INSTALLED_APPSand you must include ``django_ses.urls`` in your ``urls.py``.
+INSTALLED_APPS and you must include ``django_ses.urls`` in your ``urls.py``.
 
 Additionally, you can install ``pytz`` to localize the Amazon timestamp
 (assumed UTC) to your locale. This will also make the date more readable,
 using Django's default formatting.
 
-Django Management Command
-=========================
+If you need to keep send statistics around for longer than two weeks,
+django-ses also comes with a model that lets you store these. To use this
+feature you'll need to first run ``syncdb``:
+
+    python manage.py syncdb
+
+To collect the statistics, run the ``get_ses_statistics`` management command
+(refer to next section for details). After running this command the statistics
+will be viewable via ``/admin/django_ses/``.
+
+Django SES Management Commands
+==============================
+
+To use these you must include ``django_ses`` in your INSTALLED_APPS.
+
+Managing Verified Email Addresses
+---------------------------------
 
 Manage verified email addresses through the management command.
 
-``./manage.py ses_email_address -l``
+    python manage.py ses_email_address -l
 
-To use you must include ``django_ses`` in your INSTALLED_APPS.
+
+Collecting Sending Statistics
+-----------------------------
+
+To collect and store SES sending statistics in the database, run:
+
+    python manage.py get_ses_statistics
+
+Sending statistics are aggregated daily (UTC time). Stats for the latest day
+(when you run the command) may be inaccurate if run before end of day (UTC).
+If you want to keep your statistics up to date, setup ``cron`` to run this
+command a short time after midnight (UTC) daily.
+
 
 Django Builtin-in Error Emails
 ==============================

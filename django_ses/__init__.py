@@ -7,6 +7,8 @@ from boto.ses import SESConnection
 from datetime import datetime, timedelta
 from time import sleep
 
+
+# When changing this, remember to change it in setup.py
 VERSION = (0, 2)
 __version__ = '.'.join([str(x) for x in VERSION])
 __author__ = 'Harry Marr'

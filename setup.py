@@ -106,13 +106,6 @@ try:
 except:
     pass
 
-# Dirty hack to get version number from django_ses/__init__.py - we can't
-# import it as it depends on boto and boto isn't installed until this
-# file is read
-init = os.path.join(os.path.dirname(__file__), 'django_ses', '__init__.py')
-version_line = filter(lambda l: l.startswith('__version__'), open(init))[0]
-VERSION = version_line.split('=')[-1].strip().strip("'")
-
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -125,7 +118,7 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version=VERSION,
+    version='0.2',  # When changing this, remember to change it in __init__.py
     packages=find_packages(),
     package_data=package_data,
     author='Harry Marr',

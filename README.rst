@@ -186,14 +186,20 @@ Contributing
 ============
 If you'd like to fix a bug, add a feature, etc
 
-    1. *Start by opening an issue.* Be explicit so that project collaborators
-    can understand and reproduce the issue, or decide whether the feature
-    falls within the project's goals. Code examples can be useful, too.
-    2. *File a pull request.* You may write a prototype or suggested fix.
-    3. *Check your code for errors, complaints.* Use check.py:
-    https://github.com/jbalogh/check
-    4. *Write and run tests.* Write your own test showing the issue has been
-    resolved, or the feature works as intended.
+#. Start by opening an issue.
+    Be explicit so that project collaborators can understand and reproduce the
+    issue, or decide whether the feature falls within the project's goals.
+    Code examples can be useful, too.
+
+#. File a pull request.
+    You may write a prototype or suggested fix.
+
+#. Check your code for errors, complaints.
+    Use `check.py <https://github.com/jbalogh/check>`_
+
+#. Write and run tests.
+    Write your own test showing the issue has been resolved, or the feature
+    works as intended.
 
 Running Tests
 =============

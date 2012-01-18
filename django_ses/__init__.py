@@ -23,6 +23,28 @@ cached_rate_limits = {}
 recent_send_times = []
 
 
+def dkim_sign(message):
+    """Return signed email message if dkim package and settings are available."""
+    try:
+        import dkim
+    except ImportError:
+        pass
+    else:
+        dkim_domain = getattr(settings, 'DKIM_DOMAIN', None)
+        dkim_key = getattr(settings, 'DKIM_PRIVATE_KEY', None)
+        dkim_selector = getattr(settings, 'DKIM_SELECTOR', 'ses')
+        dkim_headers = getattr(settings, 'DKIM_HEADERS',
+                                ('From', 'To', 'Cc', 'Subject'))
+        if dkim_domain and dkim_key:
+            sig = dkim.sign(message,
+                            dkim_selector,
+                            dkim_domain,
+                            dkim_key,
+                            include_headers=dkim_headers)
+            message = sig + message
+    return message
+
+
 class SESBackend(BaseEmailBackend):
     """A Django Email backend that uses Amazon's Simple Email Service.
     """
@@ -131,7 +153,7 @@ class SESBackend(BaseEmailBackend):
                 response = self.connection.send_raw_email(
                     source=source or message.from_email,
                     destinations=message.recipients(),
-                    raw_message=message.message().as_string(),
+                    raw_message=dkim_sign(message.message().as_string())
                 )
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response[

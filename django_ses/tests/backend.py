@@ -8,6 +8,21 @@ import django_ses
 from boto.ses import SESConnection
 
 
+# random key generated with `openssl genrsa 512`
+DKIM_PRIVATE_KEY = '''
+-----BEGIN RSA PRIVATE KEY-----
+MIIBOwIBAAJBALCKsjD8UUxBESo1OLN6gptp1lD0U85AgXGL571/SQ3k61KhAQ8h
+hL3lnfQKn/XCl2oCXscEwgJv43IUs+VETWECAwEAAQJAQ8XK6GFEuHhWJZTu4n/K
+ee0keEmDjq9WwgdKfIXLvsgaaNxCObhzv7G5rPU+U/3z1/0CtGR+DOPgoiaI/5HM
+XQIhAN4h+o2WzRrz+dD/+zMGC9h1KEFvukIoP62kLOxW0eg/AiEAy3VD+UkRni4H
+6UEJgCe0oZIiBCxj12/wUHFj1cfJYl8CICsndsGjFl2yIEpWMLsM5ag7uoJb7leD
+8jsNthyEEWuJAiEAjeF6w26HEK286pZmD66gskN74TkrbuMqzI4mNsCZ2TUCIQCJ
+HuuR7wc0HJ/cfVi8Kgm5B+sHY9/7KDWAYGGnbGgCNA==
+-----END RSA PRIVATE KEY-----
+'''
+DKIM_PUBLIC_KEY = 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALCKsjD8UUxBESo1OLN6gptp1lD0U85AgXGL571/SQ3k61KhAQ8hhL3lnfQKn/XCl2oCXscEwgJv43IUs+VETWECAwEAAQ=='
+
+
 class FakeSESConnection(SESConnection):
     '''
     A fake SES connection for testing purposes.It behaves similarly
@@ -66,6 +81,33 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
+
+    def test_dkim_mail(self):
+        # DKIM verification uses DNS to retrieve the public key when checking
+        # the signature, so we need to replace the standard query response with
+        # one that always returns the test key.
+        try:
+            import dkim
+            import dns
+        except ImportError:
+            return
+
+        def dns_query(qname, rdtype):
+            name = dns.name.from_text(qname)
+            response = dns.message.from_text(
+                    'id 1\n;ANSWER\n%s 60 IN TXT "v=DKIM1; p=%s"' %\
+                            (qname, DKIM_PUBLIC_KEY))
+            return dns.resolver.Answer(name, rdtype, 1, response)
+        dns.resolver.query = dns_query
+
+        settings.DKIM_DOMAIN = 'example.com'
+        settings.DKIM_PRIVATE_KEY = DKIM_PRIVATE_KEY
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()['raw_message']
+        self.assertTrue(dkim.verify(message))
+        self.assertFalse(dkim.verify(message + 'some additional text'))
+        self.assertFalse(dkim.verify(
+                            message.replace('from@example.com', 'from@spam.com')))
 
     def test_return_path(self):
         '''

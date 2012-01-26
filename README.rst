@@ -182,6 +182,14 @@ Full List of Settings
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
 
+``DKIM_DOMAIN``, ``DKIM_PRIVATE_KEY``
+  Optional.  If these settings are defined and the pydkim_ module is installed
+  then email messages will be signed with the specified key.   You will also
+  need to publish your public key on DNS; the selector is set to ``ses`` by
+  default.  See http://dkim.org/ for further detail.
+
+.. _pydkim: http://hewgill.com/pydkim/
+
 Contributing
 ============
 If you'd like to fix a bug, add a feature, etc

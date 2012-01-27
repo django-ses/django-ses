@@ -67,6 +67,47 @@ To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
 
+DKIM
+====
+
+Using DomainKeys_ is entirely optional, however it is recommended by Amazon for
+authenticating your email address and improving delivery success rate.  See
+http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/DKIM.html.
+Besides authentication, you might also want to consider using DKIM in order to
+remove the `via email-bounces.amazonses.com` message shown to gmail users - 
+see http://support.google.com/mail/bin/answer.py?hl=en&answer=1311182.
+
+To enable DKIM signing you should install the pydkim_ package and specify values
+for the ``DKIM_PRIVATE_KEY`` and ``DKIM_DOMAIN`` settings.  You can generate a
+private key with a command such as ``openssl genrsa 512`` and get the public key
+portion with ``openssl rsa -pubout <private.key``.  The public key should be
+published to ``ses._domainkey.example.com`` if your domain is example.com.  You 
+can use a different name instead of ``ses`` by changing the ``DKIM_SELECTOR``
+setting.
+
+The SES relay will modify email headers such as `Date` and `Message-Id` so by
+default only the `From`, `To`, `Cc`, `Subject` headers are signed, not the full
+set of headers.  This is sufficient for most DKIM validators but can be overridden
+with the ``DKIM_HEADERS`` setting.
+
+
+Example settings.py::
+
+   DKIM_DOMAIN = 'example.com'
+   DKIM_PRIVATE_KEY = '''
+   -----BEGIN RSA PRIVATE KEY-----
+   xxxxxxxxxxx
+   -----END RSA PRIVATE KEY-----
+   '''
+
+Example DNS record published to Route53 with boto:
+
+   route53 add_record ZONEID ses._domainkey.example.com. TXT '"v=DKIM1; p=xxx"' 86400
+
+
+.. _DomainKeys: http://dkim.org/
+
+
 SES Sending Stats 
 =================
 
@@ -181,6 +222,14 @@ Full List of Settings
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
+
+``DKIM_DOMAIN``, ``DKIM_PRIVATE_KEY``
+  Optional.  If these settings are defined and the pydkim_ module is installed
+  then email messages will be signed with the specified key.   You will also
+  need to publish your public key on DNS; the selector is set to ``ses`` by
+  default.  See http://dkim.org/ for further detail.
+
+.. _pydkim: http://hewgill.com/pydkim/
 
 Contributing
 ============

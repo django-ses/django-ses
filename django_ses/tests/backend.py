@@ -121,3 +121,4 @@ class SESBackendTest(TestCase):
         settings.AWS_SES_RETURN_PATH = 'return@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['source'], 'return@example.com')
+

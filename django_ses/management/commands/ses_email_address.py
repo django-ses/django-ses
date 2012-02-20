@@ -5,8 +5,9 @@ from optparse import make_option
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
+
+from django_ses import settings
 
 
 class Command(BaseCommand):
@@ -31,13 +32,11 @@ class Command(BaseCommand):
         delete_email = options.get('delete', False)
         list_emails = options.get('list', False)
 
-        access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
-        access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        access_key_id = settings.AWS_ACCESS_KEY_ID
+        access_key = settings.AWS_SECRET_ACCESS_KEY
         region = RegionInfo(
-            name=getattr(settings, 'AWS_SES_REGION_NAME',
-                SESConnection.DefaultRegionName),
-            endpoint=getattr(settings, 'AWS_SES_REGION_ENDPOINT',
-                SESConnection.DefaultRegionEndpoint))
+            name=settings.AWS_SES_REGION_NAME,
+            endpoint=settings.AWS_SES_REGION_ENDPOINT)
 
         connection = SESConnection(
                 aws_access_key_id=access_key_id,

@@ -1,5 +1,5 @@
 from django.core.mail.backends.base import BaseEmailBackend
-from django.conf import settings
+from django_ses import settings
 
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
@@ -30,11 +30,10 @@ def dkim_sign(message):
     except ImportError:
         pass
     else:
-        dkim_domain = getattr(settings, 'DKIM_DOMAIN', None)
-        dkim_key = getattr(settings, 'DKIM_PRIVATE_KEY', None)
-        dkim_selector = getattr(settings, 'DKIM_SELECTOR', 'ses')
-        dkim_headers = getattr(settings, 'DKIM_HEADERS',
-                                ('From', 'To', 'Cc', 'Subject'))
+        dkim_domain = settings.DKIM_DOMAIN
+        dkim_key = settings.DKIM_PRIVATE_KEY
+        dkim_selector = settings.DKIM_SELECTOR
+        dkim_headers = settings.DKIM_HEADERS
         if dkim_domain and dkim_key:
             sig = dkim.sign(message,
                             dkim_selector,
@@ -53,14 +52,12 @@ class SESBackend(BaseEmailBackend):
         super(SESBackend, self).__init__(fail_silently=fail_silently, *args,
                                          **kwargs)
 
-        self._access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
-        self._access_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        self._access_key_id = settings.AWS_ACCESS_KEY_ID
+        self._access_key = settings.AWS_SECRET_ACCESS_KEY
         self._region = RegionInfo(
-            name=getattr(settings, 'AWS_SES_REGION_NAME',
-                SESConnection.DefaultRegionName),
-            endpoint=getattr(settings, 'AWS_SES_REGION_ENDPOINT',
-                SESConnection.DefaultRegionEndpoint))
-        self._throttle = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
+            name=settings.AWS_SES_REGION_NAME,
+            endpoint=settings.AWS_SES_REGION_ENDPOINT)
+        self._throttle = settings.AWS_SES_AUTO_THROTTLE
 
         self.connection = None
 
@@ -104,7 +101,7 @@ class SESBackend(BaseEmailBackend):
             return
 
         num_sent = 0
-        source = getattr(settings, 'AWS_SES_RETURN_PATH', None)
+        source = settings.AWS_SES_RETURN_PATH
         for message in email_messages:
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a

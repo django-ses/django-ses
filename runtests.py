@@ -11,7 +11,9 @@ kick off the test suite.
 # run the test suite.  Note that Django requires that the
 # `DATABASES` value be present and configured in order to
 # do anything.
+
 from django.conf import settings
+
 settings.configure(
     INSTALLED_APPS=[
         "django_ses",

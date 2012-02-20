@@ -9,12 +9,12 @@ except ImportError:
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
+from django_ses import settings
 
 def superuser_only(view_func):
     """
@@ -106,14 +106,12 @@ def dashboard(request):
         return cached_view
 
     region = RegionInfo(
-        name=getattr(settings, 'AWS_SES_REGION_NAME',
-            SESConnection.DefaultRegionName),
-        endpoint=getattr(settings, 'AWS_SES_REGION_ENDPOINT',
-            SESConnection.DefaultRegionEndpoint))
+        name=settings.AWS_SES_REGION_NAME,
+        endpoint=settings.AWS_SES_REGION_ENDPOINT)
 
     ses_conn = SESConnection(
-        aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-        aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region=region)
 
     quota_dict = ses_conn.get_send_quota()

@@ -52,8 +52,8 @@ class SESBackend(BaseEmailBackend):
         super(SESBackend, self).__init__(fail_silently=fail_silently, *args,
                                          **kwargs)
 
-        self._access_key_id = settings.AWS_ACCESS_KEY_ID
-        self._access_key = settings.AWS_SECRET_ACCESS_KEY
+        self._access_key_id = settings.ACCESS_KEY
+        self._access_key = settings.SECRET_KEY
         self._region = RegionInfo(
             name=settings.AWS_SES_REGION_NAME,
             endpoint=settings.AWS_SES_REGION_ENDPOINT)

@@ -30,8 +30,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         connection = SESConnection(
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            aws_access_key_id=settings.ACCESS_KEY,
+            aws_secret_access_key=settings.SECRET_KEY,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)

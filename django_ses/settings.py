@@ -6,8 +6,11 @@ __all__ = ('ACCESS_KEY', 'SECRET_KEY', 'AWS_SES_REGION_NAME',
         'AWS_SES_RETURN_PATH', 'DKIM_DOMAIN', 'DKIM_PRIVATE_KEY',
         'DKIM_SELECTOR', 'DKIM_HEADERS', 'TIME_ZONE')
 
-AWS_ACCESS_KEY_ID = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
-AWS_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+ACCESS_KEY = getattr(settings, 'AWS_SES_ACCESS_KEY_ID',
+    getattr(settings, 'AWS_ACCESS_KEY_ID', None))
+
+SECRET_KEY = getattr(settings, 'AWS_SES_SECRET_ACCESS_KEY',
+    getattr(settings, 'AWS_SECRET_ACCESS_KEY', None))
 
 AWS_SES_REGION_NAME = getattr(settings, 'AWS_SES_REGION_NAME',
     SESConnection.DefaultRegionName),

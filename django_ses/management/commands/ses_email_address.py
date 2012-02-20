@@ -32,8 +32,8 @@ class Command(BaseCommand):
         delete_email = options.get('delete', False)
         list_emails = options.get('list', False)
 
-        access_key_id = settings.AWS_ACCESS_KEY_ID
-        access_key = settings.AWS_SECRET_ACCESS_KEY
+        access_key_id = settings.ACCESS_KEY
+        access_key = settings.SECRET_KEY
         region = RegionInfo(
             name=settings.AWS_SES_REGION_NAME,
             endpoint=settings.AWS_SES_REGION_ENDPOINT)

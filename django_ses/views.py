@@ -110,8 +110,8 @@ def dashboard(request):
         endpoint=settings.AWS_SES_REGION_ENDPOINT)
 
     ses_conn = SESConnection(
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=settings.ACCESS_KEY,
+        aws_secret_access_key=settings.SECRET_KEY,
         region=region)
 
     quota_dict = ses_conn.get_send_quota()

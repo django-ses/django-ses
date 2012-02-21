@@ -27,4 +27,3 @@ DKIM_HEADERS = getattr(settings, 'DKIM_HEADERS',
                         ('From', 'To', 'Cc', 'Subject'))
 
 TIME_ZONE = settings.TIME_ZONE
-

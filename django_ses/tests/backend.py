@@ -1,12 +1,14 @@
 import email
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.test import TestCase
 
-import django_ses
 from boto.ses import SESConnection
 
+import django_ses
+from django_ses import settings
+from django_ses.tests.utils import unload_django_ses
 
 # random key generated with `openssl genrsa 512`
 DKIM_PRIVATE_KEY = '''
@@ -63,9 +65,9 @@ class FakeSESBackend(django_ses.SESBackend):
 
 
 class SESBackendTest(TestCase):
-
     def setUp(self):
-        settings.EMAIL_BACKEND = 'django_ses.tests.backend.FakeSESBackend'
+        # TODO: Fix this -- this is going to cause side effects
+        django_settings.EMAIL_BACKEND = 'django_ses.tests.backend.FakeSESBackend'
         django_ses.SESConnection = FakeSESConnection
         self.outbox = FakeSESConnection.outbox
 
@@ -118,6 +120,19 @@ class SESBackendTest(TestCase):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['source'], 'from@example.com')
 
-        settings.AWS_SES_RETURN_PATH = 'return@example.com'
+
+class SESBackendTestReturn(TestCase):
+    def setUp(self):
+        # TODO: Fix this -- this is going to cause side effects
+        django_settings.EMAIL_BACKEND = 'django_ses.tests.backend.FakeSESBackend'
+        django_ses.SESConnection = FakeSESConnection
+        self.outbox = FakeSESConnection.outbox
+
+    def tearDown(self):
+        # Empty outbox everytime test finishes
+        FakeSESConnection.outbox = []
+
+    def test_return_path(self):
+        settings.AWS_SES_RETURN_PATH = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['source'], 'return@example.com')

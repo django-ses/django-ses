@@ -6,18 +6,18 @@ from optparse import make_option
 
 from boto.ses import SESConnection
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from django_ses.models import SESStat
 from django_ses.views import stats_to_list
+from django_ses import settings
 
 
 def stat_factory():
     return {
-        'delivery_attempts': 0, 
+        'delivery_attempts': 0,
         'bounces': 0,
-        'complaints': 0, 
+        'complaints': 0,
         'rejects': 0,
     }
 
@@ -26,17 +26,17 @@ class Command(BaseCommand):
     """
     Get SES sending statistic and store the result, grouped by date.
     """
-    
+
     def handle(self, *args, **options):
-        
+
         connection = SESConnection(
-            aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-            aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
+            aws_access_key_id=settings.ACCESS_KEY,
+            aws_secret_access_key=settings.SECRET_KEY,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)
         stats_dict = defaultdict(stat_factory)
-        
+
         for data in data_points:
             attempts = int(data['DeliveryAttempts'])
             bounces = int(data['Bounces'])
@@ -52,9 +52,9 @@ class Command(BaseCommand):
             stat, created = SESStat.objects.get_or_create(
                 date=k,
                 defaults={
-                    'delivery_attempts': v['delivery_attempts'], 
+                    'delivery_attempts': v['delivery_attempts'],
                     'bounces': v['bounces'],
-                    'complaints': v['complaints'], 
+                    'complaints': v['complaints'],
                     'rejects': v['rejects'],
             })
 

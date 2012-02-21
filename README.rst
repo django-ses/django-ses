@@ -52,6 +52,14 @@ Add the following to your settings.py::
     AWS_SES_REGION_NAME = 'us-east-1'
     AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
 
+Alternatively, instead of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, you
+can include the following two settings values. This is useful in situations
+where you would like to use a separate access key to send emails via SES than
+you would to upload files via S3::
+
+    AWS_SES_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
+    AWS_SES_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
+
 Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
@@ -209,7 +217,11 @@ Full List of Settings
 =====================
 
 ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``
-  *Required.* Your API keys from Amazon SES.
+  *Required.* Your API keys for Amazon SES.
+
+``AWS_SES_ACCESS_KEY_ID``, ``AWS_SES_SECRET_ACCESS_KEY``
+  *Required.* Alternative API keys for Amazon SES. This is useful in situations
+  where you would like to use separate access keys for different AWS services.
 
 ``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
   Optionally specify what region your SES service is using. Details:
@@ -224,7 +236,7 @@ Full List of Settings
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
 
 ``DKIM_DOMAIN``, ``DKIM_PRIVATE_KEY``
-  Optional.  If these settings are defined and the pydkim_ module is installed
+  Optional. If these settings are defined and the pydkim_ module is installed
   then email messages will be signed with the specified key.   You will also
   need to publish your public key on DNS; the selector is set to ``ses`` by
   default.  See http://dkim.org/ for further detail.

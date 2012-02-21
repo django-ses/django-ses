@@ -1,5 +1,5 @@
-from backend import SESBackendTest
-from commands import SESCommandTest
-from stats import StatParsingTest
-from configuration import SettingsImportTest
+from .backend import *
+from .commands import *
+from .stats import *
+from .configuration import *
 

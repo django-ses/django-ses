@@ -140,7 +140,8 @@ class SESBackend(BaseEmailBackend):
                 if len(new_send_times) > rate_limit * window * self._throttle:
                     # Sleep the remainder of the window period.
                     delta = now - new_send_times[0]
-                    total_seconds = (delta.microseconds + (delta.seconds + delta.days * 24 * 3600) * 10**6) / 10**6
+                    total_seconds = (delta.microseconds + (delta.seconds +
+                            delta.days * 24 * 3600) * 10**6) / 10**6
                     delay = window - total_seconds
                     if delay > 0:
                         sleep(delay)

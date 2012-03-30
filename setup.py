@@ -8,7 +8,8 @@ from setuptools import setup, find_packages
 
 
 def read(*path):
-    return open(os.path.join(os.path.abspath(os.path.dirname(__file__)), *path)).read()
+    return open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                *path)).read()
 
 # Provided as an attribute, so you can append to these instead
 # of replicating them:
@@ -18,6 +19,7 @@ standard_exclude_directories = [
     "./dist", "EGG-INFO", "*.egg-info"
 ]
 
+
 # Copied from paste/util/finddata.py
 def find_package_data(where=".", package="", exclude=standard_exclude,
         exclude_directories=standard_exclude_directories,
@@ -25,30 +27,30 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
     """
     Return a dictionary suitable for use in ``package_data``
     in a distutils ``setup.py`` file.
-    
+
     The dictionary looks like::
-    
+
         {"package": [files]}
-    
+
     Where ``files`` is a list of all the files in that package that
     don't match anything in ``exclude``.
-    
+
     If ``only_in_packages`` is true, then top-level directories that
     are not packages won't be included (but directories under packages
     will).
-    
+
     Directories matching any pattern in ``exclude_directories`` will
     be ignored; by default directories with leading ``.``, ``CVS``,
     and ``_darcs`` will be ignored.
-    
+
     If ``show_ignored`` is true, then all the files that aren't
     included in package data are shown on stderr (for debugging
     purposes).
-    
+
     Note patterns use wildcards, or can be exact paths (including
     leading ``./``), and all searching is case-insensitive.
     """
-    
+
     out = {}
     stack = [(convert_path(where), "", package, only_in_packages)]
     while stack:
@@ -76,7 +78,8 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
                         new_package = package + "." + name
                     stack.append((fn, "", new_package, False))
                 else:
-                    stack.append((fn, prefix + name + "/", package, only_in_packages))
+                    stack.append((fn, prefix + name + "/", package,
+                                    only_in_packages))
             elif package or not only_in_packages:
                 # is a file
                 bad_name = False
@@ -91,11 +94,11 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
                         break
                 if bad_name:
                     continue
-                out.setdefault(package, []).append(prefix+name)
+                out.setdefault(package, []).append(prefix + name)
     return out
 
 
-excluded_directories = standard_exclude_directories + ["example", "test"]
+excluded_directories = standard_exclude_directories + ["example", "tests"]
 package_data = find_package_data(exclude_directories=excluded_directories)
 
 DESCRIPTION = "A Django email backend for Amazon's Simple Email Service"
@@ -105,13 +108,6 @@ try:
     LONG_DESCRIPTION = open('README.rst').read()
 except:
     pass
-
-# Dirty hack to get version number from django_ses/__init__.py - we can't
-# import it as it depends on boto and boto isn't installed until this
-# file is read
-init = os.path.join(os.path.dirname(__file__), 'django_ses', '__init__.py')
-version_line = filter(lambda l: l.startswith('__version__'), open(init))[0]
-VERSION = version_line.split('=')[-1].strip().strip("'")
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
@@ -125,7 +121,7 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version=VERSION,
+    version='0.4.1',  # When changing this, remember to change it in __init__.py
     packages=find_packages(),
     package_data=package_data,
     author='Harry Marr',
@@ -136,6 +132,6 @@ setup(
     long_description=LONG_DESCRIPTION,
     platforms=['any'],
     classifiers=CLASSIFIERS,
-    install_requires=['boto'],
+    install_requires=['boto>=2.1.0'],
     include_package_data=True,
 )

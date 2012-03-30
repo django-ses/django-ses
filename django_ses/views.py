@@ -1,10 +1,20 @@
+import copy
+from datetime import datetime
+
+try:
+    import pytz
+except ImportError:
+    pytz = None
+
+from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+
+from django_ses import settings
 
 def superuser_only(view_func):
     """
@@ -16,17 +26,32 @@ def superuser_only(view_func):
         return view_func(request, *args, **kwargs)
     return _inner
 
-def stats_to_list(stats_dict):
+
+def stats_to_list(stats_dict, localize=pytz):
     """
-    Parse the output of ``SESConnection.get_send_statistics()`` in to an ordered
-    list of 15-minute summaries.
+    Parse the output of ``SESConnection.get_send_statistics()`` in to an
+    ordered list of 15-minute summaries.
     """
     result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
-    datapoints = [dp for dp in result['SendDataPoints']]
+    # Make a copy, so we don't change the original stats_dict.
+    result = copy.deepcopy(result)
+    datapoints = []
+    if localize:
+        current_tz = localize.timezone(settings.TIME_ZONE)
+    else:
+        current_tz = None
+    for dp in result['SendDataPoints']:
+        if current_tz:
+            utc_dt = datetime.strptime(dp['Timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+            utc_dt = localize.utc.localize(utc_dt)
+            dp['Timestamp'] = current_tz.normalize(
+                utc_dt.astimezone(current_tz))
+        datapoints.append(dp)
 
     datapoints.sort(key=lambda x: x['Timestamp'])
 
     return datapoints
+
 
 def quota_parse(quota_dict):
     """
@@ -34,15 +59,18 @@ def quota_parse(quota_dict):
     """
     return quota_dict['GetSendQuotaResponse']['GetSendQuotaResult']
 
+
 def emails_parse(emails_dict):
     """
     Parse the output of ``SESConnection.list_verified_emails()`` and get
     a list of emails.
     """
-    result = emails_dict['ListVerifiedEmailAddressesResponse']['ListVerifiedEmailAddressesResult']
+    result = emails_dict['ListVerifiedEmailAddressesResponse'][
+        'ListVerifiedEmailAddressesResult']
     emails = [email for email in result['VerifiedEmailAddresses']]
 
     return sorted(emails)
+
 
 def sum_stats(stats_data):
     """
@@ -66,6 +94,7 @@ def sum_stats(stats_data):
         'Rejects': t_rejects,
     }
 
+
 @superuser_only
 def dashboard(request):
     """
@@ -76,11 +105,14 @@ def dashboard(request):
     if cached_view:
         return cached_view
 
+    region = RegionInfo(
+        name=settings.AWS_SES_REGION_NAME,
+        endpoint=settings.AWS_SES_REGION_ENDPOINT)
+
     ses_conn = SESConnection(
-        aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-        aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-        host=getattr(settings, 'AWS_SES_API_HOST', SESConnection.DefaultHost),
-    )
+        aws_access_key_id=settings.ACCESS_KEY,
+        aws_secret_access_key=settings.SECRET_KEY,
+        region=region)
 
     quota_dict = ses_conn.get_send_quota()
     verified_emails_dict = ses_conn.list_verified_email_addresses()
@@ -96,17 +128,19 @@ def dashboard(request):
         'datapoints': ordered_data,
         '24hour_quota': quota['Max24HourSend'],
         '24hour_sent': quota['SentLast24Hours'],
-        '24hour_remaining': float(quota['Max24HourSend']) - float(quota['SentLast24Hours']),
+        '24hour_remaining': float(quota['Max24HourSend']) -
+                            float(quota['SentLast24Hours']),
         'persecond_rate': quota['MaxSendRate'],
         'verified_emails': verified_emails,
         'summary': summary,
         'access_key': ses_conn.gs_access_key_id,
+        'local_time': True if pytz else False,
     }
-    
+
     response = render_to_response(
         'django_ses/send_stats.html',
         extra_context,
         context_instance=RequestContext(request))
 
-    cache.set(cache_key, response, 60*15) # Cache for 15 minutes
+    cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response

@@ -1,3 +1,6 @@
+from .backend import *
+from .commands import *
+from .settings import *
 from collections import defaultdict
 from boto.exception import BotoServerError
 
@@ -9,7 +12,9 @@ def enable_fake_ses_connection():
         function_calls = defaultdict(list)
         blacklist = []
 
-        DefaultHost = 'fake_email_host'
+        #DefaultHost = 'fake_email_host'
+        DefaultRegionName = 'us-east-1'
+        DefaultRegionEndPoint = 'fake_email_host'
         ResponseError = BotoServerError
 
         def __init__(self, *args, **kwargs):

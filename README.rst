@@ -149,7 +149,7 @@ using Django's default formatting.
 
 Link the dashboard from the admin
 ---------------------------------
-You can use adminplus for this (https://github.com/jsocol/django-adminplus):
+You can use adminplus for this (https://github.com/jsocol/django-adminplus)::
 
     from django_ses.views import dashboard
     admin.site.register_view('django-ses', dashboard, 'Django SES Stats')
@@ -158,7 +158,7 @@ Store daily stats
 -----------------
 If you need to keep send statistics around for longer than two weeks,
 django-ses also comes with a model that lets you store these. To use this
-feature you'll need to first run ``syncdb``:
+feature you'll need to first run ``syncdb``::
 
     python manage.py syncdb
 

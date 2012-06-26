@@ -3,3 +3,4 @@
 local_settings.py
 django_ses.egg-info
 dist/*
+.DS_Store

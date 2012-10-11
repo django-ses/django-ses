@@ -11,6 +11,20 @@ Django-SES is a drop-in mail backend for Django_. Instead of sending emails
 through a traditional SMTP mail server, Django-SES routes email through
 Amazon Web Services' excellent Simple Email Service (SES_).
 
+
+Using Django directly
+=====================
+
+Amazon SES allows you to also setup usernames and passwords. If you do configure
+things that way, you do not need this package. The Django default email backend
+is capable of authenticating with Amazon SES and correctly sending email.
+
+Using django-ses gives you additional features like deliverability reports that
+can be hard and/or cumbersome to obtain when using the SMTP interface.
+
+**Note:** In order to use smtp with Amazon SES, you may have to install some
+supporting packages for ssl. Check out `this SMTP SSL email backend for Django`__
+
 Why SES instead of SMTP?
 ========================
 Configuring, maintaining, and dealing with some complicated edge cases can be
@@ -208,6 +222,7 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
+__ https://github.com/bancek/django-smtp-ssl
 
 Requirements
 ============

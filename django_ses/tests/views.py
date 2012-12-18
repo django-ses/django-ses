@@ -44,17 +44,17 @@ class HandleBounceTest(TestCase):
                     "status":"5.0.0",
                     "action":"failed",
                     "diagnosticCode":"smtp; 550 user unknown",
-                    "emailAddress":"recipient1@example.com"
+                    "emailAddress":"recipient1@example.com",
                 }, 
                 {
                     "status":"4.0.0",
                     "action":"delayed",
-                    "emailAddress":"recipient2@example.com"
+                    "emailAddress":"recipient2@example.com",
                 }
             ],
             "reportingMTA": "example.com",
             "timestamp":"2012-05-25T14:59:38.605-07:00",
-            "feedbackId":"000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000"
+            "feedbackId":"000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
         }
 
         def _handler(sender, mail_obj, bounce_obj, **kwargs):
@@ -80,24 +80,24 @@ class HandleBounceTest(TestCase):
             "timestamp":"2012-05-25T14:59:38.623-07:00",
             "messageId":"000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
             "source":"sender@example.com",
-            "destination":[
+            "destination": [
                 "recipient1@example.com",
                 "recipient2@example.com",
                 "recipient3@example.com",
-                "recipient4@example.com"
+                "recipient4@example.com",
             ]
         }
         req_complaint_obj = {
             "userAgent":"Comcast Feedback Loop (V0.01)",
-            "complainedRecipients":[
+            "complainedRecipients": [
                 {
-                    "emailAddress":"recipient1@example.com"
+                    "emailAddress":"recipient1@example.com",
                 }
             ],
             "complaintFeedbackType":"abuse",
             "arrivalDate":"2009-12-03T04:24:21.000-05:00",
             "timestamp":"2012-05-25T14:59:38.623-07:00",
-            "feedbackId":"000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000"
+            "feedbackId":"000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000",
         }
 
         def _handler(sender, mail_obj, complaint_obj, **kwargs):

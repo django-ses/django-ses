@@ -162,6 +162,9 @@ def handle_bounce(request):
     so that someone can't just spam you with arbitrary bounces.
 
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
+
+    TODO: Verify the SNS message signature.
+    See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
     # For Django 1.4 use request.body, otherwise use the old request.raw_post_data
     if hasattr(request, 'body'):
@@ -172,7 +175,7 @@ def handle_bounce(request):
     try:
         hook_data = json.loads(raw_json)
     except ValueError, e:
-        # TODO: What kind of response should be return here?
+        # TODO: What kind of response should be returned here?
         logger.warning('Recieved bounce with bad JSON: "%s"', e)
         return HttpResponseBadRequest()
 
@@ -198,6 +201,7 @@ def handle_bounce(request):
             sender=SESBounce,
             mail_obj=mail_obj,
             bounce_obj=bounce_obj,
+            raw_message=raw_json,
         )
         return HttpResponse()
     elif notification_type == 'Complaint':
@@ -218,6 +222,7 @@ def handle_bounce(request):
             sender=SESComplaint,
             mail_obj=mail_obj,
             complaint_obj=complaint_obj,
+            raw_message=raw_json,
         )
 
         return HttpResponse()

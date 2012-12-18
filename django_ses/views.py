@@ -1,4 +1,5 @@
 import copy
+import logging
 from datetime import datetime
 
 try:
@@ -9,12 +10,18 @@ except ImportError:
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils import simplejson as json
 
 from django_ses import settings
+from django_ses import signals
+from django_ses.models import SESBounce, SESComplaint
+
+logger = logging.getLogger(__name__)
 
 def superuser_only(view_func):
     """
@@ -144,3 +151,78 @@ def dashboard(request):
 
     cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response
+
+def handle_bounce(request):
+    """
+    Handle a bounced email via an SQS webhook.
+
+    Parse the bounced message and send the appropriate signal.
+
+    You should put this at a URL that is only known to you
+    so that someone can't just spam you with arbitrary bounces.
+
+    See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
+    """
+    # For Django 1.4 use request.body, otherwise use the old request.raw_post_data
+    if hasattr(request, 'body'):
+        raw_json = request.body
+    else:
+        raw_json = request.raw_post_data
+
+    try:
+        hook_data = json.loads(raw_json)
+    except ValueError, e:
+        # TODO: What kind of response should be return here?
+        logger.warning('Recieved bounce with bad JSON: "%s"', e)
+        return HttpResponseBadRequest()
+
+    mail_obj = hook_data.get('mail')
+    notification_type = hook_data.get('notificationType')
+    if notification_type == 'Bounce':
+        # Bounce 
+        bounce_obj = hook_data.get('bounce', {})
+        
+        # Logging
+        feedback_id = bounce_obj.get('feedbackId')
+        bounce_type = bounce_obj.get('bounceType')
+        bounce_subtype = bounce_obj.get('bounceSubType')
+        logger.info(
+            'Recieved bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s', 
+            feedback_id, bounce_type, bounce_subtype,
+            extra={
+                'message': hook_data,
+            },
+        )
+
+        signals.bounce_received.send(
+            sender=SESBounce,
+            mail_obj=mail_obj,
+            bounce_obj=bounce_obj,
+        )
+        return HttpResponse()
+    elif notification_type == 'Complaint':
+        # Complaint
+        complaint_obj = hook_data.get('complaint', {})
+
+        # Logging
+        feedback_id = complaint_obj.get('feedbackId')
+        feedback_type = complaint_obj.get('complaintFeedbackType')
+        logger.info('Recieved complaint notification: feedbackId: %s, feedbackType: %s', 
+            feedback_id, feedback_type,
+            extra={
+                'message': hook_data,
+            },
+        )
+
+        signals.complaint_received.send(
+            sender=SESComplaint,
+            mail_obj=mail_obj,
+            complaint_obj=complaint_obj,
+        )
+
+        return HttpResponse()
+    else:
+        logger.warning('Recieved bounce with invalid notificationType: "%s"', notification_type, extra={
+            'message': hook_data,
+        })
+        return HttpResponseBadRequest()

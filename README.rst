@@ -3,7 +3,12 @@ Django-SES
 ==========
 :Info: A Django email backend for Amazon's Simple Email Service
 :Author: Harry Marr (http://github.com/hmarr, http://twitter.com/harrymarr)
-:Collaborator: Paul Craciunoiu (http://github.com/pcraciunoiu, http://twitter.com/embrangler)
+:Collaborators: Paul Craciunoiu (http://github.com/pcraciunoiu, http://twitter.com/embrangler)
+
+**Attention:** This project is not actively maintained as of ~end 2012, but it is still fairly popular and in use.
+If you are interested in helping out, please contact `Paul Craciunoiu (pcraciunoiu)`_.
+
+.. _Paul Craciunoiu (pcraciunoiu): https://github.com/pcraciunoiu/
 
 A bird's eye view
 =================

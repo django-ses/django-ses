@@ -23,17 +23,13 @@ cached_rate_limits = {}
 recent_send_times = []
 
 
-def dkim_sign(message):
+def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None):
     """Return signed email message if dkim package and settings are available."""
     try:
         import dkim
     except ImportError:
         pass
     else:
-        dkim_domain = settings.DKIM_DOMAIN
-        dkim_key = settings.DKIM_PRIVATE_KEY
-        dkim_selector = settings.DKIM_SELECTOR
-        dkim_headers = settings.DKIM_HEADERS
         if dkim_domain and dkim_key:
             sig = dkim.sign(message,
                             dkim_selector,
@@ -48,16 +44,24 @@ class SESBackend(BaseEmailBackend):
     """A Django Email backend that uses Amazon's Simple Email Service.
     """
 
-    def __init__(self, fail_silently=False, *args, **kwargs):
-        super(SESBackend, self).__init__(fail_silently=fail_silently, *args,
-                                         **kwargs)
+    def __init__(self, fail_silently=False, aws_access_key=None,
+                 aws_secret_key=None, aws_region_name=None,
+                 aws_region_endpoint=None, aws_auto_throttle=None,
+                 dkim_domain=None, dkim_key=None, dkim_selector=None,
+                 dkim_headers=None, **kwargs):
 
-        self._access_key_id = settings.ACCESS_KEY
-        self._access_key = settings.SECRET_KEY
+        super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
+        self._access_key_id = aws_access_key or settings.ACCESS_KEY
+        self._access_key = aws_secret_key or settings.SECRET_KEY
         self._region = RegionInfo(
-            name=settings.AWS_SES_REGION_NAME,
-            endpoint=settings.AWS_SES_REGION_ENDPOINT)
-        self._throttle = settings.AWS_SES_AUTO_THROTTLE
+            name=aws_region_name or settings.AWS_SES_REGION_NAME,
+            endpoint=aws_region_endpoint or settings.AWS_SES_REGION_ENDPOINT)
+        self._throttle = aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE
+
+        self.dkim_domain = dkim_domain or settings.DKIM_DOMAIN
+        self.dkim_key = dkim_key or settings.DKIM_PRIVATE_KEY
+        self.dkim_selector = dkim_selector or settings.DKIM_SELECTOR
+        self.dkim_headers = dkim_headers or settings.DKIM_HEADERS
 
         self.connection = None
 
@@ -153,7 +157,12 @@ class SESBackend(BaseEmailBackend):
                 response = self.connection.send_raw_email(
                     source=source or message.from_email,
                     destinations=message.recipients(),
-                    raw_message=unicode(dkim_sign(message.message().as_string()), 'utf-8')
+                    raw_message=unicode(dkim_sign(message.message().as_string(),
+                                                  dkim_key=self.dkim_key,
+                                                  dkim_domain=self.dkim_domain,
+                                                  dkim_selector=self.dkim_selector,
+                                                  dkim_headers=self.dkim_headers,
+                                                  ), 'utf-8')
                 )
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response[

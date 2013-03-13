@@ -15,7 +15,11 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.utils import simplejson as json
+
+try:
+    import json
+except ImportError:
+    from django.utils import simplejson as json
 
 from django_ses import settings
 from django_ses import signals
@@ -154,11 +158,12 @@ def dashboard(request):
 
 def handle_bounce(request):
     """
-    Handle a bounced email via an SQS webhook.
+    Handle a bounced email via an SNS webhook.
 
     Parse the bounced message and send the appropriate signal.
 
-    You should put this at a URL that is only known to you
+    Currently the SNS message signature is not verified.
+    You should put this at a URL that is only known to you anyway
     so that someone can't just spam you with arbitrary bounces.
 
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
@@ -166,7 +171,8 @@ def handle_bounce(request):
     TODO: Verify the SNS message signature.
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
-    # For Django 1.4 use request.body, otherwise use the old request.raw_post_data
+    # For Django >= 1.4 use request.body, otherwise
+    # use the old request.raw_post_data
     if hasattr(request, 'body'):
         raw_json = request.body
     else:
@@ -181,6 +187,14 @@ def handle_bounce(request):
 
     mail_obj = hook_data.get('mail')
     notification_type = hook_data.get('notificationType')
+    
+    if not notification_type:
+        logger.warning('Recieved bounce with no notificationType.', extra={
+            'message': hook_data,
+        })
+        # TODO: What kind of response should be returned here?
+        return HttpResponseBadRequest()
+
     if notification_type == 'Bounce':
         # Bounce 
         bounce_obj = hook_data.get('bounce', {})
@@ -230,4 +244,5 @@ def handle_bounce(request):
         logger.warning('Recieved bounce with invalid notificationType: "%s"', notification_type, extra={
             'message': hook_data,
         })
+        # TODO: What kind of response should be returned here?
         return HttpResponseBadRequest()

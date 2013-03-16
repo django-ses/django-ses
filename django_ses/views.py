@@ -184,8 +184,6 @@ def handle_bounce(request):
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     
     """
-    import pdb;pdb.set_trace()
-    
     # For Django >= 1.4 use request.body, otherwise
     # use the old request.raw_post_data
     if hasattr(request, 'body'):

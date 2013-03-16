@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 __all__ = (
     'SESStat',
-    'SESNotificationBase',
+    'SESBounce',
     'BouncedRecipient',
     'SESComplaint',
     'ComplainedRecipient',

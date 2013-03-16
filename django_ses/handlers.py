@@ -14,6 +14,7 @@ need to connect them in your application.
     complaint_received.connect(log_complaint_to_db)
 """
 
+from django.db import transaction
 from django_ses.models import (
     SESBounce, BouncedRecipient,
     SESComplaint, ComplainedRecipient,
@@ -38,6 +39,7 @@ def _parse_date(dt):
     # do not support datetime objects with timezone info.
     return parse_date(dt).replace(tzinfo=None)
 
+@transaction.commit_on_success
 def log_bounce_to_db(sender, *args, **kwargs):
     """
     A signal handler that logs bounces to the DB.
@@ -67,6 +69,7 @@ def log_bounce_to_db(sender, *args, **kwargs):
             action=recipient.get('action'),
         )
 
+@transaction.commit_on_success
 def log_complaint_to_db(sender, *args, **kwargs):
     """
     A signal handler that logs complaints to the DB.

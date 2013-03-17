@@ -57,6 +57,25 @@ class HandleBounceTest(TestCase):
             "feedbackId":"000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
         }
 
+        message_obj = {
+            'notificationType': 'Bounce',  
+            'mail': req_mail_obj,
+            'bounce': req_bounce_obj,
+        }
+
+        notification = {
+            "Type" : "Notification",
+            "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+            "TopicArn" : "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "Subject" : "AWS Notification Message",
+            "Message" : json.dumps(message_obj),
+            "Timestamp" : "2012-05-02T00:54:06.655Z",
+            "SignatureVersion" : "1",
+            "Signature" : "",
+            "SigningCertURL" : "",
+            "UnsubscribeURL" : ""
+        }
+        
         def _handler(sender, mail_obj, bounce_obj, **kwargs):
             _handler.called = True
             self.assertEquals(req_mail_obj, mail_obj)
@@ -64,11 +83,8 @@ class HandleBounceTest(TestCase):
         _handler.called = False
         bounce_received.connect(_handler)
 
-        self.client.post(reverse('django_ses_bounce'), json.dumps({
-            'notificationType': 'Bounce',  
-            'mail': req_mail_obj,
-            'bounce': req_bounce_obj,
-        }), content_type='application/json')
+        self.client.post(reverse('django_ses_bounce'),
+                         json.dumps(notification), content_type='application/json')
 
         self.assertTrue(_handler.called)
 
@@ -100,6 +116,25 @@ class HandleBounceTest(TestCase):
             "feedbackId":"000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000",
         }
 
+        message_obj = {
+            'notificationType': 'Bounce',  
+            'mail': req_mail_obj,
+            'complaint': req_complaint_obj,
+        }
+
+        notification = {
+            "Type" : "Notification",
+            "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+            "TopicArn" : "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "Subject" : "AWS Notification Message",
+            "Message" : json.dumps(message_obj),
+            "Timestamp" : "2012-05-02T00:54:06.655Z",
+            "SignatureVersion" : "1",
+            "Signature" : "",
+            "SigningCertURL" : "",
+            "UnsubscribeURL" : ""
+        }
+
         def _handler(sender, mail_obj, complaint_obj, **kwargs):
             _handler.called = True
             self.assertEquals(req_mail_obj, mail_obj)
@@ -107,22 +142,7 @@ class HandleBounceTest(TestCase):
         _handler.called = False
         complaint_received.connect(_handler)
 
-        self.client.post(reverse('django_ses_bounce'), json.dumps({
-            'notificationType': 'Complaint',  
-            'mail': req_mail_obj,
-            'complaint': req_complaint_obj,
-        }), content_type='application/json')
+        self.client.post(reverse('django_ses_bounce'), 
+                         notification, content_type='application/json')
 
         self.assertTrue(_handler.called)
-
-    #def test_bad_json(self):
-    #    """
-    #    Test handling a bad JSON request.
-    #    """
-    #    # TODO
-
-    #def test_bad_notification_type(self):
-    #    """
-    #    Test handling an unknown notification type.
-    #    """
-    #    # TODO

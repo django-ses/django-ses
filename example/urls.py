@@ -17,9 +17,3 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
-
-from django_ses.signals import bounce_received, complaint_received
-from django_ses.handlers import log_bounce_to_db, log_complaint_to_db
-
-bounce_received.connect(log_bounce_to_db)
-complaint_received.connect(log_complaint_to_db)

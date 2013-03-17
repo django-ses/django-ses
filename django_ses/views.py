@@ -25,7 +25,6 @@ except ImportError:
 
 from django_ses import settings
 from django_ses import signals
-from django_ses.models import SESBounce, SESComplaint
 
 logger = logging.getLogger(__name__)
 
@@ -252,7 +251,7 @@ def handle_bounce(request):
                 )
 
                 signals.bounce_received.send(
-                    sender=SESBounce,
+                    sender=handle_bounce,
                     mail_obj=mail_obj,
                     bounce_obj=bounce_obj,
                     raw_message=raw_json,
@@ -272,7 +271,7 @@ def handle_bounce(request):
                 )
 
                 signals.complaint_received.send(
-                    sender=SESComplaint,
+                    sender=handle_bounce,
                     mail_obj=mail_obj,
                     complaint_obj=complaint_obj,
                     raw_message=raw_json,

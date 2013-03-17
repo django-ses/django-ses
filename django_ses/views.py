@@ -163,17 +163,11 @@ def handle_bounce(request):
     Handle a bounced email via an SNS webhook.
 
     Parse the bounced message and send the appropriate signal.
-
-    Currently the SNS message signature is not verified.
-    You should put this at a URL that is only known to you anyway
-    so that someone can't just spam you with arbitrary bounces.
-
+    For bounce messages the bounce_received signal is called.
+    For complaint messages the complaint_received signal is called.
+    See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
-
-    TODO: Verify the SNS message signature.
-    See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
-
-
+    
     In addition to email bounce requests this endpoint also supports the SNS
     subscription confirmation request. This request is sent to the SNS
     subscription endpoint when the subscription is registered.
@@ -182,7 +176,12 @@ def handle_bounce(request):
     For the format of the SNS subscription confirmation request see this URL:
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     
+    Currently the SNS message signature is not verified.
+    You should put this at a URL that is only known to you anyway
+    so that someone can't just spam you with arbitrary bounces.
+    See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
+
     # For Django >= 1.4 use request.body, otherwise
     # use the old request.raw_post_data
     if hasattr(request, 'body'):

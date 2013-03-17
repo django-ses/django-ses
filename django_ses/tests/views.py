@@ -117,7 +117,7 @@ class HandleBounceTest(TestCase):
         }
 
         message_obj = {
-            'notificationType': 'Bounce',  
+            'notificationType': 'Complaint',
             'mail': req_mail_obj,
             'complaint': req_complaint_obj,
         }
@@ -143,6 +143,6 @@ class HandleBounceTest(TestCase):
         complaint_received.connect(_handler)
 
         self.client.post(reverse('django_ses_bounce'), 
-                         notification, content_type='application/json')
+                         json.dumps(notification), content_type='application/json')
 
         self.assertTrue(_handler.called)

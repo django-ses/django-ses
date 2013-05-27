@@ -25,6 +25,7 @@ except ImportError:
 
 from django_ses import settings
 from django_ses import signals
+from django_ses import utils
 
 logger = logging.getLogger(__name__)
 
@@ -176,9 +177,9 @@ def handle_bounce(request):
     For the format of the SNS subscription confirmation request see this URL:
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     
-    Currently the SNS message signature is not verified.
-    You should put this at a URL that is only known to you anyway
-    so that someone can't just spam you with arbitrary bounces.
+    SNS message signatures are verified by default. This funcionality can
+    be disabled by setting AWS_SES_VERIFY_BOUNCE_SIGNATURES to False.
+    However, this is not recommended.
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
 
@@ -196,7 +197,18 @@ def handle_bounce(request):
         logger.warning('Recieved bounce with bad JSON: "%s"', e)
         return HttpResponseBadRequest()
 
-    
+    # Verify the authenticity of the bounce message.
+    if (settings.VERIFY_BOUNCE_SIGNATURES and 
+            not utils.verify_bounce_message(notification)):
+        # Don't send any info back when the notification is not
+        # verified. Simply, don't process it.
+        logger.info('Recieved unverified notification: Type: %s', 
+            notification.get('Type'),
+            extra={
+                'notification': notification,
+            },
+        )
+        return HttpResponse()
 
     if notification.get('Type') == 'SubscriptionConfirmation':
         # Process the subscription confirmation.

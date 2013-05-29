@@ -29,3 +29,10 @@ DKIM_HEADERS = getattr(settings, 'DKIM_HEADERS',
 TIME_ZONE = settings.TIME_ZONE
 
 VERIFY_BOUNCE_SIGNATURES = getattr(settings, 'AWS_SES_VERIFY_BOUNCE_SIGNATURES', True)
+
+# Domains that are trusted when retrieving the certificate
+# used to sign bounce messages.
+BOUNCE_CERT_DOMAINS = getattr(settings, 'AWS_SNS_BOUNCE_CERT_TRUSTED_DOMAINS', (
+    'amazonaws.com',
+    'amazon.com',
+))

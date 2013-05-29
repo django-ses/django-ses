@@ -1,4 +1,5 @@
 import base64
+import logging
 
 try:
     from cStringIO import StringIO
@@ -7,6 +8,8 @@ except ImportError:
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
+
+logger = logging.getLogger(__name__)
 
 class BounceMessageVerifier(object):
     """
@@ -28,14 +31,10 @@ class BounceMessageVerifier(object):
 
         """
         if self._verified is None:
-            try:
-                import M2Crypto 
-            except ImportError:
-                raise ImproperlyConfigured("M2Crypto is required for bounce message verification.")
-
             signature = self._data.get('Signature')
             if not signature:
-                return False
+                self._verified = False
+                return self._verified
 
             # Decode the signature from base64
             signature = base64.b64decode(signature)
@@ -43,16 +42,14 @@ class BounceMessageVerifier(object):
             # Get the message to sign
             sign_bytes = self._get_bytes_to_sign()
             if not sign_bytes:
-                return False
+                self._verified = False
+                return self._verified
 
-            # Get the certificate
-            cert_string = self._get_cert()
+            certificate = self._get_cert()
+            if not certificate:
+                self._verified = False
+                return self._verified
 
-            # TODO: Handle errors loading the certificate and
-            #       signing the message. We don't want to cause
-            #       500 errors here.
-
-            certificate = M2Crypto.X509.load_cert_string(cert_string) 
             # Extract the public key
             pkey = certificate.get_pubkey()
 
@@ -79,7 +76,6 @@ class BounceMessageVerifier(object):
         #       craft a bounce message and sign it using his own certificate
         #       and we would happily load and verify it.
         if not cert_url:
-            # TODO: logging
             return None
 
         try:
@@ -87,16 +83,27 @@ class BounceMessageVerifier(object):
         except ImportError:
             raise ImproperlyConfigured("requests is required for bounce message verification.")
 
+        try:
+            import M2Crypto 
+        except ImportError:
+            raise ImproperlyConfigured("M2Crypto is required for bounce message verification.")
+
         # We use requests because it verifies the https certificate
         # when retrieving the signing certificate. If https was somehow
         # hijacked then all bets are off.
         response = requests.get(cert_url)
         if response.status_code != 200:
-            # TODO: logging
+            logger.warning('Could not download certificate from %s: "%s"', cert_url, response.status_code)
             return None
 
-        return response.content
-        
+        # Handle errors loading the certificate.
+        # If the certificate is invalid then return
+        # false as we couldn't verify the message.
+        try:
+            return M2Crypto.X509.load_cert_string(response.content)
+        except M2Crypto.X509.X509Error, e:
+            logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
+            return None
 
     def _get_bytes_to_sign(self):
         """
@@ -129,7 +136,7 @@ class BounceMessageVerifier(object):
             ]
         else:
             # Unrecognized type
-            # TODO: logging
+            logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
         
         outbytes = StringIO()

@@ -210,8 +210,9 @@ def handle_bounce(request):
         )
         return HttpResponse()
 
-    if notification.get('Type') == 'SubscriptionConfirmation':
-        # Process the subscription confirmation.
+    if notification.get('Type') in ('SubscriptionConfirmation',
+                                    'UnsubscribeConfirmation'):
+        # Process the (un)subscription confirmation.
 
         logger.info('Recieved subscription confirmation: TopicArn: %s', 
             notification.get('TopicArn'),
@@ -293,6 +294,13 @@ def handle_bounce(request):
                 logger.warning("Recieved unknown notification", extra={
                     'notification': notification,
                 })
+    else:
+        logger.info('Recieved unknown notification type: %s', 
+            notification.get('Type'),
+            extra={
+                'notification': notification,
+            },
+        )
 
     # AWS will consider anything other than 200 to be an error response and
     # resend the SNS request. We don't need that so we return 200 here.

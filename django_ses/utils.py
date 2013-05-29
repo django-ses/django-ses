@@ -123,11 +123,12 @@ class BounceMessageVerifier(object):
         """
         cert_url = self._data.get('SigningCertURL')
         if cert_url:
-            url_obj = urlparse(cert_url)
-            for trusted_domain in settings.BOUNCE_CERT_DOMAINS:
-                parts = trusted_domain.split('.')
-                if url_obj.netloc.split('.')[-len(parts):] == parts:
-                    return cert_url
+            if not cert_url.startswith('https://'):
+                url_obj = urlparse(cert_url)
+                for trusted_domain in settings.BOUNCE_CERT_DOMAINS:
+                    parts = trusted_domain.split('.')
+                    if url_obj.netloc.split('.')[-len(parts):] == parts:
+                        return cert_url
             logger.warning('Untrusted certificate URL: "%s"', cert_url)
         return None
 

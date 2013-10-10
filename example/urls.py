@@ -1,4 +1,8 @@
-from django.conf.urls.defaults import *
+try:
+    from django.conf.urls import *
+except ImportError: # django < 1.4
+    from django.conf.urls.defaults import *
+
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from django.contrib import admin

@@ -1,8 +1,11 @@
+import mock
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 
 from django_ses.signals import bounce_received, complaint_received
+from django_ses import utils as ses_utils
 
 __all__ = ('HandleBounceTest',)
 
@@ -83,8 +86,12 @@ class HandleBounceTest(TestCase):
         _handler.called = False
         bounce_received.connect(_handler)
 
-        self.client.post(reverse('django_ses_bounce'),
-                         json.dumps(notification), content_type='application/json')
+        # Mock the verification
+        with mock.patch.object(ses_utils, 'verify_bounce_message') as verify:
+            verify.return_value = True
+
+            self.client.post(reverse('django_ses_bounce'),
+                             json.dumps(notification), content_type='application/json')
 
         self.assertTrue(_handler.called)
 
@@ -142,7 +149,11 @@ class HandleBounceTest(TestCase):
         _handler.called = False
         complaint_received.connect(_handler)
 
-        self.client.post(reverse('django_ses_bounce'), 
-                         json.dumps(notification), content_type='application/json')
+        # Mock the verification
+        with mock.patch.object(ses_utils, 'verify_bounce_message') as verify:
+            verify.return_value = True
+
+            self.client.post(reverse('django_ses_bounce'), 
+                             json.dumps(notification), content_type='application/json')
 
         self.assertTrue(_handler.called)

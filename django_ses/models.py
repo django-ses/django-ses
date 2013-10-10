@@ -1,5 +1,8 @@
 from django.db import models
 
+__all__ = (
+    'SESStat',
+)
 
 class SESStat(models.Model):
     date = models.DateField(unique=True, db_index=True)

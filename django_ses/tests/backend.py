@@ -1,6 +1,7 @@
 import email
 
 from django.conf import settings as django_settings
+from django.utils.encoding import smart_str
 from django.core.mail import send_mail
 from django.test import TestCase
 
@@ -8,7 +9,6 @@ from boto.ses import SESConnection
 
 import django_ses
 from django_ses import settings
-from django_ses.tests.utils import unload_django_ses
 
 # random key generated with `openssl genrsa 512`
 DKIM_PRIVATE_KEY = '''
@@ -78,7 +78,7 @@ class SESBackendTest(TestCase):
     def test_send_mail(self):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
-        mail = email.message_from_string(message['raw_message'])
+        mail = email.message_from_string(smart_str(message['raw_message']))
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')

@@ -7,8 +7,6 @@ from django.utils import simplejson as json
 from django_ses.signals import bounce_received, complaint_received
 from django_ses import utils as ses_utils
 
-__all__ = ('HandleBounceTest',)
-
 class HandleBounceTest(TestCase):
     """
     Test the bounce web hook handler.

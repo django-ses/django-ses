@@ -179,7 +179,7 @@ class BounceMessageVerifier(object):
         return outbytes.getvalue()
 
 def verify_bounce_message(msg):
-    u"""
+    """
     Verify an SES/SNS bounce notification message.
     """
     verifier = BounceMessageVerifier(msg)

@@ -4,6 +4,7 @@ from django_ses import settings
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
 
+from django_ses.exceptions import BlacklistedAddressException, is_blacklist_exception
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -176,8 +177,24 @@ class SESBackend(BaseEmailBackend):
                                 'error_code', 'error_message']
                 for key in error_keys:
                     message.extra_headers[key] = getattr(err, key, None)
+
                 if not self.fail_silently:
+                    # Give a more specific error if the an address was blacklisted.
+                    if is_blacklist_exception(err):
+                        recipients = message.recipients()
+                        if len(recipients) == 1:
+                            address = recipients[0]
+                            raise BlacklistedAddressException(
+                                'The address %s is blacklisted.' % address,
+                                original_exception=err,
+                            )
+                        else:
+                            raise BlacklistedAddressException(
+                                'One of the recipient addresses is blacklisted.',
+                                original_exception=err,
+                            )
                     raise
+
 
         if new_conn_created:
             self.close()

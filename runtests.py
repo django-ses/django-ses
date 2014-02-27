@@ -24,6 +24,7 @@ settings.configure(
             "NAME": ":memory:",
         }
     },
+    ROOT_URLCONF='django_ses.tests.test_urls',
 )
 
 # Start the test suite now that the settings are configured.

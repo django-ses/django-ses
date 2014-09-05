@@ -24,8 +24,16 @@ settings.configure(
             "NAME": ":memory:",
         }
     },
+    MIDDLEWARE_CLASSES=('django.middleware.common.CommonMiddleware',
+                        'django.middleware.csrf.CsrfViewMiddleware'),
     ROOT_URLCONF='django_ses.tests.test_urls',
 )
+
+import django
+try:
+    django.setup()
+except AttributeError:
+    pass
 
 # Start the test suite now that the settings are configured.
 from django.core.management import call_command

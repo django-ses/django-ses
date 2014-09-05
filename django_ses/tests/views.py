@@ -2,7 +2,11 @@ import mock
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from django.utils import simplejson as json
+
+try:
+    import json
+except ImportError:
+    from django.utils import simplejson as json
 
 from django_ses.signals import bounce_received, complaint_received
 from django_ses import utils as ses_utils

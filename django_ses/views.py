@@ -192,7 +192,7 @@ def handle_bounce(request):
 
     try:
         notification = json.loads(raw_json)
-    except ValueError, e:
+    except ValueError as e:
         # TODO: What kind of response should be returned here?
         logger.warning('Recieved bounce with bad JSON: "%s"', e)
         return HttpResponseBadRequest()
@@ -225,7 +225,7 @@ def handle_bounce(request):
         subscribe_url = notification.get('SubscribeURL')
         try:
             urllib2.urlopen(subscribe_url).read()
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             # Some kind of error occurred when confirming the request.
             logger.error('Could not confirm subscription: "%s"', e,
                 extra={
@@ -236,7 +236,7 @@ def handle_bounce(request):
     elif notification.get('Type') == 'Notification':
         try:
             message = json.loads(notification['Message'])
-        except ValueError, e:
+        except ValueError as e:
             # The message isn't JSON.
             # Just ignore the notification.
             logger.warning('Recieved bounce with bad JSON: "%s"', e, extra={

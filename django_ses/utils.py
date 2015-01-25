@@ -107,7 +107,7 @@ class BounceMessageVerifier(object):
             # false as we couldn't verify the message.
             try:
                 self._certificate = M2Crypto.X509.load_cert_string(response.content)
-            except M2Crypto.X509.X509Error, e:
+            except M2Crypto.X509.X509Error as e:
                 logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
                 self._certificate = None
             

@@ -170,7 +170,7 @@ class SESBackend(BaseEmailBackend):
                 message.extra_headers['request_id'] = response[
                     'SendRawEmailResponse']['ResponseMetadata']['RequestId']
                 num_sent += 1
-            except SESConnection.ResponseError, err:
+            except SESConnection.ResponseError as err:
                 # Store failure information so to post process it if required
                 error_keys = ['status', 'reason', 'body', 'request_id',
                                 'error_code', 'error_message']

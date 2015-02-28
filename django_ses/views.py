@@ -1,4 +1,5 @@
-import urllib2
+from urllib.request import urlopen
+from urllib.error import URLError
 import copy
 import logging
 from datetime import datetime
@@ -224,8 +225,8 @@ def handle_bounce(request):
         # Get the subscribe url and hit the url to confirm the subscription.
         subscribe_url = notification.get('SubscribeURL')
         try:
-            urllib2.urlopen(subscribe_url).read()
-        except urllib2.URLError as e:
+            urlopen(subscribe_url).read()
+        except URLError as e:
             # Some kind of error occurred when confirming the request.
             logger.error('Could not confirm subscription: "%s"', e,
                 extra={

@@ -10,6 +10,9 @@ If you are interested in helping out, please contact `Paul Craciunoiu (pcraciuno
 
 .. _Paul Craciunoiu (pcraciunoiu): https://github.com/pcraciunoiu/
 
+.. image:: https://travis-ci.org/hmarr/django-ses.svg
+    :target: https://travis-ci.org/hmarr/django-ses
+
 A bird's eye view
 =================
 Django-SES is a drop-in mail backend for Django_. Instead of sending emails

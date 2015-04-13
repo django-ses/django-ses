@@ -32,17 +32,17 @@ class BounceMessageVerifierTest(TestCase):
                     self.assertEqual(verifier.certificate, load_cert_string.return_value)
 
     def test_is_verified(self):
-        verifier = BounceMessageVerifier({'Signature': base64.b64encode('Spam & Eggs')})
+        verifier = BounceMessageVerifier({'Signature': base64.b64encode(b'Spam & Eggs')})
         verifier._certificate = mock.Mock()
         verify_final = verifier._certificate.get_pubkey.return_value.verify_final
         verify_final.return_value = 1
         with mock.patch.object(verifier, '_get_bytes_to_sign'):
             self.assertTrue(verifier.is_verified())
 
-        verify_final.assert_called_once_with('Spam & Eggs')
+        verify_final.assert_called_once_with(b'Spam & Eggs')
 
     def test_is_verified_bad_value(self):
-        verifier = BounceMessageVerifier({'Signature': base64.b64encode('Spam & Eggs')})
+        verifier = BounceMessageVerifier({'Signature': base64.b64encode(b'Spam & Eggs')})
         verifier._certificate = mock.Mock()
         verifier._certificate.get_pubkey.return_value.verify_final.return_value = 0
         with mock.patch.object(verifier, '_get_bytes_to_sign'):
@@ -53,7 +53,7 @@ class BounceMessageVerifierTest(TestCase):
         Test url trust verification
         """
         verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://amazonaws.com/', 
+            'SigningCertURL': 'https://amazonaws.com/',
         })
         self.assertEqual(verifier._get_cert_url(), 'https://amazonaws.com/')
 
@@ -62,7 +62,7 @@ class BounceMessageVerifierTest(TestCase):
         Test url trust verification. Non-https urls should be rejected.
         """
         verifier = BounceMessageVerifier({
-            'SigningCertURL': 'http://amazonaws.com/', 
+            'SigningCertURL': 'http://amazonaws.com/',
         })
         self.assertEqual(verifier._get_cert_url(), None)
 
@@ -71,6 +71,6 @@ class BounceMessageVerifierTest(TestCase):
         Test url trust verification. Untrusted domains should be rejected.
         """
         verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://www.example.com/', 
+            'SigningCertURL': 'https://www.example.com/',
         })
         self.assertEqual(verifier._get_cert_url(), None)

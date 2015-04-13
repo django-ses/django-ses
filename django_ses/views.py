@@ -1,5 +1,8 @@
-from urllib.request import urlopen
-from urllib.error import URLError
+try:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import urlopen, URLError
 import copy
 import logging
 from datetime import datetime

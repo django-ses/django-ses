@@ -1,7 +1,10 @@
 import base64
 import logging
 from io import StringIO
-from urllib.parse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
 from django_ses import settings

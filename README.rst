@@ -10,8 +10,8 @@ If you are interested in helping out, please contact `Paul Craciunoiu (pcraciuno
 
 .. _Paul Craciunoiu (pcraciunoiu): https://github.com/pcraciunoiu/
 
-.. image:: https://travis-ci.org/hmarr/django-ses.svg
-    :target: https://travis-ci.org/hmarr/django-ses
+.. image:: https://travis-ci.org/django-ses/django-ses.svg
+    :target: https://travis-ci.org/django-ses/django-ses
 
 A bird's eye view
 =================

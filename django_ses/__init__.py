@@ -145,7 +145,7 @@ class SESBackend(BaseEmailBackend):
                     # Sleep the remainder of the window period.
                     delta = now - new_send_times[0]
                     total_seconds = (delta.microseconds + (delta.seconds +
-                            delta.days * 24 * 3600) * 10**6) / 10**6
+                                     delta.days * 24 * 3600) * 10**6) / 10**6
                     delay = window - total_seconds
                     if delay > 0:
                         sleep(delay)
@@ -157,12 +157,11 @@ class SESBackend(BaseEmailBackend):
                 response = self.connection.send_raw_email(
                     source=source or message.from_email,
                     destinations=message.recipients(),
-                    raw_message=unicode(dkim_sign(message.message().as_string(),
-                                                  dkim_key=self.dkim_key,
-                                                  dkim_domain=self.dkim_domain,
-                                                  dkim_selector=self.dkim_selector,
-                                                  dkim_headers=self.dkim_headers,
-                                                  ), 'utf-8')
+                    raw_message=dkim_sign(message.message().as_string(),
+                                          dkim_key=self.dkim_key,
+                                          dkim_domain=self.dkim_domain,
+                                          dkim_selector=self.dkim_selector,
+                                          dkim_headers=self.dkim_headers)
                 )
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response[
@@ -173,7 +172,7 @@ class SESBackend(BaseEmailBackend):
             except SESConnection.ResponseError as err:
                 # Store failure information so to post process it if required
                 error_keys = ['status', 'reason', 'body', 'request_id',
-                                'error_code', 'error_message']
+                              'error_code', 'error_message']
                 for key in error_keys:
                     message.extra_headers[key] = getattr(err, key, None)
                 if not self.fail_silently:

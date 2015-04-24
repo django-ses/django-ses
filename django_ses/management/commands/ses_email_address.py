@@ -45,17 +45,17 @@ class Command(BaseCommand):
 
         if add_email:
             if verbosity != '0':
-                print "Adding email: %s" % add_email
+                print("Adding email: " + add_email)
             connection.verify_email_address(add_email)
         elif delete_email:
             if verbosity != '0':
-                print "Removing email: %s" % delete_email
+                print("Removing email: " + delete_email)
             connection.delete_verified_email_address(delete_email)
         elif list_emails:
             if verbosity != '0':
-                print "Fetching list of verified emails:"
+                print("Fetching list of verified emails:")
             response = connection.list_verified_email_addresses()
             emails = response['ListVerifiedEmailAddressesResponse'][
                 'ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
             for email in emails:
-                print email
+                print(email)

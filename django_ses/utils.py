@@ -1,17 +1,16 @@
 import base64
 import logging
-from urlparse import urlparse
-
+from io import StringIO
 try:
-    from cStringIO import StringIO
+    from urllib.parse import urlparse
 except ImportError:
-    from StringIO import StringIO
-
+    from urlparse import urlparse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
 from django_ses import settings
 
 logger = logging.getLogger(__name__)
+
 
 class BounceMessageVerifier(object):
     """
@@ -110,7 +109,7 @@ class BounceMessageVerifier(object):
             except M2Crypto.X509.X509Error as e:
                 logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
                 self._certificate = None
-            
+
         return self._certificate
 
     def _get_cert_url(self):
@@ -167,7 +166,7 @@ class BounceMessageVerifier(object):
             # Unrecognized type
             logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
-        
+
         outbytes = StringIO()
         for field_name in fields_to_sign:
             field_value = smart_str(self._data.get(field_name, ''),
@@ -177,8 +176,9 @@ class BounceMessageVerifier(object):
                 outbytes.write("\n")
                 outbytes.write(field_value)
                 outbytes.write("\n")
-         
+
         return outbytes.getvalue()
+
 
 def verify_bounce_message(msg):
     """

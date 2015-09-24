@@ -153,11 +153,16 @@ class SESBackend(BaseEmailBackend):
                 recent_send_times.append(now)
                 # end of throttling
 
+            msg = message.message()
+            if hasattr(msg, 'as_bytes'):
+                msg_bytes = msg.as_bytes()
+            else:  # fallback for older django versions
+                msg_bytes = msg.as_string()
             try:
                 response = self.connection.send_raw_email(
                     source=source or message.from_email,
                     destinations=message.recipients(),
-                    raw_message=dkim_sign(message.message().as_string(),
+                    raw_message=dkim_sign(msg_bytes,
                                           dkim_key=self.dkim_key,
                                           dkim_domain=self.dkim_domain,
                                           dkim_selector=self.dkim_selector,

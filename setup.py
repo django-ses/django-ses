@@ -122,7 +122,7 @@ CLASSIFIERS = [
 ]
 
 setup(
-    name='django-ses',
+    name='emr-django-ses',
     version='0.7.0',  # When changing this, remember to change it in __init__.py
     packages=find_packages(exclude=['example']),
     package_data=package_data,

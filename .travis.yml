@@ -1,5 +1,7 @@
 sudo: false
 language: python
+python:
+  - "3.5"
 env:
     - TESTENV=py27-django13
     - TESTENV=py27-django14
@@ -9,9 +11,10 @@ env:
     - TESTENV=py27-django18
     - TESTENV=py34-django17
     - TESTENV=py34-django18
+    - TESTENV=py35-django19
 
 before_install:
-    - pip install tox
+    - pip3 install tox
 
 script: tox -e $TESTENV
 

@@ -1,5 +1,8 @@
-import mock
 import base64
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 try:
     import requests

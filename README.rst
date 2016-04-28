@@ -65,9 +65,10 @@ Add the following to your settings.py::
     AWS_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
     AWS_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
 
-    # Additionally, you can specify an optional region, like so:
-    AWS_SES_REGION_NAME = 'us-east-1'
-    AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+    # Additionally, if you are not using the default AWS region of us-east-1,
+    # you need to specify a region, like so:
+    AWS_SES_REGION_NAME = 'us-west-2'
+    AWS_SES_REGION_ENDPOINT = 'email.us-west-2.amazonaws.com'
 
 Alternatively, instead of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, you
 can include the following two settings values. This is useful in situations
@@ -242,8 +243,11 @@ Full List of Settings
   where you would like to use separate access keys for different AWS services.
 
 ``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
-  Optionally specify what region your SES service is using. Details:
+  Optionally specify what region your SES service is using. Note that this is
+  required if your SES service is not using us-east-1, as omitting these settings
+  implies this region. Details:
   http://readthedocs.org/docs/boto/en/latest/ref/ses.html#boto.ses.regions
+  http://docs.aws.amazon.com/general/latest/gr/rande.html
 
 ``AWS_SES_RETURN_PATH``
   Instruct Amazon SES to forward bounced emails and complaints to this email.

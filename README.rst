@@ -39,6 +39,8 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 * You need to send a high volume of email.
 * You don't want to have to worry about PTR records, Reverse DNS, email
   whitelist/blacklist services.
+* You want to improve delivery rate and inbox cosmetics by DKIM signing
+  your messages using SES's Easy DKIM feature.
 * Django-SES is a truely drop-in replacement for the default mail backend.
   Your code should require no changes.
 
@@ -103,7 +105,27 @@ Besides authentication, you might also want to consider using DKIM in order to
 remove the `via email-bounces.amazonses.com` message shown to gmail users - 
 see http://support.google.com/mail/bin/answer.py?hl=en&answer=1311182.
 
-To enable DKIM signing you should install the pydkim_ package and specify values
+Currently there are two methods to use DKIM with Django-SES: traditional Manual
+Signing and the more recently introduced Amazon Easy DKIM feature.
+
+Easy DKIM
+---------
+Easy DKIM is a feature of Amazon SES that automatically signs every message
+that you send from a verified email address or domain with a DKIM signature.
+
+You can enable Easy DKIM in the AWS Management Console for SES. There you can
+also add the required domain verification and DKIM records to Route 53 (or
+copy them to your alternate DNS).
+
+Once enabled and verified Easy DKIM needs no additional dependencies or
+DKIM specific settings to work with Django-SES.
+
+For more information and a setup guide see:
+http://docs.aws.amazon.com/ses/latest/DeveloperGuide/easy-dkim.html
+
+Manual DKIM Signing
+-------------------
+To enable Manual DKIM Signing you should install the pydkim_ package and specify values
 for the ``DKIM_PRIVATE_KEY`` and ``DKIM_DOMAIN`` settings.  You can generate a
 private key with a command such as ``openssl genrsa 512`` and get the public key
 portion with ``openssl rsa -pubout <private.key``.  The public key should be

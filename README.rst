@@ -201,6 +201,10 @@ django-ses also comes with a model that lets you store these. To use this
 feature you'll need to first run ``syncdb``::
 
     python manage.py syncdb
+    
+If you are running Django 1.9 or greater, you'll need to run this command::
+
+    python manage.py migrate --run-syncdb
 
 To collect the statistics, run the ``get_ses_statistics`` management command
 (refer to next section for details). After running this command the statistics

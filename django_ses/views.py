@@ -195,7 +195,7 @@ def handle_bounce(request):
         raw_json = request.raw_post_data
 
     try:
-        notification = json.loads(raw_json)
+        notification = json.loads(raw_json.decode('utf-8'))
     except ValueError as e:
         # TODO: What kind of response should be returned here?
         logger.warning('Recieved bounce with bad JSON: "%s"', e)

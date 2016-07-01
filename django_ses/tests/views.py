@@ -1,4 +1,7 @@
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse

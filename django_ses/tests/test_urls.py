@@ -1,8 +1,8 @@
 try:
-    from django.conf.urls import patterns, url
+    from django.conf.urls import url
 except ImportError:
     # Fall back to the old, pre-1.6 style
-    from django.conf.urls.defaults import patterns, url
+    from django.conf.urls.defaults import url
 
 from django_ses.views import dashboard, handle_bounce
 

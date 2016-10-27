@@ -10,20 +10,45 @@ from django.core.management.base import BaseCommand
 from django_ses import settings
 
 
+def _add_options(target):
+    return (
+        target(
+            '-a',
+            '--add',
+            dest='add',
+            default=False,
+            help="""Adds an email to your verified email address list.
+                    This action causes a confirmation email message to be
+                    sent to the specified address."""
+        ),
+        target(
+            '-d',
+            '--delete',
+            dest='delete',
+            default=False,
+            help='Removes an email from your verified emails list'
+        ),
+        target(
+            '-l',
+            '--list',
+            dest='list',
+            default=False,
+            action='store_true',
+            help='Outputs all verified emails'
+        )
+    )
+
+
 class Command(BaseCommand):
     """Verify, delete or list SES email addresses"""
 
-    option_list = BaseCommand.option_list + (
-        # -v conflicts with verbose, so use -a
-        make_option("-a", "--add", dest="add", default=False,
-            help="""Adds an email to your verified email address list.
-                    This action causes a confirmation email message to be
-                    sent to the specified address."""),
-        make_option("-d", "--delete", dest="delete", default=False,
-            help="Removes an email from your verified emails list"),
-        make_option("-l", "--list", dest="list", default=False,
-            action="store_true", help="Outputs all verified emails"),
-    )
+    if hasattr(BaseCommand, 'option_list'):
+        # Django < 1.10
+        option_list = BaseCommand.option_list + _add_options(make_option)
+    else:
+        # Django >= 1.10
+        def add_arguments(self, parser):
+            _add_options(parser.add_argument)
 
     def handle(self, *args, **options):
 

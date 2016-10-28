@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail, EmailMessage
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 def index(request):
-    return render_to_response('index.html')
+    return render(request, 'index.html')
 
 def send_email(request):
     if request.method == 'POST':
@@ -24,5 +24,4 @@ def send_email(request):
 
         return HttpResponse('Email sent :)')
     else:
-        return render_to_response('send-email.html')
-
+        return render(request, 'send-email.html')

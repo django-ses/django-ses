@@ -19,7 +19,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 try:
@@ -154,10 +154,7 @@ def dashboard(request):
         'local_time': True if pytz else False,
     }
 
-    response = render_to_response(
-        'django_ses/send_stats.html',
-        extra_context,
-        context_instance=RequestContext(request))
+    response = render(request, 'django_ses/send_stats.html', extra_context)
 
     cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response
@@ -172,7 +169,7 @@ def handle_bounce(request):
     For complaint messages the complaint_received signal is called.
     See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
-    
+
     In addition to email bounce requests this endpoint also supports the SNS
     subscription confirmation request. This request is sent to the SNS
     subscription endpoint when the subscription is registered.
@@ -180,7 +177,7 @@ def handle_bounce(request):
 
     For the format of the SNS subscription confirmation request see this URL:
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
-    
+
     SNS message signatures are verified by default. This funcionality can
     be disabled by setting AWS_SES_VERIFY_BOUNCE_SIGNATURES to False.
     However, this is not recommended.
@@ -202,11 +199,11 @@ def handle_bounce(request):
         return HttpResponseBadRequest()
 
     # Verify the authenticity of the bounce message.
-    if (settings.VERIFY_BOUNCE_SIGNATURES and 
+    if (settings.VERIFY_BOUNCE_SIGNATURES and
             not utils.verify_bounce_message(notification)):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
-        logger.info('Recieved unverified notification: Type: %s', 
+        logger.info('Recieved unverified notification: Type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -218,7 +215,7 @@ def handle_bounce(request):
                                     'UnsubscribeConfirmation'):
         # Process the (un)subscription confirmation.
 
-        logger.info('Recieved subscription confirmation: TopicArn: %s', 
+        logger.info('Recieved subscription confirmation: TopicArn: %s',
             notification.get('TopicArn'),
             extra={
                 'notification': notification,
@@ -244,22 +241,22 @@ def handle_bounce(request):
             # The message isn't JSON.
             # Just ignore the notification.
             logger.warning('Recieved bounce with bad JSON: "%s"', e, extra={
-                'notification': notification, 
+                'notification': notification,
             })
         else:
             mail_obj = message.get('mail')
             notification_type = message.get('notificationType')
-            
+
             if notification_type == 'Bounce':
-                # Bounce 
+                # Bounce
                 bounce_obj = message.get('bounce', {})
-                
+
                 # Logging
                 feedback_id = bounce_obj.get('feedbackId')
                 bounce_type = bounce_obj.get('bounceType')
                 bounce_subtype = bounce_obj.get('bounceSubType')
                 logger.info(
-                    'Recieved bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s', 
+                    'Recieved bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
                     feedback_id, bounce_type, bounce_subtype,
                     extra={
                         'notification': notification,
@@ -279,7 +276,7 @@ def handle_bounce(request):
                 # Logging
                 feedback_id = complaint_obj.get('feedbackId')
                 feedback_type = complaint_obj.get('complaintFeedbackType')
-                logger.info('Recieved complaint notification: feedbackId: %s, feedbackType: %s', 
+                logger.info('Recieved complaint notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -299,7 +296,7 @@ def handle_bounce(request):
                     'notification': notification,
                 })
     else:
-        logger.info('Recieved unknown notification type: %s', 
+        logger.info('Recieved unknown notification type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,

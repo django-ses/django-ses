@@ -80,6 +80,7 @@ class SESBackend(BaseEmailBackend):
                 aws_secret_access_key=self._access_key,
                 region=self._region,
                 proxy=self._proxy,
+                proxy_port=self._proxy_port,
             )
         except:
             if not self.fail_silently:

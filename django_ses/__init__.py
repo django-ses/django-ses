@@ -48,7 +48,7 @@ class SESBackend(BaseEmailBackend):
                  aws_secret_key=None, aws_region_name=None,
                  aws_region_endpoint=None, aws_auto_throttle=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None,
-                 dkim_headers=None, **kwargs):
+                 dkim_headers=None, proxy=None, proxy_port=None, **kwargs):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
@@ -57,6 +57,8 @@ class SESBackend(BaseEmailBackend):
             name=aws_region_name or settings.AWS_SES_REGION_NAME,
             endpoint=aws_region_endpoint or settings.AWS_SES_REGION_ENDPOINT)
         self._throttle = aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE
+        self._proxy = proxy or settings.AWS_SES_PROXY
+        self._proxy_port = proxy_port or settings.AWS_SES_PROXY_PORT
 
         self.dkim_domain = dkim_domain or settings.DKIM_DOMAIN
         self.dkim_key = dkim_key or settings.DKIM_PRIVATE_KEY
@@ -77,6 +79,7 @@ class SESBackend(BaseEmailBackend):
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
                 region=self._region,
+                proxy=self._proxy,
             )
         except:
             if not self.fail_silently:

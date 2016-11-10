@@ -279,6 +279,12 @@ Full List of Settings
   Instruct Amazon SES to forward bounced emails and complaints to this email.
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
 
+``AWS_SES_PROXY``
+  Optional. Use this address as a proxy while connecting to Amazon SES.
+
+``AWS_SES_PROXY_PORT``
+  Optional. Use this port for proxy connections while connecting to Amazon SES.
+
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone

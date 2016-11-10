@@ -62,11 +62,16 @@ class Command(BaseCommand):
         region = RegionInfo(
             name=settings.AWS_SES_REGION_NAME,
             endpoint=settings.AWS_SES_REGION_ENDPOINT)
+        proxy = settings.AWS_SES_PROXY
+        proxy_port = settings.AWS_SES_PROXY_PORT
 
         connection = SESConnection(
                 aws_access_key_id=access_key_id,
                 aws_secret_access_key=access_key,
-                region=region)
+                region=region,
+                proxy=proxy,
+                proxy_port=proxy_port,
+        )
 
         if add_email:
             if verbosity != '0':

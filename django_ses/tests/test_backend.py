@@ -67,7 +67,7 @@ class FakeSESBackend(django_ses.SESBackend):
 class SESBackendTest(TestCase):
     def setUp(self):
         # TODO: Fix this -- this is going to cause side effects
-        django_settings.EMAIL_BACKEND = 'django_ses.tests.backend.FakeSESBackend'
+        django_settings.EMAIL_BACKEND = 'django_ses.tests.test_backend.FakeSESBackend'
         django_ses.SESConnection = FakeSESConnection
         self.outbox = FakeSESConnection.outbox
 
@@ -124,7 +124,7 @@ class SESBackendTest(TestCase):
 class SESBackendTestReturn(TestCase):
     def setUp(self):
         # TODO: Fix this -- this is going to cause side effects
-        django_settings.EMAIL_BACKEND = 'django_ses.tests.backend.FakeSESBackend'
+        django_settings.EMAIL_BACKEND = 'django_ses.tests.test_backend.FakeSESBackend'
         django_ses.SESConnection = FakeSESConnection
         self.outbox = FakeSESConnection.outbox
 

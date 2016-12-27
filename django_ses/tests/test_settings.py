@@ -19,4 +19,10 @@ class SettingsImportTest(TestCase):
         self.assertEqual(django_ses.settings.ACCESS_KEY, settings.AWS_SES_ACCESS_KEY_ID)
         self.assertEqual(django_ses.settings.SECRET_KEY, settings.AWS_SES_SECRET_ACCESS_KEY)
 
-
+    def test_proxy_settings_given(self):
+        settings.AWS_SES_PROXY = "some.proxy.host.tld"
+        settings.AWS_SES_PROXY_PORT = 1234
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_PROXY, settings.AWS_SES_PROXY)
+        self.assertEqual(django_ses.settings.AWS_SES_PROXY_PORT, settings.AWS_SES_PROXY_PORT)

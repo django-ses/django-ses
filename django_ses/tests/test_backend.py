@@ -152,17 +152,17 @@ class SESBackendTestProxySettings(TestCase):
 
     def test_proxy_settings(self):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        # setup args are in the first outbox message
-        received_kwargs = self.outbox.pop(0)
+        # connection setup args are in the first outbox message
+        connection_kwargs = self.outbox.pop(0)
 
-        self.assertIn('proxy', received_kwargs)
-        self.assertEqual(received_kwargs['proxy'], settings.AWS_SES_PROXY)
+        self.assertIn('proxy', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy'], settings.AWS_SES_PROXY)
 
-        self.assertIn('proxy_port', received_kwargs)
-        self.assertEqual(received_kwargs['proxy_port'], settings.AWS_SES_PROXY_PORT)
+        self.assertIn('proxy_port', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_port'], settings.AWS_SES_PROXY_PORT)
 
-        self.assertIn('proxy_user', received_kwargs)
-        self.assertEqual(received_kwargs['proxy_user'], settings.AWS_SES_PROXY_USER)
+        self.assertIn('proxy_user', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_user'], settings.AWS_SES_PROXY_USER)
 
-        self.assertIn('proxy_pass', received_kwargs)
-        self.assertEqual(received_kwargs['proxy_pass'], settings.AWS_SES_PROXY_PASS)
+        self.assertIn('proxy_pass', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_pass'], settings.AWS_SES_PROXY_PASS)

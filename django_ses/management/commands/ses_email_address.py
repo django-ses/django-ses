@@ -64,6 +64,9 @@ class Command(BaseCommand):
             endpoint=settings.AWS_SES_REGION_ENDPOINT)
         proxy = settings.AWS_SES_PROXY
         proxy_port = settings.AWS_SES_PROXY_PORT
+        proxy_user = settings.AWS_SES_PROXY_USER
+        proxy_pass = settings.AWS_SES_PROXY_PASS
+
 
         connection = SESConnection(
                 aws_access_key_id=access_key_id,
@@ -71,6 +74,8 @@ class Command(BaseCommand):
                 region=region,
                 proxy=proxy,
                 proxy_port=proxy_port,
+                proxy_user=proxy_user,
+                proxy_pass=proxy_pass,
         )
 
         if add_email:

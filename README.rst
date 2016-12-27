@@ -285,6 +285,13 @@ Full List of Settings
 ``AWS_SES_PROXY_PORT``
   Optional. Use this port for proxy connections while connecting to Amazon SES.
 
+``AWS_SES_PROXY_USER``
+  Optional. Use this user when setting up proxy connections while connecting to Amazon SES.
+
+``AWS_SES_PROXY_PASS``
+  Optional. Use this password when setting up proxy connections while connecting to Amazon SES.
+
+
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone

@@ -147,6 +147,8 @@ class SESBackendTestProxySettings(TestCase):
         self.outbox = FakeSESConnection.outbox
         settings.AWS_SES_PROXY = 'some.proxy.host.tld'
         settings.AWS_SES_PROXY_PORT = 1234
+        settings.AWS_SES_PROXY_USER = 'some-user-id'
+        settings.AWS_SES_PROXY_PASS = 'secret'
 
     def test_proxy_settings(self):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
@@ -158,3 +160,9 @@ class SESBackendTestProxySettings(TestCase):
 
         self.assertIn('proxy_port', received_kwargs)
         self.assertEqual(received_kwargs['proxy_port'], settings.AWS_SES_PROXY_PORT)
+
+        self.assertIn('proxy_user', received_kwargs)
+        self.assertEqual(received_kwargs['proxy_user'], settings.AWS_SES_PROXY_USER)
+
+        self.assertIn('proxy_pass', received_kwargs)
+        self.assertEqual(received_kwargs['proxy_pass'], settings.AWS_SES_PROXY_PASS)

@@ -19,6 +19,10 @@ AWS_SES_REGION_ENDPOINT = getattr(settings, 'AWS_SES_REGION_ENDPOINT',
 
 AWS_SES_AUTO_THROTTLE = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
 AWS_SES_RETURN_PATH = getattr(settings, 'AWS_SES_RETURN_PATH', None)
+AWS_SES_PROXY = getattr(settings, 'AWS_SES_PROXY', None)
+AWS_SES_PROXY_PORT = getattr(settings, 'AWS_SES_PROXY_PORT', None)
+AWS_SES_PROXY_USER = getattr(settings, 'AWS_SES_PROXY_USER', None)
+AWS_SES_PROXY_PASS = getattr(settings, 'AWS_SES_PROXY_PASS', None)
 
 DKIM_DOMAIN = getattr(settings, "DKIM_DOMAIN", None)
 DKIM_PRIVATE_KEY = getattr(settings, 'DKIM_PRIVATE_KEY', None)

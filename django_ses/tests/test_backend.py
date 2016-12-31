@@ -37,7 +37,8 @@ class FakeSESConnection(SESConnection):
     outbox = []
 
     def __init__(self, *args, **kwargs):
-        pass
+        self.outbox.append(kwargs)
+
 
     def send_raw_email(self, **kwargs):
         self.outbox.append(kwargs)
@@ -136,3 +137,32 @@ class SESBackendTestReturn(TestCase):
         settings.AWS_SES_RETURN_PATH = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['source'], 'return@example.com')
+
+
+class SESBackendTestProxySettings(TestCase):
+    def setUp(self):
+        # TODO: Fix this -- this is going to cause side effects
+        django_settings.EMAIL_BACKEND = 'django_ses.tests.test_backend.FakeSESBackend'
+        django_ses.SESConnection = FakeSESConnection
+        self.outbox = FakeSESConnection.outbox
+        settings.AWS_SES_PROXY = 'some.proxy.host.tld'
+        settings.AWS_SES_PROXY_PORT = 1234
+        settings.AWS_SES_PROXY_USER = 'some-user-id'
+        settings.AWS_SES_PROXY_PASS = 'secret'
+
+    def test_proxy_settings(self):
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        # connection setup args are in the first outbox message
+        connection_kwargs = self.outbox.pop(0)
+
+        self.assertIn('proxy', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy'], settings.AWS_SES_PROXY)
+
+        self.assertIn('proxy_port', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_port'], settings.AWS_SES_PROXY_PORT)
+
+        self.assertIn('proxy_user', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_user'], settings.AWS_SES_PROXY_USER)
+
+        self.assertIn('proxy_pass', connection_kwargs)
+        self.assertEqual(connection_kwargs['proxy_pass'], settings.AWS_SES_PROXY_PASS)

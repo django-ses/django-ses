@@ -147,7 +147,7 @@ def dashboard(request):
         'verified_emails': verified_emails,
         'summary': summary,
         'access_key': ses_conn.gs_access_key_id,
-        'local_time': True if pytz else False,
+        'local_time': True,
     }
 
     response = render(request, 'django_ses/send_stats.html', extra_context)

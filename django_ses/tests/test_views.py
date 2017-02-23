@@ -1,18 +1,15 @@
+import json
 try:
     from unittest import mock
 except ImportError:
     import mock
 
-from django.test import TestCase
 from django.core.urlresolvers import reverse
-
-try:
-    import json
-except ImportError:
-    from django.utils import simplejson as json
+from django.test import TestCase
 
 from django_ses.signals import bounce_received, complaint_received
 from django_ses import utils as ses_utils
+
 
 class HandleBounceTest(TestCase):
     """
@@ -24,7 +21,7 @@ class HandleBounceTest(TestCase):
 
         self._old_complaint_receivers = complaint_received.receivers
         complaint_received.receivers = []
-    
+
     def tearDown(self):
         bounce_received.receivers = self._old_bounce_receivers
         complaint_received.receivers = self._old_complaint_receivers
@@ -53,7 +50,7 @@ class HandleBounceTest(TestCase):
                     "action":"failed",
                     "diagnosticCode":"smtp; 550 user unknown",
                     "emailAddress":"recipient1@example.com",
-                }, 
+                },
                 {
                     "status":"4.0.0",
                     "action":"delayed",
@@ -66,7 +63,7 @@ class HandleBounceTest(TestCase):
         }
 
         message_obj = {
-            'notificationType': 'Bounce',  
+            'notificationType': 'Bounce',
             'mail': req_mail_obj,
             'bounce': req_bounce_obj,
         }
@@ -83,7 +80,7 @@ class HandleBounceTest(TestCase):
             "SigningCertURL" : "",
             "UnsubscribeURL" : ""
         }
-        
+
         def _handler(sender, mail_obj, bounce_obj, **kwargs):
             _handler.called = True
             self.assertEquals(req_mail_obj, mail_obj)
@@ -158,7 +155,7 @@ class HandleBounceTest(TestCase):
         with mock.patch.object(ses_utils, 'verify_bounce_message') as verify:
             verify.return_value = True
 
-            self.client.post(reverse('django_ses_bounce'), 
+            self.client.post(reverse('django_ses_bounce'),
                              json.dumps(notification), content_type='application/json')
 
         self.assertTrue(_handler.called)

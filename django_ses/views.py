@@ -1,3 +1,5 @@
+import json
+import pytz
 try:
     from urllib.request import urlopen
     from urllib.error import URLError
@@ -7,10 +9,6 @@ import copy
 import logging
 from datetime import datetime
 
-try:
-    import pytz
-except ImportError:
-    pytz = None
 
 from boto.regioninfo import RegionInfo
 from boto.ses import SESConnection
@@ -20,18 +18,13 @@ from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-from django.template import RequestContext
-
-try:
-    import json
-except ImportError:
-    from django.utils import simplejson as json
 
 from django_ses import settings
 from django_ses import signals
 from django_ses import utils
 
 logger = logging.getLogger(__name__)
+
 
 def superuser_only(view_func):
     """

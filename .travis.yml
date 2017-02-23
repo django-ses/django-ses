@@ -3,13 +3,7 @@ language: python
 python:
   - "3.5"
 env:
-    - TESTENV=py27-django13
-    - TESTENV=py27-django14
-    - TESTENV=py27-django15
-    - TESTENV=py27-django16
-    - TESTENV=py27-django17
     - TESTENV=py27-django18
-    - TESTENV=py34-django17
     - TESTENV=py34-django18
     - TESTENV=py35-django19
 

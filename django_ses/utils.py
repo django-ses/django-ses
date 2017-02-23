@@ -115,7 +115,7 @@ class BounceMessageVerifier(object):
     def _get_cert_url(self):
         """
         Get the signing certificate URL.
-        Only accept urls that match the domains set in the 
+        Only accept urls that match the domains set in the
         AWS_SNS_BOUNCE_CERT_TRUSTED_DOMAINS setting. Sub-domains
         are allowed. i.e. if amazonaws.com is in the trusted domains
         then sns.us-east-1.amazonaws.com will match.

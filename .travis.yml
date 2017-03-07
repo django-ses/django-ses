@@ -1,7 +1,7 @@
 sudo: false
 language: python
 python:
-  - "3.5"
+  - "3.6"
 env:
     - TESTENV=py27-django13
     - TESTENV=py27-django14
@@ -12,6 +12,7 @@ env:
     - TESTENV=py34-django17
     - TESTENV=py34-django18
     - TESTENV=py35-django19
+    - TESTENV=py36-django110
 
 before_install:
     - pip3 install tox

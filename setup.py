@@ -131,7 +131,7 @@ setup(
     package_data=package_data,
     author='Harry Marr',
     author_email='harry@hmarr.com',
-    url='http://github.com/hmarr/django-ses/',
+    url='https://github.com/django-ses/django-ses',
     license='MIT',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,

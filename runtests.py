@@ -12,7 +12,9 @@ kick off the test suite.
 # `DATABASES` value be present and configured in order to
 # do anything.
 
+import django
 from django.conf import settings
+from django.core.management import call_command
 
 settings.configure(
     INSTALLED_APPS=[
@@ -29,12 +31,7 @@ settings.configure(
     ROOT_URLCONF='django_ses.tests.test_urls',
 )
 
-import django
-try:
-    django.setup()
-except AttributeError:
-    pass
+django.setup()
 
 # Start the test suite now that the settings are configured.
-from django.core.management import call_command
 call_command("test", "django_ses")

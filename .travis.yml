@@ -3,15 +3,14 @@ language: python
 python:
   - "3.5"
 env:
-    - TESTENV=py27-django13
-    - TESTENV=py27-django14
-    - TESTENV=py27-django15
-    - TESTENV=py27-django16
-    - TESTENV=py27-django17
     - TESTENV=py27-django18
-    - TESTENV=py34-django17
+    - TESTENV=py27-django19
+    - TESTENV=py27-django110
+    - TESTENV=py27-django111
     - TESTENV=py34-django18
     - TESTENV=py35-django19
+    - TESTENV=py35-django110
+    - TESTENV=py35-django111
 
 before_install:
     - pip3 install tox

@@ -102,7 +102,7 @@ Using DomainKeys_ is entirely optional, however it is recommended by Amazon for
 authenticating your email address and improving delivery success rate.  See
 http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/DKIM.html.
 Besides authentication, you might also want to consider using DKIM in order to
-remove the `via email-bounces.amazonses.com` message shown to gmail users - 
+remove the `via email-bounces.amazonses.com` message shown to gmail users -
 see http://support.google.com/mail/bin/answer.py?hl=en&answer=1311182.
 
 Currently there are two methods to use DKIM with Django-SES: traditional Manual
@@ -129,7 +129,7 @@ To enable Manual DKIM Signing you should install the pydkim_ package and specify
 for the ``DKIM_PRIVATE_KEY`` and ``DKIM_DOMAIN`` settings.  You can generate a
 private key with a command such as ``openssl genrsa 512`` and get the public key
 portion with ``openssl rsa -pubout <private.key``.  The public key should be
-published to ``ses._domainkey.example.com`` if your domain is example.com.  You 
+published to ``ses._domainkey.example.com`` if your domain is example.com.  You
 can use a different name instead of ``ses`` by changing the ``DKIM_SELECTOR``
 setting.
 
@@ -156,7 +156,7 @@ Example DNS record published to Route53 with boto:
 .. _DomainKeys: http://dkim.org/
 
 
-SES Sending Stats 
+SES Sending Stats
 =================
 
 Django SES comes with two ways of viewing sending statistics.
@@ -181,12 +181,6 @@ To generate and view SES sending statistics reports, include, update
 *Optional enhancements to stats:*
 
 
-Localized datetime in the stats dashboard
------------------------------------------
-You can install ``pytz`` to localize the Amazon timestamp
-(assumed UTC) to your locale. This will also make the date more readable,
-using Django's default formatting.
-
 Link the dashboard from the admin
 ---------------------------------
 You can use adminplus for this (https://github.com/jsocol/django-adminplus)::
@@ -201,7 +195,7 @@ django-ses also comes with a model that lets you store these. To use this
 feature you'll need to first run ``syncdb``::
 
     python manage.py syncdb
-    
+
 If you are running Django 1.9 or greater, you'll need to run this command::
 
     python manage.py migrate --run-syncdb

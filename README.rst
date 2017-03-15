@@ -242,7 +242,7 @@ error emails will all fail and you'll be blissfully unaware of a problem.
 to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
 has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py
 
-.. _Builtin Email Error Reporting: http://docs.djangoproject.com/en/1.2/howto/error-reporting/
+.. _Builtin Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/

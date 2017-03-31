@@ -150,7 +150,7 @@ class SESBackend(BaseEmailBackend):
                 # Since I'm not sure how Amazon determines at exactly what
                 # point to throttle, better be safe than sorry and let in, say,
                 # half of the allowed rate.
-                if len(new_send_times) > rate_limit * window * self._throttle:
+                if len(new_send_times) > float(rate_limit) * float(window) * float(self._throttle):
                     # Sleep the remainder of the window period.
                     delta = now - new_send_times[0]
                     total_seconds = (delta.microseconds + (delta.seconds +

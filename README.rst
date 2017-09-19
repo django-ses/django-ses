@@ -98,18 +98,16 @@ Check out the ``example`` directory for more information.
 SES Event Monitoring with Configuration Sets
 ============================================
 
-You can track your SES email sending at a granular level using `SES Event Publishing 
-<https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html>`.  
-To do this, you set up an SES Configuration Set and add event handlers to it to
-send your events on to a destination within AWS (SNS, Cloudwatch or Kinesis
-Firehose) for further processing and analysis.
+You can track your SES email sending at a granular level using `SES Event
+Publishing_`.  To do this, you set up an SES Configuration Set and add event
+handlers to it to send your events on to a destination within AWS (SNS,
+Cloudwatch or Kinesis Firehose) for further processing and analysis.
 
 To ensure that emails you send via `django-ses` will be tagged with your
 SES Configuration Set, set the `AWS_SES_CONFIGURATION_SET` setting in your
 settings.py to the name of the configuration set::
 
     AWS_SES_CONFIGURATION_SET = 'my-configuration-set-name'
-
 
 This will add the `X-SES-CONFIGURATION-SET` header to all your outgoing
 e-mails.
@@ -265,6 +263,7 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
+.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html  
 __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
@@ -291,6 +290,10 @@ Full List of Settings
 ``AWS_SES_RETURN_PATH``
   Instruct Amazon SES to forward bounced emails and complaints to this email.
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
+
+``AWS_SES_CONFIGURATION_SET``
+  Optional. Use this to mark your e-mails as from being from a particular SES
+  Configuration Set.
 
 ``AWS_SES_PROXY``
   Optional. Use this address as a proxy while connecting to Amazon SES.

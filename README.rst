@@ -95,6 +95,25 @@ To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
 
+SES Event Monitoring with Configuration Sets
+============================================
+
+You can track your SES email sending at a granular level using `SES Event Publishing 
+<https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html>`.  
+To do this, you set up an SES Configuration Set and add event handlers to it to
+send your events on to a destination within AWS (SNS, Cloudwatch or Kinesis
+Firehose) for further processing and analysis.
+
+To ensure that emails you send via `django-ses` will be tagged with your
+SES Configuration Set, set the `AWS_SES_CONFIGURATION_SET` setting in your
+settings.py to the name of the configuration set::
+
+    AWS_SES_CONFIGURATION_SET = 'my-configuration-set-name'
+
+
+This will add the `X-SES-CONFIGURATION-SET` header to all your outgoing
+e-mails.
+
 DKIM
 ====
 

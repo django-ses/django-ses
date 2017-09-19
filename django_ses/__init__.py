@@ -116,6 +116,14 @@ class SESBackend(BaseEmailBackend):
         num_sent = 0
         source = settings.AWS_SES_RETURN_PATH
         for message in email_messages:
+            # SES Configuration sets; if the AWS_SES_CONFIGURATION_SET setting
+            # is not None, append the appropriate header to the message so that
+            # SES knows which configuration set it belongs to.
+            if (settings.AWS_SES_CONFIGURATION_SET and
+                'X-SES-CONFIGURATION-SET' not in message.extra_headers):
+                message.extra_headers[
+                    'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET
+
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a
             # factor to apply to the rate limit, with a default of 0.5 to stay

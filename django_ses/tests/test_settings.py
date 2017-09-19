@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.conf import settings
 from django_ses.tests.utils import unload_django_ses
 
+
 class SettingsImportTest(TestCase):
     def test_aws_access_key_given(self):
         settings.AWS_ACCESS_KEY_ID = "Yjc4MzQ4MGYzMTBhOWY3ODJhODhmNTBkN2QwY2IyZTdhZmU1NDM1ZQo"
@@ -30,3 +31,9 @@ class SettingsImportTest(TestCase):
         self.assertEqual(django_ses.settings.AWS_SES_PROXY_PORT, settings.AWS_SES_PROXY_PORT)
         self.assertEqual(django_ses.settings.AWS_SES_PROXY_USER, settings.AWS_SES_PROXY_USER)
         self.assertEqual(django_ses.settings.AWS_SES_PROXY_PASS, settings.AWS_SES_PROXY_PASS)
+
+    def test_ses_configuration_set_given(self):
+        settings.AWS_SES_CONFIGURATION_SET = "test-set"
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_CONFIGURATION_SET, settings.AWS_SES_CONFIGURATION_SET)

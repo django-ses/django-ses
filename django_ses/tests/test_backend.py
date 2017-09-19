@@ -77,15 +77,29 @@ class SESBackendTest(TestCase):
         FakeSESConnection.outbox = []
 
     def test_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['raw_message']))
+        self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+
+    def test_configuration_set_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = 'test-set'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['raw_message']))
+        self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'test-set')
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
 
     def test_dkim_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
         # DKIM verification uses DNS to retrieve the public key when checking
         # the signature, so we need to replace the standard query response with
         # one that always returns the test key.

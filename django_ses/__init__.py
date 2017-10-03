@@ -119,7 +119,7 @@ class SESBackend(BaseEmailBackend):
 
         num_sent = 0
         source = settings.AWS_SES_RETURN_PATH
-        for message in email_messages:
+       for message in email_messages:
             # SES Configuration sets; if the AWS_SES_CONFIGURATION_SET setting
             # is not None, append the appropriate header to the message so that
             # SES knows which configuration set it belongs to.
@@ -127,7 +127,7 @@ class SESBackend(BaseEmailBackend):
                 'X-SES-CONFIGURATION-SET' not in message.extra_headers):
                 message.extra_headers[
                     'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET
-                logger.debug("send_messages.configuration_set configuration_set='{}'".format(settings.AWS_SES_CONFIGURAITON_SET))
+                logger.info("send_messages.configuration_set configuration_set='{}'".format(settings.AWS_SES_CONFIGURATION_SET))
 
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a
@@ -142,7 +142,7 @@ class SESBackend(BaseEmailBackend):
                 # Get and cache the current SES max-per-second rate limit
                 # returned by the SES API.
                 rate_limit = self.get_rate_limit()
-                logger.debug("send_messages.throttle rate_limit='{}'".format(rate_limit))
+                logger.info("send_messages.throttle rate_limit='{}'".format(rate_limit))
 
                 # Prune from recent_send_times anything more than a few seconds
                 # ago. Even though SES reports a maximum per-second, the way
@@ -192,7 +192,7 @@ class SESBackend(BaseEmailBackend):
                 message.extra_headers['request_id'] = response[
                     'SendRawEmailResponse']['ResponseMetadata']['RequestId']
                 num_sent += 1
-                logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
+                logger.info("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
                     message.from_email,
                     ", ".join(message.recipients()),
                     message.extra_headers['message_id'],

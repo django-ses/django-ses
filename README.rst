@@ -98,8 +98,8 @@ Check out the ``example`` directory for more information.
 SES Event Monitoring with Configuration Sets
 ============================================
 
-You can track your SES email sending at a granular level using `SES Event
-Publishing_`.  To do this, you set up an SES Configuration Set and add event
+You can track your SES email sending at a granular level using `SES Event Publishing_`.  
+To do this, you set up an SES Configuration Set and add event
 handlers to it to send your events on to a destination within AWS (SNS,
 Cloudwatch or Kinesis Firehose) for further processing and analysis.
 

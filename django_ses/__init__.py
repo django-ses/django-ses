@@ -120,14 +120,27 @@ class SESBackend(BaseEmailBackend):
         num_sent = 0
         source = settings.AWS_SES_RETURN_PATH
         for message in email_messages:
-            # SES Configuration sets; if the AWS_SES_CONFIGURATION_SET setting
+            # SES Configuration sets. If the AWS_SES_CONFIGURATION_SET setting
             # is not None, append the appropriate header to the message so that
             # SES knows which configuration set it belongs to.
+            #
+            # If settings.AWS_SES_CONFIGURATION_SET is a callable, pass it the
+            # message object and dkim settings and expect it to return a string
+            # containing the SES Configuration Set name.
             if (settings.AWS_SES_CONFIGURATION_SET and
                 'X-SES-CONFIGURATION-SET' not in message.extra_headers):
-                message.extra_headers[
-                    'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET
-                logger.debug("send_messages.configuration_set configuration_set='{}'".format(settings.AWS_SES_CONFIGURATION_SET))
+                if callable(settings.AWS_SES_CONFIGURATION_SET):
+                    message.extra_headers[
+                        'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET(
+                            message,
+                            dkim_domain=self.dkim_domain,
+                            dkim_key=self.dkim_key,
+                            dkim_selector=self.dkim_selector,
+                            dkim_headers=self.dkim_headers
+                        )
+                else:
+                    message.extra_headers[
+                        'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET
 
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a
@@ -192,12 +205,21 @@ class SESBackend(BaseEmailBackend):
                 message.extra_headers['request_id'] = response[
                     'SendRawEmailResponse']['ResponseMetadata']['RequestId']
                 num_sent += 1
-                logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
-                    message.from_email,
-                    ", ".join(message.recipients()),
-                    message.extra_headers['message_id'],
-                    message.extra_headers['request_id']
-                ))
+                if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
+                    logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' ses-configuration-set='{}'".format(
+                        message.from_email,
+                        ", ".join(message.recipients()),
+                        message.extra_headers['message_id'],
+                        message.extra_headers['request_id'],
+                        message.extra_headers['X-SES-CONFIGURATION-SET']
+                    ))
+                else:
+                    logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
+                        message.from_email,
+                        ", ".join(message.recipients()),
+                        message.extra_headers['message_id'],
+                        message.extra_headers['request_id']
+                    ))
 
             except SESConnection.ResponseError as err:
                 # Store failure information so to post process it if required

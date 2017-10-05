@@ -112,6 +112,29 @@ settings.py to the name of the configuration set::
 This will add the `X-SES-CONFIGURATION-SET` header to all your outgoing
 e-mails.
 
+If you want to set the SES Configuration Set on a per message basis, set
+`AWS_SES_CONFIGURATION_SET` to a callable.  The callable should conform to the
+following prototype::
+
+    def ses_configuration_set(message, dkim_domain=None, dkim_key=None,
+                                dkim_selector=None, dkim_headers=()):
+        configuration_set = 'my-default-set'
+        # use message and dkim_* to modify configuration_set
+        return configuration_set
+        
+    AWS_SES_CONFIGURATION_SET = ses_configuration_set
+
+where
+
+* `message` is a `django.core.mail.EmailMessage` object (or subclass)
+* `dkim_domain` is a string containing the DKIM domain for this message
+* `dkim_key` is a string containing the DKIM private key for this message
+* `dkim_selector` is a string containing the DKIM selector (see DKIM, below for
+  explanation)
+* `dkim_headers` is a list of strings containing the names of the headers to
+  be DKIM signed (see DKIM, below for explanation)
+
+
 DKIM
 ====
 
@@ -293,7 +316,9 @@ Full List of Settings
 
 ``AWS_SES_CONFIGURATION_SET``
   Optional. Use this to mark your e-mails as from being from a particular SES
-  Configuration Set.
+  Configuration Set. Set this to a string if you want all messages to have the
+  same configuration set.  Set this to a callable if you want to set
+  configuration set on a per message basis. 
 
 ``AWS_SES_PROXY``
   Optional. Use this address as a proxy while connecting to Amazon SES.

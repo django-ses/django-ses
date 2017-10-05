@@ -25,6 +25,26 @@ HuuR7wc0HJ/cfVi8Kgm5B+sHY9/7KDWAYGGnbGgCNA==
 DKIM_PUBLIC_KEY = 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALCKsjD8UUxBESo1OLN6gptp1lD0U85AgXGL571/SQ3k61KhAQ8hhL3lnfQKn/XCl2oCXscEwgJv43IUs+VETWECAwEAAQ=='
 
 
+class SESConfigurationSetTester(object):
+
+    def __init__(self, configuration_set):
+        self.message = None
+        self.dkim_domain = None
+        self.dkim_key = None
+        self.dkim_selector = None
+        self.dkim_headers = ()
+        self.configuration_set = configuration_set
+
+    def __call__(self, message, dkim_domain=None, dkim_key=None,
+                 dkim_selector=None, dkim_headers=()):
+        self.message = message
+        self.dkim_domain = dkim_domain
+        self.dkim_key = dkim_key
+        self.dkim_selector = dkim_selector
+        self.dkim_headers = dkim_headers
+        return self.configuration_set
+
+
 class FakeSESConnection(SESConnection):
     '''
     A fake SES connection for testing purposes.It behaves similarly
@@ -38,7 +58,6 @@ class FakeSESConnection(SESConnection):
 
     def __init__(self, *args, **kwargs):
         self.outbox.append(kwargs)
-
 
     def send_raw_email(self, **kwargs):
         self.outbox.append(kwargs)
@@ -77,15 +96,48 @@ class SESBackendTest(TestCase):
         FakeSESConnection.outbox = []
 
     def test_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['raw_message']))
+        self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
 
+    def test_configuration_set_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = 'test-set'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['raw_message']))
+        self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'test-set')
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+
+    def test_configuration_set_callable_send_mail(self):
+        config_set_callable = SESConfigurationSetTester('my-config-set')
+        settings.AWS_SES_CONFIGURATION_SET = config_set_callable
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['raw_message']))
+        # ensure we got the correct configuration message payload
+        self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'my-config-set')
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+        # ensure we passed in the proper arguments to our callable
+        self.assertEqual(config_set_callable.message.subject, 'subject')
+        self.assertEqual(config_set_callable.dkim_domain, None)
+        self.assertEqual(config_set_callable.dkim_key, None)
+        self.assertEqual(config_set_callable.dkim_selector, 'ses')
+        self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
+
     def test_dkim_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
         # DKIM verification uses DNS to retrieve the public key when checking
         # the signature, so we need to replace the standard query response with
         # one that always returns the test key.

@@ -95,6 +95,46 @@ To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
 
+SES Event Monitoring with Configuration Sets
+============================================
+
+You can track your SES email sending at a granular level using `SES Event Publishing`_.  
+To do this, you set up an SES Configuration Set and add event
+handlers to it to send your events on to a destination within AWS (SNS,
+Cloudwatch or Kinesis Firehose) for further processing and analysis.
+
+To ensure that emails you send via `django-ses` will be tagged with your
+SES Configuration Set, set the `AWS_SES_CONFIGURATION_SET` setting in your
+settings.py to the name of the configuration set::
+
+    AWS_SES_CONFIGURATION_SET = 'my-configuration-set-name'
+
+This will add the `X-SES-CONFIGURATION-SET` header to all your outgoing
+e-mails.
+
+If you want to set the SES Configuration Set on a per message basis, set
+`AWS_SES_CONFIGURATION_SET` to a callable.  The callable should conform to the
+following prototype::
+
+    def ses_configuration_set(message, dkim_domain=None, dkim_key=None,
+                                dkim_selector=None, dkim_headers=()):
+        configuration_set = 'my-default-set'
+        # use message and dkim_* to modify configuration_set
+        return configuration_set
+        
+    AWS_SES_CONFIGURATION_SET = ses_configuration_set
+
+where
+
+* `message` is a `django.core.mail.EmailMessage` object (or subclass)
+* `dkim_domain` is a string containing the DKIM domain for this message
+* `dkim_key` is a string containing the DKIM private key for this message
+* `dkim_selector` is a string containing the DKIM selector (see DKIM, below for
+  explanation)
+* `dkim_headers` is a list of strings containing the names of the headers to
+  be DKIM signed (see DKIM, below for explanation)
+
+
 DKIM
 ====
 
@@ -246,6 +286,7 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
+.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html  
 __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
@@ -272,6 +313,12 @@ Full List of Settings
 ``AWS_SES_RETURN_PATH``
   Instruct Amazon SES to forward bounced emails and complaints to this email.
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
+
+``AWS_SES_CONFIGURATION_SET``
+  Optional. Use this to mark your e-mails as from being from a particular SES
+  Configuration Set. Set this to a string if you want all messages to have the
+  same configuration set.  Set this to a callable if you want to set
+  configuration set on a per message basis. 
 
 ``AWS_SES_PROXY``
   Optional. Use this address as a proxy while connecting to Amazon SES.

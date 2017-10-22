@@ -98,11 +98,10 @@ Check out the ``example`` directory for more information.
 Monitoring email status using Amazon Simple Notification Service (Amazon SNS)
 =============================================================================
 For integrate this service, add the next url in you urls.py file, create
-Topics and configure Subscription with your url in Amazon
+Topics and configure Subscription with your url in Amazon::
 
     from django_ses.views import handle_bounce
     from django.views.decorators.csrf import csrf_exempt
-
     urlpatterns = [ ...
                     url(r'^ses/bounce/$', csrf_exempt(handle_bounce)),
                     ...
@@ -113,7 +112,7 @@ status (bounce, complaint, delivery).
 
 Bounces
 -------
-Using signal 'bounce_received' for manager bounce email. For example:
+Using signal 'bounce_received' for manager bounce email. For example::
 
     from django_ses.signals import bounce_received
     from django.dispatch import receiver
@@ -126,7 +125,7 @@ Using signal 'bounce_received' for manager bounce email. For example:
 
 Complaint
 ---------
-Using signal 'complaint_received' for manager complaint email. For example
+Using signal 'complaint_received' for manager complaint email. For example::
 
     from django_ses.signals import complaint_received
     from django.dispatch import receiver
@@ -139,7 +138,7 @@ Using signal 'complaint_received' for manager complaint email. For example
 
 Delivery
 --------
-Using signal 'complaint_received' for manager complaint email. For example
+Using signal 'complaint_received' for manager complaint email. For example::
 
     from django_ses.signals import delivery_received
     from django.dispatch import receiver

@@ -83,8 +83,8 @@ class HandleBounceTest(TestCase):
 
         def _handler(sender, mail_obj, bounce_obj, **kwargs):
             _handler.called = True
-            self.assertEquals(req_mail_obj, mail_obj)
-            self.assertEquals(req_bounce_obj, bounce_obj)
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_bounce_obj, bounce_obj)
         _handler.called = False
         bounce_received.connect(_handler)
 
@@ -146,8 +146,8 @@ class HandleBounceTest(TestCase):
 
         def _handler(sender, mail_obj, complaint_obj, **kwargs):
             _handler.called = True
-            self.assertEquals(req_mail_obj, mail_obj)
-            self.assertEquals(req_complaint_obj, complaint_obj)
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_complaint_obj, complaint_obj)
         _handler.called = False
         complaint_received.connect(_handler)
 

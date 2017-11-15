@@ -369,3 +369,8 @@ Running Tests
 To run the tests::
 
     python manage.py test django_ses
+
+Creating a Release
+==================
+
+    python setup.py sdist bdist_wheel upload

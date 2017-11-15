@@ -285,6 +285,26 @@ def handle_bounce(request):
                     complaint_obj=complaint_obj,
                     raw_message=raw_json,
                 )
+            elif notification_type == 'Delivery':
+                # Delivery
+                delivery_obj = message.get('delivery', {})
+
+                # Logging
+                feedback_id = delivery_obj.get('feedbackId')
+                feedback_type = delivery_obj.get('deliveryFeedbackType')
+                logger.info('Recieved delivery notification: feedbackId: %s, feedbackType: %s',
+                    feedback_id, feedback_type,
+                    extra={
+                        'notification': notification,
+                    },
+                )
+
+                signals.delivery_received.send(
+                    sender=handle_bounce,
+                    mail_obj=mail_obj,
+                    delivery_obj=delivery_obj,
+                    raw_message=raw_json,
+                )
             else:
                 # We received an unknown notification type. Just log and
                 # ignore it.

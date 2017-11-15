@@ -95,6 +95,60 @@ To turn off automatic throttling, set this to None.
 
 Check out the ``example`` directory for more information.
 
+Monitoring email status using Amazon Simple Notification Service (Amazon SNS)
+=============================================================================
+For integrate this service, add the next url in you urls.py file, create
+Topics and configure Subscription in Amazon::
+
+    from django_ses.views import handle_bounce
+    from django.views.decorators.csrf import csrf_exempt
+    urlpatterns = [ ...
+                    url(r'^ses/bounce/$', csrf_exempt(handle_bounce)),
+                    ...
+    ]
+
+For manage status of emails through Amazon SNS has three signals for manage each
+status (bounce, complaint, delivery).
+
+Bounces
+-------
+Using signal 'bounce_received' for manager bounce email. For example::
+
+    from django_ses.signals import bounce_received
+    from django.dispatch import receiver
+
+
+    @receiver(bounce_received)
+    def bounce_handler(sender, *args, **kwargs):
+        print("This is bounce email object")
+        print(kwargs.get('mail_obj'))
+
+Complaint
+---------
+Using signal 'complaint_received' for manager complaint email. For example::
+
+    from django_ses.signals import complaint_received
+    from django.dispatch import receiver
+
+
+    @receiver(complaint_received)
+    def complaint_handler(sender, *args, **kwargs):
+        print("This is complaint email object")
+        print(kwargs.get('mail_obj'))
+
+Delivery
+--------
+Using signal 'complaint_received' for manager complaint email. For example::
+
+    from django_ses.signals import delivery_received
+    from django.dispatch import receiver
+
+
+    @receiver(complaint_received)
+    def delivery_handler(sender, *args, **kwargs):
+        print("This is delivery email object")
+        print(kwargs.get('mail_obj'))
+
 SES Event Monitoring with Configuration Sets
 ============================================
 
@@ -133,7 +187,6 @@ where
   explanation)
 * `dkim_headers` is a list of strings containing the names of the headers to
   be DKIM signed (see DKIM, below for explanation)
-
 
 DKIM
 ====

@@ -1,5 +1,6 @@
 *.pyc
 *.db
+build/
 local_settings.py
 django_ses.egg-info
 dist/*

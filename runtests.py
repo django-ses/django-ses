@@ -28,10 +28,10 @@ settings.configure(
     },
     MIDDLEWARE_CLASSES=('django.middleware.common.CommonMiddleware',
                         'django.middleware.csrf.CsrfViewMiddleware'),
-    ROOT_URLCONF='django_ses.tests.test_urls',
+    ROOT_URLCONF='tests.test_urls',
 )
 
 django.setup()
 
 # Start the test suite now that the settings are configured.
-call_command("test", "django_ses")
+call_command("test", "tests")

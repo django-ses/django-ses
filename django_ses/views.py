@@ -191,7 +191,7 @@ def handle_bounce(request):
         notification = json.loads(raw_json.decode('utf-8'))
     except ValueError as e:
         # TODO: What kind of response should be returned here?
-        logger.warning('Recieved bounce with bad JSON: "%s"', e)
+        logger.warning(u'Received bounce with bad JSON: "%s"', e)
         return HttpResponseBadRequest()
 
     # Verify the authenticity of the bounce message.
@@ -199,7 +199,7 @@ def handle_bounce(request):
             not utils.verify_bounce_message(notification)):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
-        logger.info('Recieved unverified notification: Type: %s',
+        logger.info(u'Received unverified notification: Type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -211,7 +211,7 @@ def handle_bounce(request):
                                     'UnsubscribeConfirmation'):
         # Process the (un)subscription confirmation.
 
-        logger.info('Recieved subscription confirmation: TopicArn: %s',
+        logger.info(u'Received subscription confirmation: TopicArn: %s',
             notification.get('TopicArn'),
             extra={
                 'notification': notification,
@@ -224,7 +224,7 @@ def handle_bounce(request):
             urlopen(subscribe_url).read()
         except URLError as e:
             # Some kind of error occurred when confirming the request.
-            logger.error('Could not confirm subscription: "%s"', e,
+            logger.error(u'Could not confirm subscription: "%s"', e,
                 extra={
                     'notification': notification,
                 },
@@ -236,7 +236,7 @@ def handle_bounce(request):
         except ValueError as e:
             # The message isn't JSON.
             # Just ignore the notification.
-            logger.warning('Recieved bounce with bad JSON: "%s"', e, extra={
+            logger.warning(u'Received bounce with bad JSON: "%s"', e, extra={
                 'notification': notification,
             })
         else:
@@ -252,7 +252,7 @@ def handle_bounce(request):
                 bounce_type = bounce_obj.get('bounceType')
                 bounce_subtype = bounce_obj.get('bounceSubType')
                 logger.info(
-                    'Recieved bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
+                    u'Received bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
                     feedback_id, bounce_type, bounce_subtype,
                     extra={
                         'notification': notification,
@@ -272,7 +272,7 @@ def handle_bounce(request):
                 # Logging
                 feedback_id = complaint_obj.get('feedbackId')
                 feedback_type = complaint_obj.get('complaintFeedbackType')
-                logger.info('Recieved complaint notification: feedbackId: %s, feedbackType: %s',
+                logger.info(u'Received complaint notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -292,7 +292,7 @@ def handle_bounce(request):
                 # Logging
                 feedback_id = delivery_obj.get('feedbackId')
                 feedback_type = delivery_obj.get('deliveryFeedbackType')
-                logger.info('Recieved delivery notification: feedbackId: %s, feedbackType: %s',
+                logger.info(u'Received delivery notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -308,11 +308,11 @@ def handle_bounce(request):
             else:
                 # We received an unknown notification type. Just log and
                 # ignore it.
-                logger.warning("Recieved unknown notification", extra={
+                logger.warning(u"Received unknown notification", extra={
                     'notification': notification,
                 })
     else:
-        logger.info('Recieved unknown notification type: %s',
+        logger.info(u'Received unknown notification type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,

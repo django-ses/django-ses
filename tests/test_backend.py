@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import email
 
 from django.conf import settings as django_settings
@@ -95,14 +97,29 @@ class SESBackendTest(TestCase):
         # Empty outbox everytime test finishes
         FakeSESConnection.outbox = []
 
+    def _rfc2047_helper(self, value_to_encode):
+        # references: https://docs.python.org/3/library/email.header.html, https://tools.ietf.org/html/rfc2047.html
+        name, addr = email.utils.parseaddr(value_to_encode)
+        name = email.header.Header(name).encode()
+        return email.utils.formataddr((name, addr))
+
+    def test_rfc2047_helper(self):
+        # Ensures that the underlying email.header library code is encoding as expected, using known values
+        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+        rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
+        self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
+
     def test_send_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = None
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+
+        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+
+        send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['raw_message']))
         self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
-        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
 

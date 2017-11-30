@@ -2,19 +2,27 @@ sudo: false
 language: python
 cache: pip
 python:
-  - "3.5"
+  - 2.7
+  - 3.4
+  - 3.5
 env:
-    - TOXENV=py27-django18
-    - TOXENV=py27-django19
-    - TOXENV=py27-django110
-    - TOXENV=py27-django111
-    - TOXENV=py34-django18
-    - TOXENV=py35-django19
-    - TOXENV=py35-django110
-    - TOXENV=py35-django111
+    - TOXENV=django18
+    - TOXENV=django19
+    - TOXENV=django110
+    - TOXENV=django111
+matrix:
+    exclude:
+    - python: 3.5
+      env: TOXENV=django18
+    - python: 3.4
+      env: TOXENV=django19
+    - python: 3.4
+      env: TOXENV=django110
+    - python: 3.4
+      env: TOXENV=django111
 
 before_install:
-    - pip3 install tox
+    - pip install tox
 
 script: tox
 

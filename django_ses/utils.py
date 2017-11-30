@@ -97,7 +97,7 @@ class BounceMessageVerifier(object):
             # hijacked then all bets are off.
             response = requests.get(cert_url)
             if response.status_code != 200:
-                logger.warning('Could not download certificate from %s: "%s"', cert_url, response.status_code)
+                logger.warning(u'Could not download certificate from %s: "%s"', cert_url, response.status_code)
                 self._certificate = None
                 return self._certificate
 
@@ -107,7 +107,7 @@ class BounceMessageVerifier(object):
             try:
                 self._certificate = M2Crypto.X509.load_cert_string(response.content)
             except M2Crypto.X509.X509Error as e:
-                logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
+                logger.warning(u'Could not load certificate from %s: "%s"', cert_url, e)
                 self._certificate = None
 
         return self._certificate
@@ -128,9 +128,9 @@ class BounceMessageVerifier(object):
                     parts = trusted_domain.split('.')
                     if url_obj.netloc.split('.')[-len(parts):] == parts:
                         return cert_url
-            logger.warning('Untrusted certificate URL: "%s"', cert_url)
+            logger.warning(u'Untrusted certificate URL: "%s"', cert_url)
         else:
-            logger.warning('No signing certificate URL: "%s"', cert_url)
+            logger.warning(u'No signing certificate URL: "%s"', cert_url)
         return None
 
     def _get_bytes_to_sign(self):
@@ -164,7 +164,7 @@ class BounceMessageVerifier(object):
             ]
         else:
             # Unrecognized type
-            logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
+            logger.warning(u'Unrecognized SNS message Type: "%s"', msg_type)
             return None
 
         outbytes = StringIO()

@@ -11,7 +11,7 @@ from time import sleep
 
 
 # When changing this, remember to change it in setup.py
-VERSION = (0, "8", 3, 1)
+VERSION = (0, "8", 4)
 __version__ = '.'.join([str(x) for x in VERSION])
 __author__ = 'Harry Marr'
 __all__ = ('SESBackend',)

@@ -422,3 +422,15 @@ Running Tests
 To run the tests::
 
     python manage.py test django_ses
+
+Creating a Release
+==================
+
+To create a release::
+
+    virtualenv -p python3 ~/.virtualenvs/django-ses
+    workon django-ses
+    pip3 install twine
+    python3 setup.py sdist
+    python3 setup.py bdist_wheel --universal
+    twine upload dist/*

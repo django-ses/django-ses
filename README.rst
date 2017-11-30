@@ -373,4 +373,9 @@ To run the tests::
 Creating a Release
 ==================
 
-    python setup.py sdist bdist_wheel upload
+    virtualenv -p python3 ~/.virtualenvs/django-ses
+    workon django-ses
+    pip3 install twine
+    python3 setup.py sdist
+    python3 setup.py bdist_wheel --universal
+    twine upload dist/*

@@ -373,6 +373,8 @@ To run the tests::
 Creating a Release
 ==================
 
+To create a release::
+
     virtualenv -p python3 ~/.virtualenvs/django-ses
     workon django-ses
     pip3 install twine

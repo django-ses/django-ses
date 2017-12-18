@@ -138,13 +138,13 @@ Using signal 'complaint_received' for manager complaint email. For example::
 
 Delivery
 --------
-Using signal 'complaint_received' for manager complaint email. For example::
+Using signal 'delivery_received' for manager delivery email. For example::
 
     from django_ses.signals import delivery_received
     from django.dispatch import receiver
 
 
-    @receiver(complaint_received)
+    @receiver(delivery_received)
     def delivery_handler(sender, *args, **kwargs):
         print("This is delivery email object")
         print(kwargs.get('mail_obj'))

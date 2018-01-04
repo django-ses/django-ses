@@ -77,3 +77,9 @@ class BounceMessageVerifierTest(TestCase):
             'SigningCertURL': 'https://www.example.com/',
         })
         self.assertEqual(verifier._get_cert_url(), None)
+
+    def test_get_bytes_to_sign(self):
+        verifier = BounceMessageVerifier({
+            'Type': 'Notification'
+        })
+        self.assertEqual(verifier._get_bytes_to_sign(), 'Type\nNotification\n')

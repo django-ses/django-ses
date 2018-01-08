@@ -137,6 +137,6 @@ setup(
     long_description=LONG_DESCRIPTION,
     platforms=['any'],
     classifiers=CLASSIFIERS,
-    install_requires=["boto>=2.31.0", "pytz>=2016.10"],
+    install_requires=["boto>=2.31.0", "pytz>=2016.10", "future>=0.16.0"],
     include_package_data=True,
 )

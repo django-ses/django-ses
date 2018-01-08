@@ -1,5 +1,6 @@
 import base64
 import logging
+from builtins import str as text
 from io import StringIO
 try:
     from urllib.parse import urlparse
@@ -172,10 +173,10 @@ class BounceMessageVerifier(object):
             field_value = smart_str(self._data.get(field_name, ''),
                                     errors="replace")
             if field_value:
-                outbytes.write(field_name)
-                outbytes.write("\n")
-                outbytes.write(field_value)
-                outbytes.write("\n")
+                outbytes.write(text(field_name))
+                outbytes.write(text("\n"))
+                outbytes.write(text(field_value))
+                outbytes.write(text("\n"))
 
         return outbytes.getvalue()
 

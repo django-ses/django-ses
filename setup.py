@@ -126,7 +126,7 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version='0.8.4',  # When changing this, remember to change it in __init__.py
+    version='0.8.5',  # When changing this, remember to change it in __init__.py
     packages=find_packages(exclude=['example']),
     package_data=package_data,
     author='Harry Marr',

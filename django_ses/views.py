@@ -180,12 +180,7 @@ def handle_bounce(request):
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
 
-    # For Django >= 1.4 use request.body, otherwise
-    # use the old request.raw_post_data
-    if hasattr(request, 'body'):
-        raw_json = request.body
-    else:
-        raw_json = request.raw_post_data
+    raw_json = request.body
 
     try:
         notification = json.loads(raw_json.decode('utf-8'))

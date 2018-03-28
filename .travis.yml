@@ -5,6 +5,7 @@ python:
   - 2.7
   - 3.4
   - 3.5
+  - 3.6
 env:
     - TOXENV=django18
     - TOXENV=django19
@@ -12,6 +13,12 @@ env:
     - TOXENV=django111
 matrix:
     exclude:
+    - python: 3.6
+      env: TOXENV=django18
+    - python: 3.6
+      env: TOXENV=django19
+    - python: 3.6
+      env: TOXENV=django110
     - python: 3.5
       env: TOXENV=django18
     - python: 3.4

@@ -18,6 +18,7 @@ from unittest import TestCase, skipIf
 
 from django_ses.utils import BounceMessageVerifier
 
+
 class BounceMessageVerifierTest(TestCase):
     """
     Test for bounce message signature verification

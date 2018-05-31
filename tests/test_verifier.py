@@ -83,4 +83,4 @@ class BounceMessageVerifierTest(TestCase):
         verifier = BounceMessageVerifier({
             'Type': 'Notification'
         })
-        self.assertEqual(verifier._get_bytes_to_sign(), 'Type\nNotification\n')
+        self.assertEqual(verifier._get_bytes_to_sign(), b'Type\nNotification\n')

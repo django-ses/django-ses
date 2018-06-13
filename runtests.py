@@ -12,6 +12,8 @@ kick off the test suite.
 # `DATABASES` value be present and configured in order to
 # do anything.
 
+import sys
+
 import django
 from django.conf import settings
 from django.core.management import call_command
@@ -34,4 +36,4 @@ settings.configure(
 django.setup()
 
 # Start the test suite now that the settings are configured.
-call_command("test", "tests")
+call_command("test", *sys.argv[1:])

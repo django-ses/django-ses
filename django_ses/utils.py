@@ -193,8 +193,5 @@ def verify_bounce_message(msg):
 def to_bytes(bytes_or_str):
     # From: https://stackoverflow.com/a/46037362
     if isinstance(bytes_or_str, str):
-        value = bytes_or_str.encode() # uses 'utf-8' for encoding
-    else:
-        value = bytes_or_str
-    return value # Instance of bytes
-
+        return bytes_or_str.encode('utf-8')
+    return bytes_or_str

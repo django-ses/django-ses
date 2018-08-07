@@ -178,7 +178,8 @@ class BounceMessageVerifier(object):
                 outbytes.write(text(field_value))
                 outbytes.write(text("\n"))
 
-        return outbytes.getvalue()
+        response = outbytes.getvalue()
+        return to_bytes(response)
 
 
 def verify_bounce_message(msg):
@@ -187,3 +188,10 @@ def verify_bounce_message(msg):
     """
     verifier = BounceMessageVerifier(msg)
     return verifier.is_verified()
+
+
+def to_bytes(bytes_or_str):
+    # From: https://stackoverflow.com/a/46037362
+    if isinstance(bytes_or_str, str):
+        return bytes_or_str.encode('utf-8')
+    return bytes_or_str

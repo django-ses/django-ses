@@ -18,6 +18,7 @@ from unittest import TestCase, skipIf
 
 from django_ses.utils import BounceMessageVerifier
 
+
 class BounceMessageVerifierTest(TestCase):
     """
     Test for bounce message signature verification
@@ -82,4 +83,4 @@ class BounceMessageVerifierTest(TestCase):
         verifier = BounceMessageVerifier({
             'Type': 'Notification'
         })
-        self.assertEqual(verifier._get_bytes_to_sign(), 'Type\nNotification\n')
+        self.assertEqual(verifier._get_bytes_to_sign(), b'Type\nNotification\n')

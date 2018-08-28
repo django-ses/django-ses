@@ -4,11 +4,8 @@ try:
 except ImportError:
     import mock
 
-try:
-    from django.urls import reverse
-except ImportError:  # Added in Django 2.0.
-    from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.urls import reverse
 
 from django_ses.signals import bounce_received, complaint_received
 from django_ses import utils as ses_utils

@@ -152,7 +152,7 @@ Using signal 'delivery_received' for manager delivery email. For example::
 SES Event Monitoring with Configuration Sets
 ============================================
 
-You can track your SES email sending at a granular level using `SES Event Publishing`_.  
+You can track your SES email sending at a granular level using `SES Event Publishing`_.
 To do this, you set up an SES Configuration Set and add event
 handlers to it to send your events on to a destination within AWS (SNS,
 Cloudwatch or Kinesis Firehose) for further processing and analysis.
@@ -175,7 +175,7 @@ following prototype::
         configuration_set = 'my-default-set'
         # use message and dkim_* to modify configuration_set
         return configuration_set
-        
+
     AWS_SES_CONFIGURATION_SET = ses_configuration_set
 
 where
@@ -285,13 +285,9 @@ Store daily stats
 -----------------
 If you need to keep send statistics around for longer than two weeks,
 django-ses also comes with a model that lets you store these. To use this
-feature you'll need to first run ``syncdb``::
+feature you'll need to run::
 
-    python manage.py syncdb
-
-If you are running Django 1.9 or greater, you'll need to run this command::
-
-    python manage.py migrate --run-syncdb
+    python manage.py migrate
 
 To collect the statistics, run the ``get_ses_statistics`` management command
 (refer to next section for details). After running this command the statistics
@@ -339,7 +335,7 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
-.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html  
+.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
 __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
@@ -371,7 +367,7 @@ Full List of Settings
   Optional. Use this to mark your e-mails as from being from a particular SES
   Configuration Set. Set this to a string if you want all messages to have the
   same configuration set.  Set this to a callable if you want to set
-  configuration set on a per message basis. 
+  configuration set on a per message basis.
 
 ``AWS_SES_PROXY``
   Optional. Use this address as a proxy while connecting to Amazon SES.

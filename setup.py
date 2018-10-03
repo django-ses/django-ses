@@ -106,7 +106,7 @@ DESCRIPTION = "A Django email backend for Amazon's Simple Email Service"
 LONG_DESCRIPTION = None
 try:
     LONG_DESCRIPTION = open('README.rst').read()
-except:
+except Exception:
     pass
 
 CLASSIFIERS = [

@@ -91,7 +91,7 @@ class SESBackend(BaseEmailBackend):
                 proxy_user=self._proxy_user,
                 proxy_pass=self._proxy_pass,
             )
-        except:
+        except Exception:
             if not self.fail_silently:
                 raise
 
@@ -101,7 +101,7 @@ class SESBackend(BaseEmailBackend):
         try:
             self.connection.close()
             self.connection = None
-        except:
+        except Exception:
             if not self.fail_silently:
                 raise
 

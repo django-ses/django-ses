@@ -10,6 +10,7 @@ env:
     - TOXENV=django111
     - TOXENV=django20
     - TOXENV=django21
+    - TOXENV=django22
 matrix:
     exclude:
     - python: 2.7
@@ -22,8 +23,10 @@ matrix:
       env: TOXENV=django21
     - python: 3.4
       env: TOXENV=django21
-    - python: 3.5
-      env: TOXENV=django21
+    - python: 2.7
+      env: TOXENV=django22
+    - python: 3.4
+      env: TOXENV=django22
 
 before_install:
     - pip install tox

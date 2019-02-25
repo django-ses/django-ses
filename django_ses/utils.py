@@ -1,6 +1,7 @@
 import base64
 import logging
 from builtins import str as text
+from builtins import bytes
 from io import StringIO
 try:
     from urllib.parse import urlparse
@@ -39,7 +40,7 @@ class BounceMessageVerifier(object):
                 return self._verified
 
             # Decode the signature from base64
-            signature = base64.b64decode(signature)
+            signature = bytes(base64.b64decode(signature))
 
             # Get the message to sign
             sign_bytes = self._get_bytes_to_sign()
@@ -179,7 +180,7 @@ class BounceMessageVerifier(object):
                 outbytes.write(text("\n"))
 
         response = outbytes.getvalue()
-        return to_bytes(response)
+        return bytes(response, 'utf-8')
 
 
 def verify_bounce_message(msg):
@@ -188,10 +189,3 @@ def verify_bounce_message(msg):
     """
     verifier = BounceMessageVerifier(msg)
     return verifier.is_verified()
-
-
-def to_bytes(bytes_or_str):
-    # From: https://stackoverflow.com/a/46037362
-    if isinstance(bytes_or_str, str):
-        return bytes_or_str.encode('utf-8')
-    return bytes_or_str

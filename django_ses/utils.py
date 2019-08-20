@@ -87,12 +87,20 @@ class BounceMessageVerifier(object):
             try:
                 import requests
             except ImportError:
-                raise ImproperlyConfigured("requests is required for bounce message verification.")
+                raise ImproperlyConfigured(
+                    "`requests` is required for bounce message verification. "
+                    "Please consider installing the `django-ses` with the "
+                    "`bounce` extra - e.g. `pip install django-ses[bounce]`."
+                )
 
             try:
                 import M2Crypto
             except ImportError:
-                raise ImproperlyConfigured("M2Crypto is required for bounce message verification.")
+                raise ImproperlyConfigured(
+                    "`M2Crypto` is required for bounce message verification. "
+                    "Please consider installing the `django-ses` with the "
+                    "`bounce` extra - e.g. `pip install django-ses[bounce]`."
+                )
 
             # We use requests because it verifies the https certificate
             # when retrieving the signing certificate. If https was somehow

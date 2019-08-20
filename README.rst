@@ -97,8 +97,12 @@ Check out the ``example`` directory for more information.
 
 Monitoring email status using Amazon Simple Notification Service (Amazon SNS)
 =============================================================================
-For integrate this service, add the next url in you urls.py file, create
-Topics and configure Subscription in Amazon::
+For integrate this service, install `django-ses` with the `bounce` extra::
+
+    pip install django-ses[bounce]
+
+Then add the next url in you urls.py file, and create Topics and configure
+Subscription in Amazon::
 
     from django_ses.views import handle_bounce
     from django.views.decorators.csrf import csrf_exempt

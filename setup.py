@@ -143,4 +143,7 @@ setup(
     classifiers=CLASSIFIERS,
     install_requires=["boto>=2.31.0", "pytz>=2016.10", "future>=0.16.0"],
     include_package_data=True,
+    extras_require={
+        'bounce': ['requests', 'M2Crypto'],
+    },
 )

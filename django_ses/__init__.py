@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from time import sleep
 
 
+default_app_config = 'django_ses.apps.DjangoSESConfig'
+
 # When changing this, remember to change it in setup.py
 VERSION = (0, "8", 12)
 __version__ = '.'.join([str(x) for x in VERSION])

@@ -63,7 +63,7 @@ class HandleBounceTest(TestCase):
         }
 
         message_obj = {
-            'notificationType': 'Bounce',
+            'eventType': 'Bounce',
             'mail': req_mail_obj,
             'bounce': req_bounce_obj,
         }
@@ -126,7 +126,7 @@ class HandleBounceTest(TestCase):
         }
 
         message_obj = {
-            'notificationType': 'Complaint',
+            'eventType': 'Complaint',
             'mail': req_mail_obj,
             'complaint': req_complaint_obj,
         }

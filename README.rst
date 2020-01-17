@@ -101,8 +101,7 @@ To set this up, install `django-ses` with the `bounce` extra::
 
     pip install django-ses[bounce]
 
-Then add a bounce url handler in your `urls.py`, create Topics and configure
-Subscription in Amazon::
+Then add a bounce url handler in your `urls.py`::
 
     from django_ses.views import handle_bounce
     from django.views.decorators.csrf import csrf_exempt
@@ -112,6 +111,18 @@ Subscription in Amazon::
     ]
 
 Amazon SNS has three signals for each status (bounce, complaint, delivery).
+
+On AWS
+-------
+1. Add an SNS topic.
+
+2. In SES setup an SNS destination in "Configuration Sets". Use this
+configuration set by setting ``AWS_SES_CONFIGURATION_SET``. Set the topic
+to what you created in 1.
+
+3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/bounce/)
+Do not check "Enable raw message delivery".
+
 
 Bounces
 -------

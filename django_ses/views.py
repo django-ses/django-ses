@@ -236,9 +236,9 @@ def handle_bounce(request):
             })
         else:
             mail_obj = message.get('mail')
-            notification_type = message.get('notificationType')
+            event_type = message.get('eventType')
 
-            if notification_type == 'Bounce':
+            if event_type == 'Bounce':
                 # Bounce
                 bounce_obj = message.get('bounce', {})
 
@@ -260,7 +260,7 @@ def handle_bounce(request):
                     bounce_obj=bounce_obj,
                     raw_message=raw_json,
                 )
-            elif notification_type == 'Complaint':
+            elif event_type == 'Complaint':
                 # Complaint
                 complaint_obj = message.get('complaint', {})
 
@@ -280,7 +280,7 @@ def handle_bounce(request):
                     complaint_obj=complaint_obj,
                     raw_message=raw_json,
                 )
-            elif notification_type == 'Delivery':
+            elif event_type == 'Delivery':
                 # Delivery
                 delivery_obj = message.get('delivery', {})
 
@@ -303,7 +303,7 @@ def handle_bounce(request):
             else:
                 # We received an unknown notification type. Just log and
                 # ignore it.
-                logger.warning(u"Received unknown notification", extra={
+                logger.warning(u"Received unknown event", extra={
                     'notification': notification,
                 })
     else:

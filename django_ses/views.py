@@ -174,7 +174,7 @@ def handle_bounce(request):
     For the format of the SNS subscription confirmation request see this URL:
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
 
-    SNS message signatures are verified by default. This funcionality can
+    SNS message signatures are verified by default. This functionality can
     be disabled by setting AWS_SES_VERIFY_BOUNCE_SIGNATURES to False.
     However, this is not recommended.
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html

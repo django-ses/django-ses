@@ -2,9 +2,7 @@
 # encoding: utf-8
 from optparse import make_option
 
-from boto.regioninfo import RegionInfo
-from boto.ses import SESConnection
-
+import boto3
 from django.core.management.base import BaseCommand
 
 from django_ses import settings
@@ -53,29 +51,27 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         verbosity = options.get('verbosity', 0)
-        add_email = options.get('add', False)
-        delete_email = options.get('delete', False)
+        add_email = options.get('add', '')
+        delete_email = options.get('delete', '')
         list_emails = options.get('list', False)
 
         access_key_id = settings.ACCESS_KEY
         access_key = settings.SECRET_KEY
-        region = RegionInfo(
-            name=settings.AWS_SES_REGION_NAME,
-            endpoint=settings.AWS_SES_REGION_ENDPOINT)
         proxy = settings.AWS_SES_PROXY
         proxy_port = settings.AWS_SES_PROXY_PORT
         proxy_user = settings.AWS_SES_PROXY_USER
         proxy_pass = settings.AWS_SES_PROXY_PASS
 
-
-        connection = SESConnection(
-                aws_access_key_id=access_key_id,
-                aws_secret_access_key=access_key,
-                region=region,
-                proxy=proxy,
-                proxy_port=proxy_port,
-                proxy_user=proxy_user,
-                proxy_pass=proxy_pass,
+        connection = boto3.client(
+            'ses',
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=access_key,
+            region_name=settings.AWS_SES_REGION_NAME,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT,
+            proxy=proxy,
+            proxy_port=proxy_port,
+            proxy_user=proxy_user,
+            proxy_pass=proxy_pass,
         )
 
         if add_email:

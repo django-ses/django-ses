@@ -2,12 +2,11 @@
 
 import email
 
+from boto3 import client
 from django.conf import settings as django_settings
-from django.utils.encoding import smart_str
 from django.core.mail import send_mail
 from django.test import TestCase
-
-from boto.ses import SESConnection
+from django.utils.encoding import smart_str
 
 import django_ses
 from django_ses import settings
@@ -47,7 +46,7 @@ class SESConfigurationSetTester(object):
         return self.configuration_set
 
 
-class FakeSESConnection(SESConnection):
+class FakeSESConnection(client):
     '''
     A fake SES connection for testing purposes.It behaves similarly
     to django's dummy backend

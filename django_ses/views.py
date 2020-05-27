@@ -1,4 +1,6 @@
 import json
+
+import boto3
 import pytz
 try:
     from urllib.request import urlopen
@@ -9,9 +11,6 @@ import copy
 import logging
 from datetime import datetime
 
-
-from boto.regioninfo import RegionInfo
-from boto.ses import SESConnection
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
@@ -115,14 +114,12 @@ def dashboard(request):
     if cached_view:
         return cached_view
 
-    region = RegionInfo(
-        name=settings.AWS_SES_REGION_NAME,
-        endpoint=settings.AWS_SES_REGION_ENDPOINT)
-
-    ses_conn = SESConnection(
+    ses_conn = boto3.client(
+        'ses',
         aws_access_key_id=settings.ACCESS_KEY,
         aws_secret_access_key=settings.SECRET_KEY,
-        region=region,
+        region_name=settings.AWS_SES_REGION_NAME,
+        endpoint_url=settings.AWS_SES_REGION_ENDPOINT,
         proxy=settings.AWS_SES_PROXY,
         proxy_port=settings.AWS_SES_PROXY_PORT,
     )

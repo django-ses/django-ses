@@ -46,13 +46,13 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 
 Getting going
 =============
-Assuming you've got Django_ installed, you'll need Boto_ 2.1.0 or higher. Boto_
+Assuming you've got Django_ installed, you'll need Boto3 1.0.0 or higher. Boto_
 is a Python library that wraps the AWS API.
 
-You can do the following to install boto 2.1.0 (we're using --upgrade here to
-make sure you get 2.1.0)::
+You can do the following to install boto3 (we're using --upgrade here to
+make sure you get 1.0.0)::
 
-    pip install --upgrade boto
+    pip install --upgrade boto3
 
 Install django-ses::
 
@@ -444,3 +444,4 @@ To create a release::
     python3 setup.py sdist
     python3 setup.py bdist_wheel --universal
     twine upload dist/*
+

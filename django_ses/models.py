@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class SESStat(models.Model):
     date = models.DateField(unique=True, db_index=True)
     delivery_attempts = models.PositiveIntegerField()

@@ -1,12 +1,10 @@
 import copy
 
+from boto3 import client
 from django.core.management import call_command
 from django.test import TestCase
 
 from django_ses.models import SESStat
-
-from boto.ses import SESConnection
-
 
 data_points = [
     {
@@ -53,8 +51,8 @@ def fake_connection_init(self, *args, **kwargs):
 class SESCommandTest(TestCase):
 
     def setUp(self):
-        SESConnection.get_send_statistics = fake_get_statistics
-        SESConnection.__init__ = fake_connection_init
+        client.get_send_statistics = fake_get_statistics
+        client.__init__ = fake_connection_init
 
     def test_get_statistics(self):
         # Test the get_ses_statistics management command
@@ -92,7 +90,7 @@ class SESCommandTest(TestCase):
                     }
                 }
             }
-        SESConnection.get_send_statistics = fake_get_statistics_copy
+        client.get_send_statistics = fake_get_statistics_copy
         call_command('get_ses_statistics')
         stat = SESStat.objects.get(date='2012-01-01')
         self.assertEqual(stat.complaints, 2)

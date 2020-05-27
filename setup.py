@@ -121,8 +121,6 @@ CLASSIFIERS = [
     'Framework :: Django :: 2.0',
     'Framework :: Django :: 2.1',
     'Framework :: Django :: 2.2',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
@@ -131,9 +129,10 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version='0.8.14',  # When changing this, remember to change it in __init__.py
+    version='0.9.0',  # When changing this, remember to change it in __init__.py
     packages=find_packages(exclude=['example', 'tests']),
     package_data=package_data,
+    python_requires='>=3.5.8',
     author='Harry Marr',
     author_email='harry@hmarr.com',
     url='https://github.com/django-ses/django-ses',
@@ -142,7 +141,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     platforms=['any'],
     classifiers=CLASSIFIERS,
-    install_requires=["boto>=2.31.0", "pytz>=2016.10", "future>=0.16.0"],
+    install_requires=["boto3>=1.0.0", "pytz>=2016.10", "future>=0.16.0", "django>1.11"],
     include_package_data=True,
     extras_require={
         'bounce': ['requests<3', 'M2Crypto'],

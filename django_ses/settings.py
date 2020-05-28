@@ -15,10 +15,12 @@ AWS_SES_REGION_NAME = getattr(settings, 'AWS_SES_REGION_NAME',
                               getattr(settings, 'AWS_DEFAULT_REGION', 'us-east-1'))
 AWS_SES_REGION_ENDPOINT = getattr(settings, 'AWS_SES_REGION_ENDPOINT',
                                   'email.us-east-1.amazonaws.com')
-# todo need new var for endpoint url and if not set, prefix this one with https://
+AWS_SES_REGION_ENDPOINT_URL = getattr(settings, 'AWS_SES_REGION_ENDPOINT_URL',
+                                      'https://' + AWS_SES_REGION_ENDPOINT)
 
 AWS_SES_AUTO_THROTTLE = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
 AWS_SES_RETURN_PATH = getattr(settings, 'AWS_SES_RETURN_PATH', None)
+# todo proxy is not working anymore
 AWS_SES_PROXY = getattr(settings, 'AWS_SES_PROXY', None)
 AWS_SES_PROXY_PORT = getattr(settings, 'AWS_SES_PROXY_PORT', None)
 AWS_SES_PROXY_USER = getattr(settings, 'AWS_SES_PROXY_USER', None)

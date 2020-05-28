@@ -57,21 +57,13 @@ class Command(BaseCommand):
 
         access_key_id = settings.ACCESS_KEY
         access_key = settings.SECRET_KEY
-        proxy = settings.AWS_SES_PROXY
-        proxy_port = settings.AWS_SES_PROXY_PORT
-        proxy_user = settings.AWS_SES_PROXY_USER
-        proxy_pass = settings.AWS_SES_PROXY_PASS
 
         connection = boto3.client(
             'ses',
             aws_access_key_id=access_key_id,
             aws_secret_access_key=access_key,
             region_name=settings.AWS_SES_REGION_NAME,
-            endpoint_url=settings.AWS_SES_REGION_ENDPOINT,
-            proxy=proxy,
-            proxy_port=proxy_port,
-            proxy_user=proxy_user,
-            proxy_pass=proxy_pass,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
         )
 
         if add_email:

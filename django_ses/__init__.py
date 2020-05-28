@@ -29,6 +29,7 @@ logger = logging.getLogger('django_ses')
 
 
 def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None):
+    # todo if we skip it, we can remove this
     """Return signed email message if dkim package and settings are available."""
     try:
         import dkim
@@ -60,7 +61,7 @@ class SESBackend(BaseEmailBackend):
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
         self._access_key = aws_secret_key or settings.SECRET_KEY
         self._region_name = aws_region_name if aws_region_name else settings.AWS_SES_REGION_NAME
-        self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT
+        self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT_URL
         self._throttle = aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE
         self._proxy = proxy or settings.AWS_SES_PROXY
         self._proxy_port = proxy_port or settings.AWS_SES_PROXY_PORT
@@ -192,19 +193,15 @@ class SESBackend(BaseEmailBackend):
 
             try:
                 response = self.connection.send_raw_email(
-                    source=source or message.from_email,
-                    destinations=message.recipients(),
-                    raw_message=dkim_sign(message.message().as_string(),
-                                          dkim_key=self.dkim_key,
-                                          dkim_domain=self.dkim_domain,
-                                          dkim_selector=self.dkim_selector,
-                                          dkim_headers=self.dkim_headers)
+                    Source=source or message.from_email,
+                    Destinations=message.recipients(),
+                    # todo we had `dkim_sign()` here
+                    # todo attachments?
+                    RawMessage={'Data': message.message().as_string()}
                 )
                 message.extra_headers['status'] = 200
-                message.extra_headers['message_id'] = response[
-                    'SendRawEmailResponse']['SendRawEmailResult']['MessageId']
-                message.extra_headers['request_id'] = response[
-                    'SendRawEmailResponse']['ResponseMetadata']['RequestId']
+                message.extra_headers['message_id'] = response['MessageId']
+                message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']
                 num_sent += 1
                 if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
                     logger.debug(u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' ses-configuration-set='{}'".format(

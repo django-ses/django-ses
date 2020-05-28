@@ -22,6 +22,7 @@ def stat_factory():
 class Command(BaseCommand):
     """
     Get SES sending statistic and store the result, grouped by date.
+    # todo test with user that has the permissions
     """
 
     def handle(self, *args, **options):
@@ -30,10 +31,6 @@ class Command(BaseCommand):
             'ses',
             aws_access_key_id=settings.ACCESS_KEY,
             aws_secret_access_key=settings.SECRET_KEY,
-            proxy=settings.AWS_SES_PROXY,
-            proxy_port=settings.AWS_SES_PROXY_PORT,
-            proxy_user=settings.AWS_SES_PROXY_USER,
-            proxy_pass=settings.AWS_SES_PROXY_PASS,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)

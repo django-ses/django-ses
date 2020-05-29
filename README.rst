@@ -317,7 +317,19 @@ Managing Verified Email Addresses
 
 Manage verified email addresses through the management command.
 
-    python manage.py ses_email_address -l
+    python manage.py ses_email_address --list
+
+Add emails to the verified email list through:
+
+    python manage.py ses_email_address --add john.doe@example.com
+
+Remove emails from the verified email list through:
+
+    python manage.py ses_email_address --delete john.doe@example.com
+
+You can toggle the console output through setting the verbosity level.
+
+    python manage.py ses_email_address --list --verbosity 0
 
 
 Collecting Sending Statistics

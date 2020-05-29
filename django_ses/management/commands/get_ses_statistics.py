@@ -22,7 +22,6 @@ def stat_factory():
 class Command(BaseCommand):
     """
     Get SES sending statistic and store the result, grouped by date.
-    # todo test with user that has the permissions
     """
 
     def handle(self, *args, **options):
@@ -41,7 +40,7 @@ class Command(BaseCommand):
             bounces = int(data['Bounces'])
             complaints = int(data['Complaints'])
             rejects = int(data['Rejects'])
-            date = data['Timestamp'].split('T')[0]
+            date = data['Timestamp'].date()
             stats_dict[date]['delivery_attempts'] += attempts
             stats_dict[date]['bounces'] += bounces
             stats_dict[date]['complaints'] += complaints

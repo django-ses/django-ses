@@ -41,7 +41,7 @@ def stats_to_list(stats_dict, localize=pytz):
     Parse the output of ``SESConnection.get_send_statistics()`` in to an
     ordered list of 15-minute summaries.
     """
-    result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
+    result = stats_dict
     # Make a copy, so we don't change the original stats_dict.
     result = copy.deepcopy(result)
     datapoints = []

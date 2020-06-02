@@ -1,65 +1,61 @@
 from django.test import TestCase
 
 from django_ses.views import (emails_parse, stats_to_list, quota_parse,
-    sum_stats)
+                              sum_stats)
 
 # Mock of what boto's SESConnection.get_send_statistics() returns
 STATS_DICT = {
-    u'GetSendStatisticsResponse': {
-        u'GetSendStatisticsResult': {
-            u'SendDataPoints': [
-                {
-                    u'Bounces': u'1',
-                    u'Complaints': u'0',
-                    u'DeliveryAttempts': u'11',
-                    u'Rejects': u'0',
-                    u'Timestamp': u'2011-02-28T13:50:00Z',
-                },
-                {
-                    u'Bounces': u'1',
-                    u'Complaints': u'0',
-                    u'DeliveryAttempts': u'3',
-                    u'Rejects': u'0',
-                    u'Timestamp': u'2011-02-24T23:35:00Z',
-                },
-                {
-                    u'Bounces': u'0',
-                    u'Complaints': u'2',
-                    u'DeliveryAttempts': u'8',
-                    u'Rejects': u'0',
-                    u'Timestamp': u'2011-02-24T16:35:00Z',
-                },
-                {
-                    u'Bounces': u'0',
-                    u'Complaints': u'2',
-                    u'DeliveryAttempts': u'33',
-                    u'Rejects': u'0',
-                    u'Timestamp': u'2011-02-25T20:35:00Z',
-                },
-                {
-                    u'Bounces': u'0',
-                    u'Complaints': u'0',
-                    u'DeliveryAttempts': u'3',
-                    u'Rejects': u'3',
-                    u'Timestamp': u'2011-02-28T23:35:00Z',
-                },
-                {
-                    u'Bounces': u'0',
-                    u'Complaints': u'0',
-                    u'DeliveryAttempts': u'2',
-                    u'Rejects': u'3',
-                    u'Timestamp': u'2011-02-25T22:50:00Z',
-                },
-                {
-                    u'Bounces': u'0',
-                    u'Complaints': u'0',
-                    u'DeliveryAttempts': u'6',
-                    u'Rejects': u'0',
-                    u'Timestamp': u'2011-03-01T13:20:00Z',
-                },
-            ],
-        }
-    }
+    u'SendDataPoints': [
+        {
+            u'Bounces': u'1',
+            u'Complaints': u'0',
+            u'DeliveryAttempts': u'11',
+            u'Rejects': u'0',
+            u'Timestamp': u'2011-02-28T13:50:00Z',
+        },
+        {
+            u'Bounces': u'1',
+            u'Complaints': u'0',
+            u'DeliveryAttempts': u'3',
+            u'Rejects': u'0',
+            u'Timestamp': u'2011-02-24T23:35:00Z',
+        },
+        {
+            u'Bounces': u'0',
+            u'Complaints': u'2',
+            u'DeliveryAttempts': u'8',
+            u'Rejects': u'0',
+            u'Timestamp': u'2011-02-24T16:35:00Z',
+        },
+        {
+            u'Bounces': u'0',
+            u'Complaints': u'2',
+            u'DeliveryAttempts': u'33',
+            u'Rejects': u'0',
+            u'Timestamp': u'2011-02-25T20:35:00Z',
+        },
+        {
+            u'Bounces': u'0',
+            u'Complaints': u'0',
+            u'DeliveryAttempts': u'3',
+            u'Rejects': u'3',
+            u'Timestamp': u'2011-02-28T23:35:00Z',
+        },
+        {
+            u'Bounces': u'0',
+            u'Complaints': u'0',
+            u'DeliveryAttempts': u'2',
+            u'Rejects': u'3',
+            u'Timestamp': u'2011-02-25T22:50:00Z',
+        },
+        {
+            u'Bounces': u'0',
+            u'Complaints': u'0',
+            u'DeliveryAttempts': u'6',
+            u'Rejects': u'0',
+            u'Timestamp': u'2011-03-01T13:20:00Z',
+        },
+    ],
 }
 
 QUOTA_DICT = {

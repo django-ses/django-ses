@@ -33,13 +33,9 @@ data_points = [
 
 def fake_get_statistics(self):
     return {
-        'GetSendStatisticsResponse': {
-            'GetSendStatisticsResult': {
-                'SendDataPoints': data_points
-            },
-            'ResponseMetadata': {
-                'RequestId': '1'
-            }
+        'SendDataPoints': data_points,
+        'ResponseMetadata': {
+            'RequestId': '1'
         }
     }
 

@@ -132,7 +132,7 @@ setup(
     version='0.9.0',  # When changing this, remember to change it in __init__.py
     packages=find_packages(exclude=['example', 'tests']),
     package_data=package_data,
-    python_requires='>=3.5.8',
+    python_requires='>=3.4.10',
     author='Harry Marr',
     author_email='harry@hmarr.com',
     url='https://github.com/django-ses/django-ses',

@@ -1,6 +1,8 @@
 import copy
+import datetime
+from unittest import mock
 
-from boto3 import client
+import boto3
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -9,21 +11,21 @@ from django_ses.models import SESStat
 data_points = [
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-01T02:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=1, hour=2),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'
     },
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-03T02:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=3, hour=2),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'
     },
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-03T03:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=3, hour=3),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'
@@ -31,7 +33,7 @@ data_points = [
 ]
 
 
-def fake_get_statistics(self):
+def fake_get_statistics():
     return {
         'SendDataPoints': data_points,
         'ResponseMetadata': {
@@ -40,19 +42,23 @@ def fake_get_statistics(self):
     }
 
 
-def fake_connection_init(self, *args, **kwargs):
-    pass
-
-
 class SESCommandTest(TestCase):
 
-    def setUp(self):
-        client.get_send_statistics = fake_get_statistics
-        client.__init__ = fake_connection_init
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.connection = boto3.client(
+            'ses',
+            aws_access_key_id='ACCESS_KEY',
+            aws_secret_access_key='SECRET_KEY',
+        )
 
     def test_get_statistics(self):
         # Test the get_ses_statistics management command
-        call_command('get_ses_statistics')
+        with mock.patch('boto3.client', return_value=self.connection):
+            with mock.patch.object(self.connection, 'get_send_statistics', return_value=fake_get_statistics()):
+                call_command('get_ses_statistics')
 
         # Test that days with a single data point is saved properly
         stat = SESStat.objects.get(date='2012-01-01')
@@ -75,19 +81,17 @@ class SESCommandTest(TestCase):
         data_points_copy[0]['Bounces'] = '4'
         data_points_copy[0]['Rejects'] = '5'
 
-        def fake_get_statistics_copy(self):
+        def fake_get_statistics_copy():
             return {
-                'GetSendStatisticsResponse': {
-                    'GetSendStatisticsResult': {
-                        'SendDataPoints': data_points_copy
-                    },
-                    'ResponseMetadata': {
-                        'RequestId': '1'
-                    }
+                'SendDataPoints': data_points_copy,
+                'ResponseMetadata': {
+                    'RequestId': '1'
                 }
             }
-        client.get_send_statistics = fake_get_statistics_copy
-        call_command('get_ses_statistics')
+
+        with mock.patch('boto3.client', return_value=self.connection):
+            with mock.patch.object(self.connection, 'get_send_statistics', return_value=fake_get_statistics_copy()):
+                call_command('get_ses_statistics')
         stat = SESStat.objects.get(date='2012-01-01')
         self.assertEqual(stat.complaints, 2)
         self.assertEqual(stat.delivery_attempts, 3)

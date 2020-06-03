@@ -365,7 +365,7 @@ __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
 ============
-django-ses requires boto version 2.1.0 or later.
+django-ses requires boto3 and django >= 1.10.
 
 Full List of Settings
 =====================
@@ -442,7 +442,9 @@ Running Tests
 =============
 To run the tests::
 
-    python manage.py test django_ses
+    python runtests.py
+
+If you want to debug the tests, just add this file as a python script to your IDE run configuration.
 
 Creating a Release
 ==================

@@ -29,7 +29,6 @@ logger = logging.getLogger('django_ses')
 
 
 def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None):
-    # todo if we skip it, we can remove this
     """Return signed email message if dkim package and settings are available."""
     try:
         import dkim
@@ -54,8 +53,7 @@ class SESBackend(BaseEmailBackend):
                  aws_secret_key=None, aws_region_name=None,
                  aws_region_endpoint=None, aws_auto_throttle=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None,
-                 dkim_headers=None, proxy=None, proxy_port=None,
-                 proxy_user=None, proxy_pass=None, **kwargs):
+                 dkim_headers=None, **kwargs):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
@@ -63,10 +61,6 @@ class SESBackend(BaseEmailBackend):
         self._region_name = aws_region_name if aws_region_name else settings.AWS_SES_REGION_NAME
         self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT_URL
         self._throttle = aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE
-        self._proxy = proxy or settings.AWS_SES_PROXY
-        self._proxy_port = proxy_port or settings.AWS_SES_PROXY_PORT
-        self._proxy_user = proxy_user or settings.AWS_SES_PROXY_USER
-        self._proxy_pass = proxy_pass or settings.AWS_SES_PROXY_PASS
 
         self.dkim_domain = dkim_domain or settings.DKIM_DOMAIN
         self.dkim_key = dkim_key or settings.DKIM_PRIVATE_KEY
@@ -90,7 +84,6 @@ class SESBackend(BaseEmailBackend):
                 aws_secret_access_key=self._access_key,
                 region_name=self._region_name,
                 endpoint_url=self._endpoint_url,
-                # todo proxy gone
             )
 
         except Exception:
@@ -195,9 +188,12 @@ class SESBackend(BaseEmailBackend):
                 response = self.connection.send_raw_email(
                     Source=source or message.from_email,
                     Destinations=message.recipients(),
-                    # todo we had `dkim_sign()` here
                     # todo attachments?
-                    RawMessage={'Data': message.message().as_string()}
+                    RawMessage={'Data': dkim_sign(message.message().as_string(),
+                                                  dkim_key=self.dkim_key,
+                                                  dkim_domain=self.dkim_domain,
+                                                  dkim_selector=self.dkim_selector,
+                                                  dkim_headers=self.dkim_headers)}
                 )
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response['MessageId']

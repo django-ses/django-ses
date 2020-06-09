@@ -20,11 +20,6 @@ AWS_SES_REGION_ENDPOINT_URL = getattr(settings, 'AWS_SES_REGION_ENDPOINT_URL',
 
 AWS_SES_AUTO_THROTTLE = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
 AWS_SES_RETURN_PATH = getattr(settings, 'AWS_SES_RETURN_PATH', None)
-# todo proxy is not working anymore
-AWS_SES_PROXY = getattr(settings, 'AWS_SES_PROXY', None)
-AWS_SES_PROXY_PORT = getattr(settings, 'AWS_SES_PROXY_PORT', None)
-AWS_SES_PROXY_USER = getattr(settings, 'AWS_SES_PROXY_USER', None)
-AWS_SES_PROXY_PASS = getattr(settings, 'AWS_SES_PROXY_PASS', None)
 AWS_SES_CONFIGURATION_SET = getattr(settings, 'AWS_SES_CONFIGURATION_SET', None)
 
 DKIM_DOMAIN = getattr(settings, "DKIM_DOMAIN", None)

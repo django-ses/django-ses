@@ -394,19 +394,6 @@ Full List of Settings
   same configuration set.  Set this to a callable if you want to set
   configuration set on a per message basis.
 
-``AWS_SES_PROXY``
-  Optional. Use this address as a proxy while connecting to Amazon SES.
-
-``AWS_SES_PROXY_PORT``
-  Optional. Use this port for proxy connections while connecting to Amazon SES.
-
-``AWS_SES_PROXY_USER``
-  Optional. Use this user when setting up proxy connections while connecting to Amazon SES.
-
-``AWS_SES_PROXY_PASS``
-  Optional. Use this password when setting up proxy connections while connecting to Amazon SES.
-
-
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
@@ -418,6 +405,29 @@ Full List of Settings
   default.  See http://dkim.org/ for further detail.
 
 .. _pydkim: http://hewgill.com/pydkim/
+
+Proxy
+=====
+
+If you are using a proxy, please enable it via the env variables.
+
+If you user proxy server does not have a password try the following:
+
+.. code-block:: python
+
+   import os
+   os.environ["HTTP_PROXY"] = "http://proxy.com:port"
+   os.environ["HTTPS_PROXY"] = "https://proxy.com:port"
+
+if you user proxy server has a password try the following:
+
+.. code-block:: python
+
+   import os
+   os.environ["HTTP_PROXY"] = "http://user:password@proxy.com:port"
+   os.environ["HTTPS_PROXY"] = "https://user:password@proxy.com:port"
+
+Source: https://stackoverflow.com/a/33501223/1331671
 
 Contributing
 ============

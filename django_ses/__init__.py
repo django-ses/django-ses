@@ -67,7 +67,6 @@ class SESBackend(BaseEmailBackend):
         self.dkim_selector = dkim_selector or settings.DKIM_SELECTOR
         self.dkim_headers = dkim_headers or settings.DKIM_HEADERS
 
-        # Kept connection attribute for compatibility reasons
         self.connection = None
 
     def open(self):

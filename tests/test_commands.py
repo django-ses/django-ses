@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -7,21 +9,21 @@ from django_ses.models import SESStat
 data_points = [
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-01T02:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=1, hour=2),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'
     },
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-03T02:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=3, hour=2),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'
     },
     {
         'Complaints': '1',
-        'Timestamp': '2012-01-03T03:00:00Z',
+        'Timestamp': datetime.datetime(year=2012, month=1, day=3, hour=3),
         'DeliveryAttempts': '2',
         'Bounces': '3',
         'Rejects': '4'

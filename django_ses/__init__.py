@@ -200,13 +200,15 @@ class SESBackend(BaseEmailBackend):
                 message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']
                 num_sent += 1
                 if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
-                    logger.debug(u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' ses-configuration-set='{}'".format(
-                        message.from_email,
-                        ", ".join(message.recipients()),
-                        message.extra_headers['message_id'],
-                        message.extra_headers['request_id'],
-                        message.extra_headers['X-SES-CONFIGURATION-SET']
-                    ))
+                    logger.debug(
+                        u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
+                        u"ses-configuration-set='{}'".format(
+                            message.from_email,
+                            ", ".join(message.recipients()),
+                            message.extra_headers['message_id'],
+                            message.extra_headers['request_id'],
+                            message.extra_headers['X-SES-CONFIGURATION-SET']
+                        ))
                 else:
                     logger.debug(u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
                         message.from_email,

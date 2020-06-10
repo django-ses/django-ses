@@ -1,4 +1,6 @@
+import ast
 import os
+import re
 import sys
 
 from fnmatch import fnmatchcase
@@ -61,8 +63,8 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
             if os.path.isdir(fn):
                 bad_name = False
                 for pattern in exclude_directories:
-                    if fnmatchcase(name, pattern) or \
-                            fn.lower() == pattern.lower():
+                    if (fnmatchcase(name, pattern) or
+                            fn.lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
                             print >> sys.stderr, (
@@ -85,8 +87,8 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
                 # is a file
                 bad_name = False
                 for pattern in exclude:
-                    if fnmatchcase(name, pattern) or \
-                            fn.lower() == pattern.lower():
+                    if (fnmatchcase(name, pattern) or
+                            fn.lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
                             print >> sys.stderr, (
@@ -110,6 +112,14 @@ try:
 except Exception:
     pass
 
+# Parse version
+_version_re = re.compile(r"VERSION\s+=\s+(.*)")
+with open("django_ses/__init__.py", "rb") as f:
+    version = str(
+        ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1))
+    )
+
+
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -130,7 +140,7 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version='0.9.0',  # When changing this, remember to change it in __init__.py
+    version=version,
     packages=find_packages(exclude=['example', 'tests']),
     package_data=package_data,
     python_requires='>=2.7.15',

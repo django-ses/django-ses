@@ -1,11 +1,6 @@
-try:
-    from django.conf.urls import *
-except ImportError:  # django < 1.4
-    from django.conf.urls.defaults import *
-
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
+from django.conf.urls import *
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 admin.autodiscover()
 

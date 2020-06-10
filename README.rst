@@ -49,7 +49,7 @@ Assuming you've got Django_ installed, you'll need Boto3 1.0.0 or higher. Boto_
 is a Python library that wraps the AWS API.
 
 You can do the following to install boto3 (we're using --upgrade here to
-make sure you get 1.0.0)::
+make sure you get the latest version)::
 
     pip install --upgrade boto3
 
@@ -411,7 +411,7 @@ Proxy
 
 If you are using a proxy, please enable it via the env variables.
 
-If you user proxy server does not have a password try the following:
+If your proxy server does not have a password try the following:
 
 .. code-block:: python
 
@@ -419,7 +419,7 @@ If you user proxy server does not have a password try the following:
    os.environ["HTTP_PROXY"] = "http://proxy.com:port"
    os.environ["HTTPS_PROXY"] = "https://proxy.com:port"
 
-if you user proxy server has a password try the following:
+if your proxy server has a password try the following:
 
 .. code-block:: python
 
@@ -469,10 +469,10 @@ To create a release::
     twine upload dist/*
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg
-    :target: http://badge.fury.io/py/django-classy-tags
+    :target: http://badge.fury.io/py/django-ses
 .. |build| image:: https://travis-ci.org/django-ses/django-ses.svg
-    :target: https://travis-ci.org/django-ses/django-classy-tags
+    :target: https://travis-ci.org/django-ses/django-ses
 .. |python| image:: https://img.shields.io/badge/python-3.5+-blue.svg
-    :target: https://pypi.org/project/django-classy-tags/
-.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.2%20%7C%203.0-blue.svg
+    :target: https://pypi.org/project/django-ses/
+.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.0%20%7C%202.1%20%7C%202.2%20%7C%203.0-blue.svg
     :target: https://www.djangoproject.com/

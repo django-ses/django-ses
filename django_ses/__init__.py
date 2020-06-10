@@ -12,7 +12,7 @@ from time import sleep
 default_app_config = 'django_ses.apps.DjangoSESConfig'
 
 # When changing this, remember to change it in setup.py
-VERSION = (0, "9", 0)
+VERSION = (1, 0, 0)
 __version__ = '.'.join([str(x) for x in VERSION])
 __author__ = 'Harry Marr'
 __all__ = ('SESBackend',)
@@ -68,7 +68,7 @@ class SESBackend(BaseEmailBackend):
         self.dkim_headers = dkim_headers or settings.DKIM_HEADERS
 
         # Kept connection attribute for compatibility reasons
-        self.connection = self.client = None
+        self.connection = None
 
     def open(self):
         """Create a connection to the AWS API server. This can be reused for
@@ -78,7 +78,7 @@ class SESBackend(BaseEmailBackend):
             return False
 
         try:
-            self.connection = self.client = boto3.client(
+            self.connection = boto3.client(
                 'ses',
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,

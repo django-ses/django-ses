@@ -67,13 +67,13 @@ class Command(BaseCommand):
         )
 
         if add_email:
-            connection.verify_email_address(EmailAddress=add_email)
             if verbosity != '0':
                 print("Adding email: " + add_email)
+            connection.verify_email_address(EmailAddress=add_email)
         elif delete_email:
-            connection.delete_verified_email_address(EmailAddress=delete_email)
             if verbosity != '0':
                 print("Removing email: " + delete_email)
+            connection.delete_verified_email_address(EmailAddress=delete_email)
         elif list_emails:
             if verbosity != '0':
                 print("Fetching list of verified emails:")

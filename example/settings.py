@@ -63,13 +63,13 @@ LOGGING = {
         'stderr': {
             'level': 'ERROR',
             'formatter': 'verbose',
-            'class':'logging.StreamHandler',
+            'class': 'logging.StreamHandler',
             'stream': sys.stderr,
         },
         'stdout': {
             'level': 'INFO',
             'formatter': 'verbose',
-            'class': 'logging.StreamHandler', 
+            'class': 'logging.StreamHandler',
             'stream': sys.stdout,
         },
     },

@@ -54,7 +54,7 @@ class Command(BaseCommand):
                     'bounces': v['bounces'],
                     'complaints': v['complaints'],
                     'rejects': v['rejects'],
-            })
+                })
 
             # If statistic is not new, modify data if values are different
             if not created and stat.delivery_attempts != v['delivery_attempts']:

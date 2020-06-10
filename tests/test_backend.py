@@ -161,9 +161,10 @@ class SESBackendTest(TestCase):
         def dns_query(qname, rdtype):
             name = dns.name.from_text(qname)
             response = dns.message.from_text(
-                    'id 1\n;ANSWER\n%s 60 IN TXT "v=DKIM1; p=%s"' %\
-                            (qname, DKIM_PUBLIC_KEY))
+                'id 1\n;ANSWER\n%s 60 IN TXT "v=DKIM1; p=%s"' %
+                (qname, DKIM_PUBLIC_KEY))
             return dns.resolver.Answer(name, rdtype, 1, response)
+
         dns.resolver.query = dns_query
 
         settings.DKIM_DOMAIN = 'example.com'
@@ -176,10 +177,10 @@ class SESBackendTest(TestCase):
                             message.replace('from@example.com', 'from@spam.com')))
 
     def test_return_path(self):
-        '''
+        """
         Ensure that the 'Source' argument sent into send_raw_email uses
         settings.AWS_SES_RETURN_PATH, defaults to from address.
-        '''
+        """
         settings.AWS_SES_RETURN_PATH = None
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')

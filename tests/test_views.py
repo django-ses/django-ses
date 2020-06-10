@@ -31,10 +31,10 @@ class HandleBounceTest(TestCase):
         Test handling a normal bounce request.
         """
         req_mail_obj = {
-            "timestamp":"2012-05-25T14:59:38.623-07:00",
-            "messageId":"000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
-            "source":"sender@example.com",
-            "destination":[
+            "timestamp": "2012-05-25T14:59:38.623-07:00",
+            "messageId": "000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
+            "source": "sender@example.com",
+            "destination": [
                 "recipient1@example.com",
                 "recipient2@example.com",
                 "recipient3@example.com",
@@ -46,20 +46,20 @@ class HandleBounceTest(TestCase):
             'bounceSubType': 'General',
             'bouncedRecipients': [
                 {
-                    "status":"5.0.0",
-                    "action":"failed",
-                    "diagnosticCode":"smtp; 550 user unknown",
-                    "emailAddress":"recipient1@example.com",
+                    "status": "5.0.0",
+                    "action": "failed",
+                    "diagnosticCode": "smtp; 550 user unknown",
+                    "emailAddress": "recipient1@example.com",
                 },
                 {
-                    "status":"4.0.0",
-                    "action":"delayed",
-                    "emailAddress":"recipient2@example.com",
+                    "status": "4.0.0",
+                    "action": "delayed",
+                    "emailAddress": "recipient2@example.com",
                 }
             ],
             "reportingMTA": "example.com",
-            "timestamp":"2012-05-25T14:59:38.605-07:00",
-            "feedbackId":"000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
+            "timestamp": "2012-05-25T14:59:38.605-07:00",
+            "feedbackId": "000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
         }
 
         message_obj = {
@@ -69,16 +69,16 @@ class HandleBounceTest(TestCase):
         }
 
         notification = {
-            "Type" : "Notification",
-            "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
-            "TopicArn" : "arn:aws:sns:us-east-1:123456789012:MyTopic",
-            "Subject" : "AWS Notification Message",
-            "Message" : json.dumps(message_obj),
-            "Timestamp" : "2012-05-02T00:54:06.655Z",
-            "SignatureVersion" : "1",
-            "Signature" : "",
-            "SigningCertURL" : "",
-            "UnsubscribeURL" : ""
+            "Type": "Notification",
+            "MessageId": "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "Subject": "AWS Notification Message",
+            "Message": json.dumps(message_obj),
+            "Timestamp": "2012-05-02T00:54:06.655Z",
+            "SignatureVersion": "1",
+            "Signature": "",
+            "SigningCertURL": "",
+            "UnsubscribeURL": ""
         }
 
         def _handler(sender, mail_obj, bounce_obj, **kwargs):
@@ -102,9 +102,9 @@ class HandleBounceTest(TestCase):
         Test handling a normal complaint request.
         """
         req_mail_obj = {
-            "timestamp":"2012-05-25T14:59:38.623-07:00",
-            "messageId":"000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
-            "source":"sender@example.com",
+            "timestamp": "2012-05-25T14:59:38.623-07:00",
+            "messageId": "000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
+            "source": "sender@example.com",
             "destination": [
                 "recipient1@example.com",
                 "recipient2@example.com",
@@ -113,16 +113,16 @@ class HandleBounceTest(TestCase):
             ]
         }
         req_complaint_obj = {
-            "userAgent":"Comcast Feedback Loop (V0.01)",
+            "userAgent": "Comcast Feedback Loop (V0.01)",
             "complainedRecipients": [
                 {
-                    "emailAddress":"recipient1@example.com",
+                    "emailAddress": "recipient1@example.com",
                 }
             ],
-            "complaintFeedbackType":"abuse",
-            "arrivalDate":"2009-12-03T04:24:21.000-05:00",
-            "timestamp":"2012-05-25T14:59:38.623-07:00",
-            "feedbackId":"000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000",
+            "complaintFeedbackType": "abuse",
+            "arrivalDate": "2009-12-03T04:24:21.000-05:00",
+            "timestamp": "2012-05-25T14:59:38.623-07:00",
+            "feedbackId": "000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000",
         }
 
         message_obj = {
@@ -132,16 +132,16 @@ class HandleBounceTest(TestCase):
         }
 
         notification = {
-            "Type" : "Notification",
-            "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
-            "TopicArn" : "arn:aws:sns:us-east-1:123456789012:MyTopic",
-            "Subject" : "AWS Notification Message",
-            "Message" : json.dumps(message_obj),
-            "Timestamp" : "2012-05-02T00:54:06.655Z",
-            "SignatureVersion" : "1",
-            "Signature" : "",
-            "SigningCertURL" : "",
-            "UnsubscribeURL" : ""
+            "Type": "Notification",
+            "MessageId": "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "Subject": "AWS Notification Message",
+            "Message": json.dumps(message_obj),
+            "Timestamp": "2012-05-02T00:54:06.655Z",
+            "SignatureVersion": "1",
+            "Signature": "",
+            "SigningCertURL": "",
+            "UnsubscribeURL": ""
         }
 
         def _handler(sender, mail_obj, complaint_obj, **kwargs):

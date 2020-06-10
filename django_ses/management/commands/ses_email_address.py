@@ -51,8 +51,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         verbosity = options.get('verbosity', 0)
-        add_email = options.get('add', '')
-        delete_email = options.get('delete', '')
+        email_to_add = options.get('add', '')
+        email_to_delete = options.get('delete', '')
         list_emails = options.get('list', False)
 
         access_key_id = settings.ACCESS_KEY
@@ -66,14 +66,14 @@ class Command(BaseCommand):
             endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
         )
 
-        if add_email:
+        if email_to_add:
             if verbosity != '0':
-                print("Adding email: " + add_email)
-            connection.verify_email_address(EmailAddress=add_email)
-        elif delete_email:
+                print("Adding email: " + email_to_add)
+            connection.verify_email_address(EmailAddress=email_to_add)
+        elif email_to_delete:
             if verbosity != '0':
-                print("Removing email: " + delete_email)
-            connection.delete_verified_email_address(EmailAddress=delete_email)
+                print("Removing email: " + email_to_delete)
+            connection.delete_verified_email_address(EmailAddress=email_to_delete)
         elif list_emails:
             if verbosity != '0':
                 print("Fetching list of verified emails:")

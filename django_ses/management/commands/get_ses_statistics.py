@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
 from collections import defaultdict
-from datetime import datetime
-from optparse import make_option
 
-from boto.ses import SESConnection
-
+import boto3
 from django.core.management.base import BaseCommand
 
+from django_ses import settings
 from django_ses.models import SESStat
 from django_ses.views import stats_to_list
-from django_ses import settings
 
 
 def stat_factory():
@@ -29,13 +26,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        connection = SESConnection(
+        connection = boto3.client(
+            'ses',
             aws_access_key_id=settings.ACCESS_KEY,
             aws_secret_access_key=settings.SECRET_KEY,
-            proxy=settings.AWS_SES_PROXY,
-            proxy_port=settings.AWS_SES_PROXY_PORT,
-            proxy_user=settings.AWS_SES_PROXY_USER,
-            proxy_pass=settings.AWS_SES_PROXY_PASS,
+            region_name=settings.AWS_SES_REGION_NAME,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)
@@ -46,7 +42,7 @@ class Command(BaseCommand):
             bounces = int(data['Bounces'])
             complaints = int(data['Complaints'])
             rejects = int(data['Rejects'])
-            date = data['Timestamp'].split('T')[0]
+            date = data['Timestamp'].date()
             stats_dict[date]['delivery_attempts'] += attempts
             stats_dict[date]['bounces'] += bounces
             stats_dict[date]['complaints'] += complaints
@@ -60,7 +56,7 @@ class Command(BaseCommand):
                     'bounces': v['bounces'],
                     'complaints': v['complaints'],
                     'rejects': v['rejects'],
-            })
+                })
 
             # If statistic is not new, modify data if values are different
             if not created and stat.delivery_attempts != v['delivery_attempts']:

@@ -1,10 +1,11 @@
+from django.core.mail import EmailMessage
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
-from django.core.mail import send_mail, EmailMessage
 from django.shortcuts import render
+
 
 def index(request):
     return render(request, 'index.html')
+
 
 def send_email(request):
     if request.method == 'POST':

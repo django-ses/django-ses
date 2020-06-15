@@ -36,7 +36,7 @@ INSTALLED_APPS = (
     'django_ses',
 )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'example.urls'
 STATIC_URL = '/static/'
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
@@ -63,13 +63,13 @@ LOGGING = {
         'stderr': {
             'level': 'ERROR',
             'formatter': 'verbose',
-            'class':'logging.StreamHandler',
+            'class': 'logging.StreamHandler',
             'stream': sys.stderr,
         },
         'stdout': {
             'level': 'INFO',
             'formatter': 'verbose',
-            'class': 'logging.StreamHandler', 
+            'class': 'logging.StreamHandler',
             'stream': sys.stdout,
         },
     },
@@ -87,7 +87,6 @@ LOGGING = {
 }
 
 try:
-    from local_settings import *
+    from local_settings import *  # noqa: E262,F401,F403
 except ImportError:
     pass
-

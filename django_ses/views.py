@@ -1,4 +1,6 @@
 import json
+
+import boto3
 import pytz
 try:
     from urllib.request import urlopen
@@ -9,9 +11,6 @@ import copy
 import logging
 from datetime import datetime
 
-
-from boto.regioninfo import RegionInfo
-from boto.ses import SESConnection
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
@@ -42,9 +41,8 @@ def stats_to_list(stats_dict, localize=pytz):
     Parse the output of ``SESConnection.get_send_statistics()`` in to an
     ordered list of 15-minute summaries.
     """
-    result = stats_dict['GetSendStatisticsResponse']['GetSendStatisticsResult']
     # Make a copy, so we don't change the original stats_dict.
-    result = copy.deepcopy(result)
+    result = copy.deepcopy(stats_dict)
     datapoints = []
     if localize:
         current_tz = localize.timezone(settings.TIME_ZONE)
@@ -115,16 +113,12 @@ def dashboard(request):
     if cached_view:
         return cached_view
 
-    region = RegionInfo(
-        name=settings.AWS_SES_REGION_NAME,
-        endpoint=settings.AWS_SES_REGION_ENDPOINT)
-
-    ses_conn = SESConnection(
+    ses_conn = boto3.client(
+        'ses',
         aws_access_key_id=settings.ACCESS_KEY,
         aws_secret_access_key=settings.SECRET_KEY,
-        region=region,
-        proxy=settings.AWS_SES_PROXY,
-        proxy_port=settings.AWS_SES_PROXY_PORT,
+        region_name=settings.AWS_SES_REGION_NAME,
+        endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
     )
 
     quota_dict = ses_conn.get_send_quota()
@@ -141,8 +135,9 @@ def dashboard(request):
         'datapoints': ordered_data,
         '24hour_quota': quota['Max24HourSend'],
         '24hour_sent': quota['SentLast24Hours'],
-        '24hour_remaining': float(quota['Max24HourSend']) -
-                            float(quota['SentLast24Hours']),
+        '24hour_remaining':
+            float(quota['Max24HourSend']) -
+            float(quota['SentLast24Hours']),
         'persecond_rate': quota['MaxSendRate'],
         'verified_emails': verified_emails,
         'summary': summary,
@@ -154,6 +149,7 @@ def dashboard(request):
 
     cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response
+
 
 @require_POST
 def handle_bounce(request):
@@ -194,7 +190,8 @@ def handle_bounce(request):
             not utils.verify_bounce_message(notification)):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
-        logger.info(u'Received unverified notification: Type: %s',
+        logger.info(
+            u'Received unverified notification: Type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -206,7 +203,8 @@ def handle_bounce(request):
                                     'UnsubscribeConfirmation'):
         # Process the (un)subscription confirmation.
 
-        logger.info(u'Received subscription confirmation: TopicArn: %s',
+        logger.info(
+            u'Received subscription confirmation: TopicArn: %s',
             notification.get('TopicArn'),
             extra={
                 'notification': notification,
@@ -219,7 +217,8 @@ def handle_bounce(request):
             urlopen(subscribe_url).read()
         except URLError as e:
             # Some kind of error occurred when confirming the request.
-            logger.error(u'Could not confirm subscription: "%s"', e,
+            logger.error(
+                u'Could not confirm subscription: "%s"', e,
                 extra={
                     'notification': notification,
                 },
@@ -267,7 +266,8 @@ def handle_bounce(request):
                 # Logging
                 feedback_id = complaint_obj.get('feedbackId')
                 feedback_type = complaint_obj.get('complaintFeedbackType')
-                logger.info(u'Received complaint notification: feedbackId: %s, feedbackType: %s',
+                logger.info(
+                    u'Received complaint notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -287,7 +287,8 @@ def handle_bounce(request):
                 # Logging
                 feedback_id = delivery_obj.get('feedbackId')
                 feedback_type = delivery_obj.get('deliveryFeedbackType')
-                logger.info(u'Received delivery notification: feedbackId: %s, feedbackType: %s',
+                logger.info(
+                    u'Received delivery notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -307,7 +308,8 @@ def handle_bounce(request):
                     'notification': notification,
                 })
     else:
-        logger.info(u'Received unknown notification type: %s',
+        logger.info(
+            u'Received unknown notification type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,

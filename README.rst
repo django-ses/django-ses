@@ -5,8 +5,7 @@ Django-SES
 :Author: Harry Marr (http://github.com/hmarr, http://twitter.com/harrymarr)
 :Collaborators: Paul Craciunoiu (http://github.com/pcraciunoiu, http://twitter.com/embrangler)
 
-.. image:: https://travis-ci.org/django-ses/django-ses.svg
-    :target: https://travis-ci.org/django-ses/django-ses
+|pypi| |build| |python| |django|
 
 A bird's eye view
 =================
@@ -46,13 +45,13 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 
 Getting going
 =============
-Assuming you've got Django_ installed, you'll need Boto_ 2.1.0 or higher. Boto_
+Assuming you've got Django_ installed, you'll need Boto3 1.0.0 or higher. Boto_
 is a Python library that wraps the AWS API.
 
-You can do the following to install boto 2.1.0 (we're using --upgrade here to
-make sure you get 2.1.0)::
+You can do the following to install boto3 (we're using --upgrade here to
+make sure you get the latest version)::
 
-    pip install --upgrade boto
+    pip install --upgrade boto3
 
 Install django-ses::
 
@@ -317,7 +316,19 @@ Managing Verified Email Addresses
 
 Manage verified email addresses through the management command.
 
-    python manage.py ses_email_address -l
+    python manage.py ses_email_address --list
+
+Add emails to the verified email list through:
+
+    python manage.py ses_email_address --add john.doe@example.com
+
+Remove emails from the verified email list through:
+
+    python manage.py ses_email_address --delete john.doe@example.com
+
+You can toggle the console output through setting the verbosity level.
+
+    python manage.py ses_email_address --list --verbosity 0
 
 
 Collecting Sending Statistics
@@ -354,7 +365,7 @@ __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
 ============
-django-ses requires boto version 2.1.0 or later.
+django-ses requires boto3 and django >= 1.11.
 
 Full List of Settings
 =====================
@@ -383,19 +394,6 @@ Full List of Settings
   same configuration set.  Set this to a callable if you want to set
   configuration set on a per message basis.
 
-``AWS_SES_PROXY``
-  Optional. Use this address as a proxy while connecting to Amazon SES.
-
-``AWS_SES_PROXY_PORT``
-  Optional. Use this port for proxy connections while connecting to Amazon SES.
-
-``AWS_SES_PROXY_USER``
-  Optional. Use this user when setting up proxy connections while connecting to Amazon SES.
-
-``AWS_SES_PROXY_PASS``
-  Optional. Use this password when setting up proxy connections while connecting to Amazon SES.
-
-
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
   https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
@@ -407,6 +405,29 @@ Full List of Settings
   default.  See http://dkim.org/ for further detail.
 
 .. _pydkim: http://hewgill.com/pydkim/
+
+Proxy
+=====
+
+If you are using a proxy, please enable it via the env variables.
+
+If your proxy server does not have a password try the following:
+
+.. code-block:: python
+
+   import os
+   os.environ["HTTP_PROXY"] = "http://proxy.com:port"
+   os.environ["HTTPS_PROXY"] = "https://proxy.com:port"
+
+if your proxy server has a password try the following:
+
+.. code-block:: python
+
+   import os
+   os.environ["HTTP_PROXY"] = "http://user:password@proxy.com:port"
+   os.environ["HTTPS_PROXY"] = "https://user:password@proxy.com:port"
+
+Source: https://stackoverflow.com/a/33501223/1331671
 
 Contributing
 ============
@@ -431,7 +452,9 @@ Running Tests
 =============
 To run the tests::
 
-    python manage.py test django_ses
+    python runtests.py
+
+If you want to debug the tests, just add this file as a python script to your IDE run configuration.
 
 Creating a Release
 ==================
@@ -444,3 +467,12 @@ To create a release::
     python3 setup.py sdist
     python3 setup.py bdist_wheel --universal
     twine upload dist/*
+
+.. |pypi| image:: https://badge.fury.io/py/django-ses.svg
+    :target: http://badge.fury.io/py/django-ses
+.. |build| image:: https://travis-ci.org/django-ses/django-ses.svg
+    :target: https://travis-ci.org/django-ses/django-ses
+.. |python| image:: https://img.shields.io/badge/python-2.7+-blue.svg
+    :target: https://pypi.org/project/django-ses/
+.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.0+%7C%203.0-blue.svg
+    :target: https://www.djangoproject.com/

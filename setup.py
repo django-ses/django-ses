@@ -1,4 +1,6 @@
+import ast
 import os
+import re
 import sys
 
 from fnmatch import fnmatchcase
@@ -9,7 +11,8 @@ from setuptools import setup, find_packages
 
 def read(*path):
     return open(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                *path)).read()
+                             *path)).read()
+
 
 # Provided as an attribute, so you can append to these instead
 # of replicating them:
@@ -22,8 +25,8 @@ standard_exclude_directories = [
 
 # Copied from paste/util/finddata.py
 def find_package_data(where=".", package="", exclude=standard_exclude,
-        exclude_directories=standard_exclude_directories,
-        only_in_packages=True, show_ignored=False):
+                      exclude_directories=standard_exclude_directories,
+                      only_in_packages=True, show_ignored=False):
     """
     Return a dictionary suitable for use in ``package_data``
     in a distutils ``setup.py`` file.
@@ -60,18 +63,16 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
             if os.path.isdir(fn):
                 bad_name = False
                 for pattern in exclude_directories:
-                    if (fnmatchcase(name, pattern)
-                        or fn.lower() == pattern.lower()):
+                    if (fnmatchcase(name, pattern) or
+                            fn.lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
-                            print >> sys.stderr, (
-                                "Directory %s ignored by pattern %s"
-                                % (fn, pattern))
+                            sys.stderr.write("Directory %s ignored by pattern %s" % (fn, pattern))
                         break
                 if bad_name:
                     continue
-                if (os.path.isfile(os.path.join(fn, "__init__.py"))
-                    and not prefix):
+                if os.path.isfile(os.path.join(fn, "__init__.py")) \
+                        and not prefix:
                     if not package:
                         new_package = name
                     else:
@@ -79,18 +80,16 @@ def find_package_data(where=".", package="", exclude=standard_exclude,
                     stack.append((fn, "", new_package, False))
                 else:
                     stack.append((fn, prefix + name + "/", package,
-                                    only_in_packages))
+                                  only_in_packages))
             elif package or not only_in_packages:
                 # is a file
                 bad_name = False
                 for pattern in exclude:
-                    if (fnmatchcase(name, pattern)
-                        or fn.lower() == pattern.lower()):
+                    if (fnmatchcase(name, pattern) or
+                            fn.lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
-                            print >> sys.stderr, (
-                                "File %s ignored by pattern %s"
-                                % (fn, pattern))
+                            sys.stderr.write("File %s ignored by pattern %s" % (fn, pattern))
                         break
                 if bad_name:
                     continue
@@ -108,6 +107,14 @@ try:
     LONG_DESCRIPTION = open('README.rst').read()
 except Exception:
     pass
+
+# Parse version
+_version_re = re.compile(r"VERSION\s+=\s+(.*)")
+with open("django_ses/__init__.py", "rb") as f:
+    version = str(
+        ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1))
+    )
+
 
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
@@ -131,9 +138,10 @@ CLASSIFIERS = [
 
 setup(
     name='django-ses',
-    version='0.8.14',  # When changing this, remember to change it in __init__.py
+    version=version,
     packages=find_packages(exclude=['example', 'tests']),
     package_data=package_data,
+    python_requires='>=2.7.15',
     author='Harry Marr',
     author_email='harry@hmarr.com',
     url='https://github.com/django-ses/django-ses',
@@ -142,7 +150,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     platforms=['any'],
     classifiers=CLASSIFIERS,
-    install_requires=["boto>=2.31.0", "pytz>=2016.10", "future>=0.16.0"],
+    install_requires=["boto3>=1.0.0", "pytz>=2016.10", "future>=0.16.0", "django>1.10"],
     include_package_data=True,
     extras_require={
         'bounce': ['requests<3', 'M2Crypto'],

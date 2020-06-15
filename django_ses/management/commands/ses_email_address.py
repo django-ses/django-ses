@@ -2,9 +2,7 @@
 # encoding: utf-8
 from optparse import make_option
 
-from boto.regioninfo import RegionInfo
-from boto.ses import SESConnection
-
+import boto3
 from django.core.management.base import BaseCommand
 
 from django_ses import settings
@@ -53,44 +51,33 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         verbosity = options.get('verbosity', 0)
-        add_email = options.get('add', False)
-        delete_email = options.get('delete', False)
+        email_to_add = options.get('add', '')
+        email_to_delete = options.get('delete', '')
         list_emails = options.get('list', False)
 
         access_key_id = settings.ACCESS_KEY
         access_key = settings.SECRET_KEY
-        region = RegionInfo(
-            name=settings.AWS_SES_REGION_NAME,
-            endpoint=settings.AWS_SES_REGION_ENDPOINT)
-        proxy = settings.AWS_SES_PROXY
-        proxy_port = settings.AWS_SES_PROXY_PORT
-        proxy_user = settings.AWS_SES_PROXY_USER
-        proxy_pass = settings.AWS_SES_PROXY_PASS
 
-
-        connection = SESConnection(
-                aws_access_key_id=access_key_id,
-                aws_secret_access_key=access_key,
-                region=region,
-                proxy=proxy,
-                proxy_port=proxy_port,
-                proxy_user=proxy_user,
-                proxy_pass=proxy_pass,
+        connection = boto3.client(
+            'ses',
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=access_key,
+            region_name=settings.AWS_SES_REGION_NAME,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
         )
 
-        if add_email:
+        if email_to_add:
             if verbosity != '0':
-                print("Adding email: " + add_email)
-            connection.verify_email_address(add_email)
-        elif delete_email:
+                print("Adding email: " + email_to_add)
+            connection.verify_email_address(EmailAddress=email_to_add)
+        elif email_to_delete:
             if verbosity != '0':
-                print("Removing email: " + delete_email)
-            connection.delete_verified_email_address(delete_email)
+                print("Removing email: " + email_to_delete)
+            connection.delete_verified_email_address(EmailAddress=email_to_delete)
         elif list_emails:
             if verbosity != '0':
                 print("Fetching list of verified emails:")
             response = connection.list_verified_email_addresses()
-            emails = response['ListVerifiedEmailAddressesResponse'][
-                'ListVerifiedEmailAddressesResult']['VerifiedEmailAddresses']
+            emails = response['VerifiedEmailAddresses']
             for email in emails:
                 print(email)

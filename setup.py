@@ -111,8 +111,8 @@ except Exception:
 # Parse version
 _version_re = re.compile(r"VERSION\s+=\s+(.*)")
 with open("django_ses/__init__.py", "rb") as f:
-    version = str(
-        ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1))
+    version = ".".join(
+        map(str, ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1)))
     )
 
 

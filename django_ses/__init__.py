@@ -92,12 +92,7 @@ class SESBackend(BaseEmailBackend):
     def close(self):
         """Close any open HTTP connections to the API server.
         """
-        try:
-            self.connection.close()
-            self.connection = None
-        except Exception:
-            if not self.fail_silently:
-                raise
+        self.connection = None
 
     def send_messages(self, email_messages):
         """Sends one or more EmailMessage objects and returns the number of

@@ -12,7 +12,7 @@ from time import sleep
 default_app_config = 'django_ses.apps.DjangoSESConfig'
 
 # When changing this, remember to change it in setup.py
-VERSION = (1, 0, 2)
+VERSION = (1, 0, 3)
 __version__ = '.'.join([str(x) for x in VERSION])
 __author__ = 'Harry Marr'
 __all__ = ('SESBackend',)

@@ -50,8 +50,7 @@ def stats_to_list(stats_dict, localize=pytz):
         current_tz = None
     for dp in result['SendDataPoints']:
         if current_tz:
-            utc_dt = datetime.strptime(dp['Timestamp'], '%Y-%m-%dT%H:%M:%SZ')
-            utc_dt = localize.utc.localize(utc_dt)
+            utc_dt = dp['Timestamp']
             dp['Timestamp'] = current_tz.normalize(
                 utc_dt.astimezone(current_tz))
         datapoints.append(dp)
@@ -61,23 +60,12 @@ def stats_to_list(stats_dict, localize=pytz):
     return datapoints
 
 
-def quota_parse(quota_dict):
-    """
-    Parse the output of ``SESConnection.get_send_quota()`` to just the results.
-    """
-    return quota_dict['GetSendQuotaResponse']['GetSendQuotaResult']
-
-
 def emails_parse(emails_dict):
     """
     Parse the output of ``SESConnection.list_verified_emails()`` and get
     a list of emails.
     """
-    result = emails_dict['ListVerifiedEmailAddressesResponse'][
-        'ListVerifiedEmailAddressesResult']
-    emails = [email for email in result['VerifiedEmailAddresses']]
-
-    return sorted(emails)
+    return sorted([email for email in emails_dict['VerifiedEmailAddresses']])
 
 
 def sum_stats(stats_data):
@@ -90,10 +78,10 @@ def sum_stats(stats_data):
     t_delivery_attempts = 0
     t_rejects = 0
     for dp in stats_data:
-        t_bounces += int(dp['Bounces'])
-        t_complaints += int(dp['Complaints'])
-        t_delivery_attempts += int(dp['DeliveryAttempts'])
-        t_rejects += int(dp['Rejects'])
+        t_bounces += dp['Bounces']
+        t_complaints += dp['Complaints']
+        t_delivery_attempts += dp['DeliveryAttempts']
+        t_rejects += dp['Rejects']
 
     return {
         'Bounces': t_bounces,
@@ -125,7 +113,6 @@ def dashboard(request):
     verified_emails_dict = ses_conn.list_verified_email_addresses()
     stats = ses_conn.get_send_statistics()
 
-    quota = quota_parse(quota_dict)
     verified_emails = emails_parse(verified_emails_dict)
     ordered_data = stats_to_list(stats)
     summary = sum_stats(ordered_data)
@@ -133,15 +120,15 @@ def dashboard(request):
     extra_context = {
         'title': 'SES Statistics',
         'datapoints': ordered_data,
-        '24hour_quota': quota['Max24HourSend'],
-        '24hour_sent': quota['SentLast24Hours'],
+        '24hour_quota': quota_dict['Max24HourSend'],
+        '24hour_sent': quota_dict['SentLast24Hours'],
         '24hour_remaining':
-            float(quota['Max24HourSend']) -
-            float(quota['SentLast24Hours']),
-        'persecond_rate': quota['MaxSendRate'],
+            quota_dict['Max24HourSend'] -
+            quota_dict['SentLast24Hours'],
+        'persecond_rate': quota_dict['MaxSendRate'],
         'verified_emails': verified_emails,
         'summary': summary,
-        'access_key': ses_conn.gs_access_key_id,
+        'access_key': settings.ACCESS_KEY,
         'local_time': True,
     }
 

@@ -105,16 +105,16 @@ To set this up, install `django-ses` with the `bounce` extra::
 
     pip install django-ses[bounce]
 
-Then add a bounce url handler in your `urls.py`::
+Then add a event url handler in your `urls.py`::
 
-    from django_ses.views import handle_bounce
+    from django_ses.views import handle_event
     from django.views.decorators.csrf import csrf_exempt
     urlpatterns = [ ...
-                    url(r'^ses/bounce/$', csrf_exempt(handle_bounce)),
+                    url(r'^ses/event/$', csrf_exempt(handle_event)),
                     ...
     ]
 
-Amazon SNS has three signals for each status (bounce, complaint, delivery).
+Amazon SNS has three signals for each status (bounce, complaint, send, delivery, open, click).
 
 On AWS
 -------
@@ -124,7 +124,7 @@ On AWS
 configuration set by setting ``AWS_SES_CONFIGURATION_SET``. Set the topic
 to what you created in 1.
 
-3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/bounce/)
+3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/event/)
 Do not check "Enable raw message delivery".
 
 
@@ -137,9 +137,13 @@ Using signal 'bounce_received' for manager bounce email. For example::
 
 
     @receiver(bounce_received)
-    def bounce_handler(sender, *args, **kwargs):
+    def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
+        # you can then use the message ID and/or recipient_list(email address) to identify any problematic email messages that you have sent
+        message_id = mail_obj['messageId']
+        recipient_list = mail_obj['destination']
+        ...
         print("This is bounce email object")
-        print(kwargs.get('mail_obj'))
+        print(mail_obj)
 
 Complaint
 ---------
@@ -150,9 +154,20 @@ Using signal 'complaint_received' for manager complaint email. For example::
 
 
     @receiver(complaint_received)
-    def complaint_handler(sender, *args, **kwargs):
-        print("This is complaint email object")
-        print(kwargs.get('mail_obj'))
+    def complaint_handler(sender, mail_obj, complaint_obj, raw_message,  *args, **kwargs):
+        ...
+
+Send
+----
+Using signal 'send_received' for manager send email. For example::
+
+    from django_ses.signals import send_received
+    from django.dispatch import receiver
+
+
+    @receiver(send_received)
+    def send_handler(sender, mail_obj, send_obj, raw_message,  *args, **kwargs):
+        ...
 
 Delivery
 --------
@@ -163,9 +178,32 @@ Using signal 'delivery_received' for manager delivery email. For example::
 
 
     @receiver(delivery_received)
-    def delivery_handler(sender, *args, **kwargs):
-        print("This is delivery email object")
-        print(kwargs.get('mail_obj'))
+    def delivery_handler(sender, mail_obj, delivery_obj, raw_message,  *args, **kwargs):
+        ...
+
+Open
+----
+Using signal 'open_received' for manager open email. For example::
+
+    from django_ses.signals import open_received
+    from django.dispatch import receiver
+
+
+    @receiver(open_received)
+    def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
+        ...
+
+Click
+-----
+Using signal 'click_received' for manager send email. For example::
+
+    from django_ses.signals import click_received
+    from django.dispatch import receiver
+
+
+    @receiver(click_received)
+    def click_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
+        ...
 
 SES Event Monitoring with Configuration Sets
 ============================================

@@ -16,7 +16,7 @@ urlpatterns = [
     url(r'^send-email/$', views.send_email, name='send-email'),
     url(r'^reporting/', include('django_ses.urls')),
 
-    url(r'^bounce/', 'django_ses.views.handle_bounce', name='handle_bounce'),
+    url(r'^event/', 'django_ses.views.handle_event', name='handle_event'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -191,9 +191,16 @@ class BounceMessageVerifier(object):
         return bytes(response, 'utf-8')
 
 
-def verify_bounce_message(msg):
+def verify_event_message(msg):
     """
-    Verify an SES/SNS bounce notification message.
+    Verify an SES/SNS event notification message.
     """
     verifier = BounceMessageVerifier(msg)
     return verifier.is_verified()
+
+
+def verify_bounce_message(msg):
+    """
+    Verify an SES/SNS bounce(event) notification message.
+    """
+    return verify_event_message(msg)

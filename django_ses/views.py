@@ -139,13 +139,19 @@ def dashboard(request):
 
 
 @require_POST
-def handle_bounce(request):
+def handle_event(request, signal_sender=None):
     """
-    Handle a bounced email via an SNS webhook.
+    Handle a email sending event via an SNS webhook.
 
-    Parse the bounced message and send the appropriate signal.
-    For bounce messages the bounce_received signal is called.
-    For complaint messages the complaint_received signal is called.
+    Parse the event message and send the appropriate signal.
+    <eventType> -> <signal>
+    bounce -> bounce_received
+    complaint -> complaint_received
+    delivery -> delivery_received
+    send -> send_received
+    open -> open_received
+    click -> click_received
+    See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-sending-activity.html
     See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
 
@@ -174,7 +180,7 @@ def handle_bounce(request):
 
     # Verify the authenticity of the bounce message.
     if (settings.VERIFY_BOUNCE_SIGNATURES and
-            not utils.verify_bounce_message(notification)):
+            not utils.verify_event_message(notification)):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
         logger.info(
@@ -225,6 +231,7 @@ def handle_bounce(request):
             event_type = message.get('eventType')
 
             if event_type == 'Bounce':
+
                 # Bounce
                 bounce_obj = message.get('bounce', {})
 
@@ -240,12 +247,20 @@ def handle_bounce(request):
                     },
                 )
 
-                signals.bounce_received.send(
-                    sender=handle_bounce,
-                    mail_obj=mail_obj,
-                    bounce_obj=bounce_obj,
-                    raw_message=raw_json,
-                )
+                if signal_sender == 'handle_bounce':
+                    signals.bounce_received.send(
+                        sender=handle_bounce,
+                        mail_obj=mail_obj,
+                        bounce_obj=bounce_obj,
+                        raw_message=raw_json,
+                    )
+                else:
+                    signals.bounce_received.send(
+                        sender=handle_event,
+                        mail_obj=mail_obj,
+                        bounce_obj=bounce_obj,
+                        raw_message=raw_json,
+                    )
             elif event_type == 'Complaint':
                 # Complaint
                 complaint_obj = message.get('complaint', {})
@@ -261,12 +276,20 @@ def handle_bounce(request):
                     },
                 )
 
-                signals.complaint_received.send(
-                    sender=handle_bounce,
-                    mail_obj=mail_obj,
-                    complaint_obj=complaint_obj,
-                    raw_message=raw_json,
-                )
+                if signal_sender == 'handle_bounce':
+                    signals.complaint_received.send(
+                        sender=handle_bounce,
+                        mail_obj=mail_obj,
+                        complaint_obj=complaint_obj,
+                        raw_message=raw_json,
+                    )
+                else:
+                    signals.complaint_received.send(
+                        sender=handle_event,
+                        mail_obj=mail_obj,
+                        complaint_obj=complaint_obj,
+                        raw_message=raw_json,
+                    )
             elif event_type == 'Delivery':
                 # Delivery
                 delivery_obj = message.get('delivery', {})
@@ -282,10 +305,81 @@ def handle_bounce(request):
                     },
                 )
 
-                signals.delivery_received.send(
-                    sender=handle_bounce,
+                if signal_sender == 'handle_bounce':
+                    signals.delivery_received.send(
+                        sender=handle_bounce,
+                        mail_obj=mail_obj,
+                        delivery_obj=delivery_obj,
+                        raw_message=raw_json,
+                    )
+                else:
+                    signals.delivery_received.send(
+                        sender=handle_event,
+                        mail_obj=mail_obj,
+                        delivery_obj=delivery_obj,
+                        raw_message=raw_json,
+                    )
+            elif event_type == 'Send':
+                # Send
+                send_obj = message.get('send', {})
+
+                # Logging
+                feedback_id = send_obj.get('feedbackId')
+                feedback_type = send_obj.get('deliveryFeedbackType')
+                logger.info(
+                    u'Received send notification: feedbackId: %s, feedbackType: %s',
+                    feedback_id, feedback_type,
+                    extra={
+                        'notification': notification,
+                    },
+                )
+
+                signals.send_received.send(
+                    sender=handle_event,
                     mail_obj=mail_obj,
-                    delivery_obj=delivery_obj,
+                    send_obj=send_obj,
+                    raw_message=raw_json,
+                )
+            elif event_type == 'Open':
+                # Open
+                open_obj = message.get('open', {})
+
+                # Logging
+                feedback_id = open_obj.get('feedbackId')
+                feedback_type = open_obj.get('deliveryFeedbackType')
+                logger.info(
+                    u'Received open notification: feedbackId: %s, feedbackType: %s',
+                    feedback_id, feedback_type,
+                    extra={
+                        'notification': notification,
+                    },
+                )
+
+                signals.open_received.send(
+                    sender=handle_event,
+                    mail_obj=mail_obj,
+                    open_obj=open_obj,
+                    raw_message=raw_json,
+                )
+            elif event_type == 'Click':
+                # Click
+                click_obj = message.get('click', {})
+
+                # Logging
+                feedback_id = click_obj.get('feedbackId')
+                feedback_type = click_obj.get('deliveryFeedbackType')
+                logger.info(
+                    u'Received click notification: feedbackId: %s, feedbackType: %s',
+                    feedback_id, feedback_type,
+                    extra={
+                        'notification': notification,
+                    },
+                )
+
+                signals.click_received.send(
+                    sender=handle_event,
+                    mail_obj=mail_obj,
+                    click_obj=click_obj,
                     raw_message=raw_json,
                 )
             else:
@@ -306,3 +400,8 @@ def handle_bounce(request):
     # AWS will consider anything other than 200 to be an error response and
     # resend the SNS request. We don't need that so we return 200 here.
     return HttpResponse()
+
+
+@require_POST
+def handle_bounce(request):
+    return handle_event(request, signal_sender='handle_bounce')

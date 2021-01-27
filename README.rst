@@ -101,20 +101,20 @@ Check out the ``example`` directory for more information.
 
 Monitoring email status using Amazon Simple Notification Service (Amazon SNS)
 =============================================================================
-To set this up, install `django-ses` with the `bounce` extra::
+To set this up, install `django-ses` with the `events` extra::
 
-    pip install django-ses[bounce]
+    pip install django-ses[events]
 
 Then add a event url handler in your `urls.py`::
 
-    from django_ses.views import handle_event
+    from django_ses.views import SESEventWebhookView
     from django.views.decorators.csrf import csrf_exempt
     urlpatterns = [ ...
-                    url(r'^ses/event/$', csrf_exempt(handle_event)),
+                    url(r'^ses/event-webhook/$', SESEventWebhookView.as_view(), name='handle-event-webhook'),
                     ...
     ]
 
-Amazon SNS has three signals for each status (bounce, complaint, send, delivery, open, click).
+SESEventWebhookView handles bounce, complaint, send, delivery, open and click events.
 
 On AWS
 -------
@@ -446,6 +446,14 @@ Full List of Settings
   then email messages will be signed with the specified key.   You will also
   need to publish your public key on DNS; the selector is set to ``ses`` by
   default.  See http://dkim.org/ for further detail.
+
+``VERIFY_EVENT_SIGNATURES``, ``VERIFY_BOUNCE_SIGNATURES``
+  Optional. Default is True. Verify the contents of the message by matching the signature
+  you recreated from the message contents with the signature that Amazon SNS sent with the message.
+  See https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message.html for further detail.
+
+``EVENT_CERT_DOMAINS``, ``BOUNCE_CERT_DOMAINS``
+  Optional. Default is 'amazonaws.com' and 'amazon.com'.
 
 .. _pydkim: http://hewgill.com/pydkim/
 

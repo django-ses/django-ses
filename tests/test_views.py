@@ -1,7 +1,4 @@
 import json
-from unittest.mock import MagicMock, ANY
-
-from django_ses.views import handle_bounce, handle_event
 
 try:
     from unittest import mock
@@ -162,7 +159,12 @@ class HandleBounceTestCase(TestCase):
         """
         req_mail_obj, req_bounce_obj, notification = get_mock_bounce()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_bounce_obj, bounce_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         bounce_received.connect(_handler)
 
         # Mock the verification
@@ -170,14 +172,7 @@ class HandleBounceTestCase(TestCase):
             verify.return_value = True
 
             self.client.post(reverse("django_ses_bounce"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_bounce,
-            mail_obj=req_mail_obj,
-            bounce_obj=req_bounce_obj,
-            raw_message=ANY,
-        )
+        self.assertEqual(_handler.call_count, 1)
 
 
 class HandleEventTestCase(TestCase):
@@ -201,21 +196,19 @@ class HandleEventTestCase(TestCase):
         """
         req_mail_obj, req_bounce_obj, notification = get_mock_bounce()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_bounce_obj, bounce_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         bounce_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_event,
-            mail_obj=req_mail_obj,
-            bounce_obj=req_bounce_obj,
-            raw_message=ANY,
-        )
+            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(_handler.call_count, 1)
 
     def test_handle_send_event(self):
         """
@@ -223,21 +216,19 @@ class HandleEventTestCase(TestCase):
         """
         req_mail_obj, req_send_obj, notification = get_mock_send()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, send_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_send_obj, send_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         send_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_event,
-            mail_obj=req_mail_obj,
-            send_obj=req_send_obj,
-            raw_message=ANY,
-        )
+            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(_handler.call_count, 1)
 
     def test_handle_delivery_event(self):
         """
@@ -245,21 +236,19 @@ class HandleEventTestCase(TestCase):
         """
         req_mail_obj, req_delivery_obj, notification = get_mock_delivery()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, delivery_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_delivery_obj, delivery_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         delivery_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_event,
-            mail_obj=req_mail_obj,
-            delivery_obj=req_delivery_obj,
-            raw_message=ANY,
-        )
+            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(_handler.call_count, 1)
 
     def test_handle_open_event(self):
         """
@@ -267,21 +256,19 @@ class HandleEventTestCase(TestCase):
         """
         req_mail_obj, req_open_obj, notification = get_mock_open()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, open_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_open_obj, open_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         open_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_event,
-            mail_obj=req_mail_obj,
-            open_obj=req_open_obj,
-            raw_message=ANY,
-        )
+            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(_handler.call_count, 1)
 
     def test_handle_click_event(self):
         """
@@ -289,18 +276,16 @@ class HandleEventTestCase(TestCase):
         """
         req_mail_obj, req_click_obj, notification = get_mock_click()
 
-        _handler = MagicMock()
+        def _handler(sender, mail_obj, click_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_click_obj, click_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
         click_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event"), json.dumps(notification), content_type="application/json")
-
-        _handler.assert_called_once_with(
-            signal=ANY,
-            sender=handle_event,
-            mail_obj=req_mail_obj,
-            click_obj=req_click_obj,
-            raw_message=ANY,
-        )
+            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(_handler.call_count, 1)

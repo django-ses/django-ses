@@ -1,7 +1,14 @@
 import json
+import warnings
 
 import boto3
 import pytz
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import View
+
+from django_ses.deprecation import RemovedInDjangoSES20Warning
+
 try:
     from urllib.request import urlopen
     from urllib.error import URLError
@@ -9,7 +16,6 @@ except ImportError:
     from urllib2 import urlopen, URLError
 import copy
 import logging
-from datetime import datetime
 
 
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -139,19 +145,13 @@ def dashboard(request):
 
 
 @require_POST
-def handle_event(request, signal_sender=None):
+def handle_bounce(request):
     """
-    Handle a email sending event via an SNS webhook.
+    Handle a bounced email via an SNS webhook.
 
-    Parse the event message and send the appropriate signal.
-    <eventType> -> <signal>
-    bounce -> bounce_received
-    complaint -> complaint_received
-    delivery -> delivery_received
-    send -> send_received
-    open -> open_received
-    click -> click_received
-    See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-sending-activity.html
+    Parse the bounced message and send the appropriate signal.
+    For bounce messages the bounce_received signal is called.
+    For complaint messages the complaint_received signal is called.
     See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
     See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
 
@@ -164,10 +164,16 @@ def handle_event(request, signal_sender=None):
     http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
 
     SNS message signatures are verified by default. This functionality can
-    be disabled by setting AWS_SES_VERIFY_BOUNCE_SIGNATURES to False.
+    be disabled by setting AWS_SES_VERIFY_EVENT_SIGNATURES to False.
     However, this is not recommended.
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
+    warnings.warn(
+        'views.handle_bounce is deprecated. You can use SESEventWebhookView instead. '
+        'It handles send, open, click events in addition to '
+        'bounce, complaint, delivery and subscription confirmation events.',
+        RemovedInDjangoSES20Warning,
+    )
 
     raw_json = request.body
 
@@ -180,7 +186,7 @@ def handle_event(request, signal_sender=None):
 
     # Verify the authenticity of the bounce message.
     if (settings.VERIFY_BOUNCE_SIGNATURES and
-            not utils.verify_event_message(notification)):
+            not utils.verify_bounce_message(notification)):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
         logger.info(
@@ -231,7 +237,6 @@ def handle_event(request, signal_sender=None):
             event_type = message.get('eventType')
 
             if event_type == 'Bounce':
-
                 # Bounce
                 bounce_obj = message.get('bounce', {})
 
@@ -247,20 +252,12 @@ def handle_event(request, signal_sender=None):
                     },
                 )
 
-                if signal_sender == 'handle_bounce':
-                    signals.bounce_received.send(
-                        sender=handle_bounce,
-                        mail_obj=mail_obj,
-                        bounce_obj=bounce_obj,
-                        raw_message=raw_json,
-                    )
-                else:
-                    signals.bounce_received.send(
-                        sender=handle_event,
-                        mail_obj=mail_obj,
-                        bounce_obj=bounce_obj,
-                        raw_message=raw_json,
-                    )
+                signals.bounce_received.send(
+                    sender=handle_bounce,
+                    mail_obj=mail_obj,
+                    bounce_obj=bounce_obj,
+                    raw_message=raw_json,
+                )
             elif event_type == 'Complaint':
                 # Complaint
                 complaint_obj = message.get('complaint', {})
@@ -276,20 +273,12 @@ def handle_event(request, signal_sender=None):
                     },
                 )
 
-                if signal_sender == 'handle_bounce':
-                    signals.complaint_received.send(
-                        sender=handle_bounce,
-                        mail_obj=mail_obj,
-                        complaint_obj=complaint_obj,
-                        raw_message=raw_json,
-                    )
-                else:
-                    signals.complaint_received.send(
-                        sender=handle_event,
-                        mail_obj=mail_obj,
-                        complaint_obj=complaint_obj,
-                        raw_message=raw_json,
-                    )
+                signals.complaint_received.send(
+                    sender=handle_bounce,
+                    mail_obj=mail_obj,
+                    complaint_obj=complaint_obj,
+                    raw_message=raw_json,
+                )
             elif event_type == 'Delivery':
                 # Delivery
                 delivery_obj = message.get('delivery', {})
@@ -305,81 +294,10 @@ def handle_event(request, signal_sender=None):
                     },
                 )
 
-                if signal_sender == 'handle_bounce':
-                    signals.delivery_received.send(
-                        sender=handle_bounce,
-                        mail_obj=mail_obj,
-                        delivery_obj=delivery_obj,
-                        raw_message=raw_json,
-                    )
-                else:
-                    signals.delivery_received.send(
-                        sender=handle_event,
-                        mail_obj=mail_obj,
-                        delivery_obj=delivery_obj,
-                        raw_message=raw_json,
-                    )
-            elif event_type == 'Send':
-                # Send
-                send_obj = message.get('send', {})
-
-                # Logging
-                feedback_id = send_obj.get('feedbackId')
-                feedback_type = send_obj.get('deliveryFeedbackType')
-                logger.info(
-                    u'Received send notification: feedbackId: %s, feedbackType: %s',
-                    feedback_id, feedback_type,
-                    extra={
-                        'notification': notification,
-                    },
-                )
-
-                signals.send_received.send(
-                    sender=handle_event,
+                signals.delivery_received.send(
+                    sender=handle_bounce,
                     mail_obj=mail_obj,
-                    send_obj=send_obj,
-                    raw_message=raw_json,
-                )
-            elif event_type == 'Open':
-                # Open
-                open_obj = message.get('open', {})
-
-                # Logging
-                feedback_id = open_obj.get('feedbackId')
-                feedback_type = open_obj.get('deliveryFeedbackType')
-                logger.info(
-                    u'Received open notification: feedbackId: %s, feedbackType: %s',
-                    feedback_id, feedback_type,
-                    extra={
-                        'notification': notification,
-                    },
-                )
-
-                signals.open_received.send(
-                    sender=handle_event,
-                    mail_obj=mail_obj,
-                    open_obj=open_obj,
-                    raw_message=raw_json,
-                )
-            elif event_type == 'Click':
-                # Click
-                click_obj = message.get('click', {})
-
-                # Logging
-                feedback_id = click_obj.get('feedbackId')
-                feedback_type = click_obj.get('deliveryFeedbackType')
-                logger.info(
-                    u'Received click notification: feedbackId: %s, feedbackType: %s',
-                    feedback_id, feedback_type,
-                    extra={
-                        'notification': notification,
-                    },
-                )
-
-                signals.click_received.send(
-                    sender=handle_event,
-                    mail_obj=mail_obj,
-                    click_obj=click_obj,
+                    delivery_obj=delivery_obj,
                     raw_message=raw_json,
                 )
             else:
@@ -402,6 +320,243 @@ def handle_event(request, signal_sender=None):
     return HttpResponse()
 
 
-@require_POST
-def handle_bounce(request):
-    return handle_event(request, signal_sender='handle_bounce')
+@method_decorator(csrf_exempt, name='dispatch')
+class SESEventWebhookView(View):
+    """
+    Handle a email sending event via an SNS webhook.
+
+    Parse the event message and send the appropriate signal.
+    <eventType> -> <signal>
+    bounce -> bounce_received
+    complaint -> complaint_received
+    delivery -> delivery_received
+    send -> send_received
+    open -> open_received
+    click -> click_received
+    See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-sending-activity.html
+    See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
+    See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
+
+    In addition to email bounce requests this endpoint also supports the SNS
+    subscription confirmation request. This request is sent to the SNS
+    subscription endpoint when the subscription is registered.
+    See: http://docs.aws.amazon.com/sns/latest/gsg/Subscribe.html
+
+    For the format of the SNS subscription confirmation request see this URL:
+    http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
+
+    SNS message signatures are verified by default. This functionality can
+    be disabled by setting AWS_SES_VERIFY_EVENT_SIGNATURES to False.
+    However, this is not recommended.
+    See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
+    """
+
+    def post(self, request, *args, **kwargs):
+        raw_json = request.body
+
+        try:
+            notification = json.loads(raw_json.decode('utf-8'))
+        except ValueError as e:
+            # TODO: What kind of response should be returned here?
+            logger.warning(u'Received bounce with bad JSON: "%s"', e)
+            return HttpResponseBadRequest()
+
+        # Verify the authenticity of the event message.
+        if settings.VERIFY_EVENT_SIGNATURES and not utils.verify_event_message(notification):
+            # Don't send any info back when the notification is not
+            # verified. Simply, don't process it.
+            logger.info(
+                u'Received unverified notification: Type: %s',
+                notification.get('Type'),
+                extra={
+                    'notification': notification,
+                },
+            )
+            return HttpResponse()
+
+        if notification.get('Type') in ('SubscriptionConfirmation', 'UnsubscribeConfirmation'):
+            # Process the (un)subscription confirmation.
+            self.confirm_sns_notification(notification)
+        elif notification.get('Type') == 'Notification':
+            try:
+                message = json.loads(notification['Message'])
+            except ValueError as e:
+                # The message isn't JSON.
+                # Just ignore the notification.
+                logger.warning(u'Received bounce with bad JSON: "%s"', e, extra={
+                    'notification': notification,
+                })
+            else:
+                event_type = message.get('eventType')
+                if event_type == 'Bounce':
+                    self.handle_bounce(notification, message)
+                elif event_type == 'Complaint':
+                    self.handle_complaint(notification, message)
+                elif event_type == 'Delivery':
+                    self.handle_delivery(notification, message)
+                elif event_type == 'Send':
+                    self.handle_send(notification, message)
+                elif event_type == 'Open':
+                    self.handle_open(notification, message)
+                elif event_type == 'Click':
+                    self.handle_click(notification, message)
+                else:
+                    self.handle_unknown_event_type(notification, message)
+        else:
+            self.handle_unknown_notification_type(notification)
+
+        # AWS will consider anything other than 200 to be an error response and
+        # resend the SNS request. We don't need that so we return 200 here.
+        return HttpResponse()
+
+    def confirm_sns_notification(self, notification):
+        utils.confirm_sns_subscription(notification)
+
+    def handle_unknown_notification_type(self, notification):
+        logger.info(
+            u'Received unknown notification type: %s',
+            notification.get('Type'),
+            extra={
+                'notification': notification,
+            },
+        )
+
+    def handle_bounce(self, notification, message):
+        mail_obj = message.get('mail')
+        bounce_obj = message.get('bounce', {})
+
+        # Logging
+        feedback_id = bounce_obj.get('feedbackId')
+        bounce_type = bounce_obj.get('bounceType')
+        bounce_subtype = bounce_obj.get('bounceSubType')
+        logger.info(
+            u'Received bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
+            feedback_id, bounce_type, bounce_subtype,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.bounce_received.send(
+            sender=self.handle_bounce,
+            mail_obj=mail_obj,
+            bounce_obj=bounce_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_complaint(self, notification, message):
+        mail_obj = message.get('mail')
+        complaint_obj = message.get('complaint', {})
+
+        # Logging
+        feedback_id = complaint_obj.get('feedbackId')
+        feedback_type = complaint_obj.get('complaintFeedbackType')
+        logger.info(
+            u'Received complaint notification: feedbackId: %s, feedbackType: %s',
+            feedback_id, feedback_type,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.complaint_received.send(
+            sender=self.handle_complaint,
+            mail_obj=mail_obj,
+            complaint_obj=complaint_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_delivery(self, notification, message):
+        mail_obj = message.get('mail')
+        delivery_obj = message.get('delivery', {})
+
+        # Logging
+        feedback_id = delivery_obj.get('feedbackId')
+        feedback_type = delivery_obj.get('deliveryFeedbackType')
+        logger.info(
+            u'Received delivery notification: feedbackId: %s, feedbackType: %s',
+            feedback_id, feedback_type,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.delivery_received.send(
+            sender=self.handle_delivery,
+            mail_obj=mail_obj,
+            delivery_obj=delivery_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_send(self, notification, message):
+        mail_obj = message.get('mail')
+        send_obj = message.get('send', {})
+
+        # Logging
+        feedback_id = send_obj.get('feedbackId')
+        feedback_type = send_obj.get('deliveryFeedbackType')
+        logger.info(
+            u'Received send notification: feedbackId: %s, feedbackType: %s',
+            feedback_id, feedback_type,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.send_received.send(
+            sender=self.handle_send,
+            mail_obj=mail_obj,
+            send_obj=send_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_open(self, notification, message):
+        mail_obj = message.get('mail')
+        open_obj = message.get('open', {})
+
+        # Logging
+        feedback_id = open_obj.get('feedbackId')
+        feedback_type = open_obj.get('deliveryFeedbackType')
+        logger.info(
+            u'Received open notification: feedbackId: %s, feedbackType: %s',
+            feedback_id, feedback_type,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.open_received.send(
+            sender=self.handle_open,
+            mail_obj=mail_obj,
+            open_obj=open_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_click(self, notification, message):
+        mail_obj = message.get('mail')
+        click_obj = message.get('click', {})
+
+        # Logging
+        feedback_id = click_obj.get('feedbackId')
+        feedback_type = click_obj.get('deliveryFeedbackType')
+        logger.info(
+            u'Received click notification: feedbackId: %s, feedbackType: %s',
+            feedback_id, feedback_type,
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signals.click_received.send(
+            sender=self.handle_click,
+            mail_obj=mail_obj,
+            click_obj=click_obj,
+            raw_message=self.request.body,
+        )
+
+    def handle_unknown_event_type(self, notification, message):
+        # We received an unknown notification type. Just log and
+        # ignore it.
+        logger.warning(u"Received unknown event", extra={
+            'notification': notification,
+        })

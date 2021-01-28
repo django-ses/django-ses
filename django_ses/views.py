@@ -362,7 +362,7 @@ class SESEventWebhookView(View):
             return HttpResponseBadRequest()
 
         # Verify the authenticity of the event message.
-        if settings.VERIFY_EVENT_SIGNATURES and not utils.verify_event_message(notification):
+        if settings.VERIFY_EVENT_SIGNATURES and not self.verify_event_message(notification):
             # Don't send any info back when the notification is not
             # verified. Simply, don't process it.
             logger.info(
@@ -411,6 +411,9 @@ class SESEventWebhookView(View):
 
     def confirm_sns_notification(self, notification):
         utils.confirm_sns_subscription(notification)
+
+    def verify_event_message(self, notification):
+        return utils.verify_event_message(notification)
 
     def handle_unknown_notification_type(self, notification):
         logger.info(

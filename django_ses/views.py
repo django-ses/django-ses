@@ -425,137 +425,75 @@ class SESEventWebhookView(View):
         )
 
     def handle_bounce(self, notification, message):
-        mail_obj = message.get('mail')
-        bounce_obj = message.get('bounce', {})
-
-        # Logging
-        feedback_id = bounce_obj.get('feedbackId')
-        bounce_type = bounce_obj.get('bounceType')
-        bounce_subtype = bounce_obj.get('bounceSubType')
-        logger.info(
-            u'Received bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
-            feedback_id, bounce_type, bounce_subtype,
-            extra={
-                'notification': notification,
-            },
-        )
-
-        signals.bounce_received.send(
-            sender=self.handle_bounce,
-            mail_obj=mail_obj,
-            bounce_obj=bounce_obj,
-            raw_message=self.request.body,
+        self._handle_event(
+            event_name='bounce',
+            signal=signals.bounce_received,
+            notification=notification,
+            message=message
         )
 
     def handle_complaint(self, notification, message):
-        mail_obj = message.get('mail')
-        complaint_obj = message.get('complaint', {})
-
-        # Logging
-        feedback_id = complaint_obj.get('feedbackId')
-        feedback_type = complaint_obj.get('complaintFeedbackType')
-        logger.info(
-            u'Received complaint notification: feedbackId: %s, feedbackType: %s',
-            feedback_id, feedback_type,
-            extra={
-                'notification': notification,
-            },
-        )
-
-        signals.complaint_received.send(
-            sender=self.handle_complaint,
-            mail_obj=mail_obj,
-            complaint_obj=complaint_obj,
-            raw_message=self.request.body,
+        self._handle_event(
+            event_name='complaint',
+            signal=signals.complaint_received,
+            notification=notification,
+            message=message
         )
 
     def handle_delivery(self, notification, message):
-        mail_obj = message.get('mail')
-        delivery_obj = message.get('delivery', {})
-
-        # Logging
-        feedback_id = delivery_obj.get('feedbackId')
-        feedback_type = delivery_obj.get('deliveryFeedbackType')
-        logger.info(
-            u'Received delivery notification: feedbackId: %s, feedbackType: %s',
-            feedback_id, feedback_type,
-            extra={
-                'notification': notification,
-            },
-        )
-
-        signals.delivery_received.send(
-            sender=self.handle_delivery,
-            mail_obj=mail_obj,
-            delivery_obj=delivery_obj,
-            raw_message=self.request.body,
+        self._handle_event(
+            event_name='delivery',
+            signal=signals.delivery_received,
+            notification=notification,
+            message=message
         )
 
     def handle_send(self, notification, message):
-        mail_obj = message.get('mail')
-        send_obj = message.get('send', {})
-
-        # Logging
-        feedback_id = send_obj.get('feedbackId')
-        feedback_type = send_obj.get('deliveryFeedbackType')
-        logger.info(
-            u'Received send notification: feedbackId: %s, feedbackType: %s',
-            feedback_id, feedback_type,
-            extra={
-                'notification': notification,
-            },
-        )
-
-        signals.send_received.send(
-            sender=self.handle_send,
-            mail_obj=mail_obj,
-            send_obj=send_obj,
-            raw_message=self.request.body,
+        self._handle_event(
+            event_name='send',
+            signal=signals.send_received,
+            notification=notification,
+            message=message
         )
 
     def handle_open(self, notification, message):
-        mail_obj = message.get('mail')
-        open_obj = message.get('open', {})
-
-        # Logging
-        feedback_id = open_obj.get('feedbackId')
-        feedback_type = open_obj.get('deliveryFeedbackType')
-        logger.info(
-            u'Received open notification: feedbackId: %s, feedbackType: %s',
-            feedback_id, feedback_type,
-            extra={
-                'notification': notification,
-            },
-        )
-
-        signals.open_received.send(
-            sender=self.handle_open,
-            mail_obj=mail_obj,
-            open_obj=open_obj,
-            raw_message=self.request.body,
+        self._handle_event(
+            event_name='open',
+            signal=signals.open_received,
+            notification=notification,
+            message=message
         )
 
     def handle_click(self, notification, message):
+        self._handle_event(
+            event_name='click',
+            signal=signals.click_received,
+            notification=notification,
+            message=message
+        )
+
+    def _handle_event(self, event_name, signal, notification, message):
         mail_obj = message.get('mail')
-        click_obj = message.get('click', {})
+        event_obj = message.get(event_name, {})
 
         # Logging
-        feedback_id = click_obj.get('feedbackId')
-        feedback_type = click_obj.get('deliveryFeedbackType')
+        feedback_id = event_obj.get('feedbackId')
+        feedback_type = event_obj.get('deliveryFeedbackType')
         logger.info(
-            u'Received click notification: feedbackId: %s, feedbackType: %s',
-            feedback_id, feedback_type,
+            u'Received %s notification: feedbackId: %s, feedbackType: %s',
+            event_name, feedback_id, feedback_type,
             extra={
                 'notification': notification,
             },
         )
 
-        signals.click_received.send(
-            sender=self.handle_click,
+        signal_kwargs = dict(
+            sender=self._handle_event,
             mail_obj=mail_obj,
-            click_obj=click_obj,
             raw_message=self.request.body,
         )
+        signal_kwargs['%s_obj' % event_name] = event_obj
+        signal.send(**signal_kwargs)
 
     def handle_unknown_event_type(self, notification, message):
         # We received an unknown notification type. Just log and

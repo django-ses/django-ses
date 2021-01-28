@@ -207,7 +207,7 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+            self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(_handler.call_count, 1)
 
     def test_handle_send_event(self):
@@ -227,7 +227,7 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+            self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(_handler.call_count, 1)
 
     def test_handle_delivery_event(self):
@@ -247,7 +247,7 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+            self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(_handler.call_count, 1)
 
     def test_handle_open_event(self):
@@ -267,7 +267,7 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+            self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(_handler.call_count, 1)
 
     def test_handle_click_event(self):
@@ -287,5 +287,5 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            self.client.post(reverse("django_ses_event_webhook"), json.dumps(notification), content_type="application/json")
+            self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(_handler.call_count, 1)

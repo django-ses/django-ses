@@ -18,7 +18,7 @@ urlpatterns = [
     url(r'^reporting/', include('django_ses.urls')),
 
     url(r'^bounce/', 'django_ses.views.handle_bounce', name='handle_bounce'),       # Deprecated, see SESEventWebhookView.
-    url(r'^event-webhook/', SESEventWebhookView.as_view(), name='django_ses_event_webhook'),
+    url(r'^event-webhook/', SESEventWebhookView.as_view(), name='event_webhook'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -358,8 +358,8 @@ class SESEventWebhookView(View):
             notification = json.loads(raw_json.decode('utf-8'))
         except ValueError as e:
             # TODO: What kind of response should be returned here?
-            logger.warning(u'Received bounce with bad JSON: "%s"', e)
-            return HttpResponseBadRequest()
+            logger.warning(u'Received notification with bad JSON: "%s"', e)
+            return HttpResponseBadRequest("The request body could not be deserialized. Bad JSON.")
 
         # Verify the authenticity of the event message.
         if settings.VERIFY_EVENT_SIGNATURES and not self.verify_event_message(notification):
@@ -372,7 +372,7 @@ class SESEventWebhookView(View):
                     'notification': notification,
                 },
             )
-            return HttpResponse()
+            return HttpResponseBadRequest("Signature verification failed.")
 
         if notification.get('Type') in ('SubscriptionConfirmation', 'UnsubscribeConfirmation'):
             # Process the (un)subscription confirmation.

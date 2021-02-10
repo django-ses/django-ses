@@ -115,7 +115,7 @@ Then add a event url handler in your `urls.py`::
     ]
 
 SESEventWebhookView handles bounce, complaint, send, delivery, open and click events.
-It is also capable of auto confirming subscriptions, it handles `SubscriptionConfirmation`, `UnsubscribeConfirmation` notifications.
+It is also capable of auto confirming subscriptions, it handles `SubscriptionConfirmation` notification.
 
 On AWS
 -------

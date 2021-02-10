@@ -374,9 +374,10 @@ class SESEventWebhookView(View):
             )
             return HttpResponseBadRequest("Signature verification failed.")
 
-        if notification.get('Type') in ('SubscriptionConfirmation', 'UnsubscribeConfirmation'):
-            # Process the (un)subscription confirmation.
-            self.confirm_sns_notification(notification)
+        if notification.get('Type') == 'SubscriptionConfirmation':
+            self.handle_subscription_confirmation(notification)
+        elif notification.get('Type') == 'UnsubscribeConfirmation':
+            self.handle_unsubscribe_confirmation(notification)
         elif notification.get('Type') == 'Notification':
             try:
                 message = json.loads(notification['Message'])
@@ -409,9 +410,6 @@ class SESEventWebhookView(View):
         # resend the SNS request. We don't need that so we return 200 here.
         return HttpResponse()
 
-    def confirm_sns_notification(self, notification):
-        utils.confirm_sns_subscription(notification)
-
     def verify_event_message(self, notification):
         return utils.verify_event_message(notification)
 
@@ -419,6 +417,18 @@ class SESEventWebhookView(View):
         logger.info(
             u'Received unknown notification type: %s',
             notification.get('Type'),
+            extra={
+                'notification': notification,
+            },
+        )
+
+    def handle_subscription_confirmation(self, notification):
+        utils.confirm_sns_subscription(notification)
+
+    def handle_unsubscribe_confirmation(self, notification):
+        logger.info(
+            u'Received unsubscribe confirmation: TopicArn: %s',
+            notification.get('TopicArn'),
             extra={
                 'notification': notification,
             },

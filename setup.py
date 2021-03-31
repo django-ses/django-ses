@@ -154,5 +154,6 @@ setup(
     include_package_data=True,
     extras_require={
         'bounce': ['requests<3', 'M2Crypto'],
+        'events': ['requests<3', 'M2Crypto'],
     },
 )

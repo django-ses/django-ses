@@ -1,12 +1,23 @@
 import base64
 import logging
+import warnings
 from builtins import str as text
 from builtins import bytes
 from io import StringIO
+
+from django_ses.deprecation import RemovedInDjangoSES20Warning
+
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
+
+try:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import urlopen, URLError
+
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
 from django_ses import settings
@@ -14,24 +25,23 @@ from django_ses import settings
 logger = logging.getLogger(__name__)
 
 
-class BounceMessageVerifier(object):
+class EventMessageVerifier(object):
     """
-    A utility class for validating bounce messages
+    A utility class for validating event messages
 
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
 
-    def __init__(self, bounce_dict):
+    def __init__(self, notification):
         """
-        Creates a new bounce message from the given dict.
+        Creates a new event message from the given dict.
         """
-        self._data = bounce_dict
+        self._data = notification
         self._verified = None
 
     def is_verified(self):
         """
-        Verifies an SES bounce message.
-
+        Verifies an SES event message.
         """
         if self._verified is None:
             signature = self._data.get('Signature')
@@ -67,17 +77,17 @@ class BounceMessageVerifier(object):
     @property
     def certificate(self):
         """
-        Retrieves the certificate used to sign the bounce message.
+        Retrieves the certificate used to sign the event message.
 
         TODO: Cache the certificate based on the cert URL so we don't have to
-        retrieve it for each bounce message. *We would need to do it in a
+        retrieve it for each event message. *We would need to do it in a
         secure way so that the cert couldn't be overwritten in the cache*
         """
         if not hasattr(self, '_certificate'):
             cert_url = self._get_cert_url()
             # Only load certificates from a certain domain?
             # Without some kind of trusted domain check, any old joe could
-            # craft a bounce message and sign it using his own certificate
+            # craft a event message and sign it using his own certificate
             # and we would happily load and verify it.
 
             if not cert_url:
@@ -88,18 +98,18 @@ class BounceMessageVerifier(object):
                 import requests
             except ImportError:
                 raise ImproperlyConfigured(
-                    "`requests` is required for bounce message verification. "
+                    "`requests` is required for event message verification. "
                     "Please consider installing the `django-ses` with the "
-                    "`bounce` extra - e.g. `pip install django-ses[bounce]`."
+                    "`event` extra - e.g. `pip install django-ses[events]`."
                 )
 
             try:
                 import M2Crypto
             except ImportError:
                 raise ImproperlyConfigured(
-                    "`M2Crypto` is required for bounce message verification. "
+                    "`M2Crypto` is required for event message verification. "
                     "Please consider installing the `django-ses` with the "
-                    "`bounce` extra - e.g. `pip install django-ses[bounce]`."
+                    "`event` extra - e.g. `pip install django-ses[events]`."
                 )
 
             # We use requests because it verifies the https certificate
@@ -126,7 +136,7 @@ class BounceMessageVerifier(object):
         """
         Get the signing certificate URL.
         Only accept urls that match the domains set in the
-        AWS_SNS_BOUNCE_CERT_TRUSTED_DOMAINS setting. Sub-domains
+        AWS_SNS_EVENT_CERT_TRUSTED_DOMAINS setting. Sub-domains
         are allowed. i.e. if amazonaws.com is in the trusted domains
         then sns.us-east-1.amazonaws.com will match.
         """
@@ -134,7 +144,7 @@ class BounceMessageVerifier(object):
         if cert_url:
             if cert_url.startswith('https://'):
                 url_obj = urlparse(cert_url)
-                for trusted_domain in settings.BOUNCE_CERT_DOMAINS:
+                for trusted_domain in settings.EVENT_CERT_DOMAINS:
                     parts = trusted_domain.split('.')
                     if url_obj.netloc.split('.')[-len(parts):] == parts:
                         return cert_url
@@ -191,9 +201,58 @@ class BounceMessageVerifier(object):
         return bytes(response, 'utf-8')
 
 
+def BounceMessageVerifier(*args, **kwargs):
+    warnings.warn(
+        'utils.BounceMessageVerifier is deprecated. It is renamed to EventMessageVerifier.',
+        RemovedInDjangoSES20Warning,
+    )
+
+    # parameter name is renamed from bounce_dict to notification.
+    if 'bounce_dict' in kwargs:
+        kwargs['notification'] = kwargs['bounce_dict']
+        del kwargs['bounce_dict']
+
+    return EventMessageVerifier(*args, **kwargs)
+
+
+def verify_event_message(notification):
+    """
+    Verify an SES/SNS event notification message.
+    """
+    verifier = EventMessageVerifier(notification)
+    return verifier.is_verified()
+
+
 def verify_bounce_message(msg):
     """
-    Verify an SES/SNS bounce notification message.
+    Verify an SES/SNS bounce(event) notification message.
     """
-    verifier = BounceMessageVerifier(msg)
-    return verifier.is_verified()
+    warnings.warn(
+        'utils.verify_bounce_message is deprecated. It is renamed to verify_event_message.',
+        RemovedInDjangoSES20Warning,
+    )
+    return verify_event_message(msg)
+
+
+def confirm_sns_subscription(notification):
+    logger.info(
+        u'Received subscription confirmation: TopicArn: %s',
+        notification.get('TopicArn'),
+        extra={
+            'notification': notification,
+        },
+    )
+
+    # Get the subscribe url and hit the url to confirm the subscription.
+    subscribe_url = notification.get('SubscribeURL')
+    try:
+        urlopen(subscribe_url).read()
+    except URLError as e:
+        # Some kind of error occurred when confirming the request.
+        logger.error(
+            u'Could not confirm subscription: "%s"', e,
+            extra={
+                'notification': notification,
+            },
+            exc_info=True,
+        )

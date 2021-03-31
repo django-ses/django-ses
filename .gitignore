@@ -6,3 +6,4 @@ django_ses.egg-info
 dist/*
 .DS_Store
 .tox/*
+.idea

@@ -125,7 +125,7 @@ On AWS
 configuration set by setting ``AWS_SES_CONFIGURATION_SET``. Set the topic
 to what you created in 1.
 
-3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/event/)
+3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/event-webhook/)
 Do not check "Enable raw message delivery".
 
 

@@ -153,7 +153,7 @@ def handle_bounce(request):
     For bounce messages the bounce_received signal is called.
     For complaint messages the complaint_received signal is called.
     See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
-    See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
+    See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
 
     In addition to email bounce requests this endpoint also supports the SNS
     subscription confirmation request. This request is sent to the SNS
@@ -335,7 +335,7 @@ class SESEventWebhookView(View):
     click -> click_received
     See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-sending-activity.html
     See: http://docs.aws.amazon.com/sns/latest/gsg/json-formats.html#http-subscription-confirmation-json
-    See: http://docs.amazonwebservices.com/ses/latest/DeveloperGuide/NotificationsViaSNS.html
+    See: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
 
     In addition to email bounce requests this endpoint also supports the SNS
     subscription confirmation request. This request is sent to the SNS

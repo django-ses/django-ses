@@ -448,7 +448,7 @@ Full List of Settings
   need to publish your public key on DNS; the selector is set to ``ses`` by
   default.  See http://dkim.org/ for further detail.
 
-``VERIFY_EVENT_SIGNATURES``, ``VERIFY_BOUNCE_SIGNATURES``
+``AWS_SES_VERIFY_EVENT_SIGNATURES``, ``AWS_SES_VERIFY_BOUNCE_SIGNATURES``
   Optional. Default is True. Verify the contents of the message by matching the signature
   you recreated from the message contents with the signature that Amazon SNS sent with the message.
   See https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message.html for further detail.

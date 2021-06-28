@@ -13,34 +13,6 @@ jobs:
       matrix:
         python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8]
         django-version: [1.11, 2.0, 2.1, 2.2, 3.0]
-#        exclude:
-#          # Python 2.7 is compatible with Django 1.11
-#          - python-version: "2.7"
-#            django-version: "2.0"
-#          - python-version: "2.7"
-#            django-version: "2.1"
-#          - python-version: "2.7"
-#            django-version: "2.2"
-#          - python-version: "2.7"
-#            django-version: "3.0"
-#
-#          # Python 3.4 is compatible with Django 2.0
-#          - python-version: "3.4"
-#            django-version: "2.1"
-#          - python-version: "3.4"
-#            django-version: "2.2"
-#          - python-version: "3.4"
-#            django-version: "3.0"
-#
-#          - python-version: "3.5"
-#            django-version: "2.0"
-#          - python-version: "3.5"
-#            django-version: "3.0"
-#
-#          - python-version: "3.8"
-#            django-version: "2.0"
-#          - python-version: "3.8"
-#            django-version: "2.1"
 
       steps:
         - uses: actions/checkout@v2

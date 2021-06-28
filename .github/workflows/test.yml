@@ -50,8 +50,8 @@ jobs:
           with:
             python-version: ${{ matrix.python-version }}
         - name: Install Dependencies
-            run: |
-              pip install ${{ matrix.django-version }}
+          run: |
+            pip install ${{ matrix.django-version }}
         - name: Run Tests
           run: |
             python runtests.py

@@ -22,7 +22,7 @@ jobs:
             python-version: ${{ matrix.python-version }}
 
         - name: Run Tests
-            env:
-              TOXENV: ${{ matrix.django-version }}
+          env:
+            TOXENV: ${{ matrix.django-version }}
             run: |
               python runtests.py

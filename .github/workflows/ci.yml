@@ -1,0 +1,99 @@
+name: Unit tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Python ${{ matrix.python-version }}, django ${{ matrix.django-version }}
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9]
+        django-version: [111, 22, 30, 31, 32]
+
+        exclude:
+          - python-version: 2.7
+            django-version: 22
+
+          - python-version: 2.7
+            django-version: 30
+
+          - python-version: 2.7
+            django-version: 31
+
+          - python-version: 2.7
+            django-version: 32
+
+          - python-version: 3.4
+            django-version: 22
+
+          - python-version: 3.4
+            django-version: 30
+
+          - python-version: 3.4
+            django-version: 31
+
+          - python-version: 3.4
+            django-version: 32
+
+          - python-version: 3.5
+            django-version: 30
+
+          - python-version: 3.5
+            django-version: 31
+
+          - python-version: 3.5
+            django-version: 32
+
+          - python-version: 3.6
+            django-version: 111
+
+          - python-version: 3.6
+            django-version: 20
+
+          - python-version: 3.7
+            django-version: 111
+
+          - python-version: 3.7
+            django-version: 20
+
+          - python-version: 3.8
+            django-version: 111
+
+          - python-version: 3.8
+            django-version: 20
+
+          - python-version: 3.8
+            django-version: 21
+
+          - python-version: 3.8
+            django-version: 22
+
+          - python-version: 3.9
+            django-version: 111
+
+          - python-version: 3.9
+            django-version: 20
+
+          - python-version: 3.9
+            django-version: 21
+
+          - python-version: 3.9
+            django-version: 22
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install tox
+        run: pip install tox
+      - name: Run Tests
+        env:
+          TOXENV: django${{ matrix.django-version }}
+        run: tox

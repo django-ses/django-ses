@@ -68,11 +68,11 @@ class Command(BaseCommand):
 
         if email_to_add:
             if verbosity != '0':
-                print("Adding email: " + email_to_add)
+                print(("Adding email: " + email_to_add))
             connection.verify_email_address(EmailAddress=email_to_add)
         elif email_to_delete:
             if verbosity != '0':
-                print("Removing email: " + email_to_delete)
+                print(("Removing email: " + email_to_delete))
             connection.delete_verified_email_address(EmailAddress=email_to_delete)
         elif list_emails:
             if verbosity != '0':

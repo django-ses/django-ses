@@ -100,14 +100,14 @@ class SESBackendTest(TestCase):
 
     def test_rfc2047_helper(self):
         # Ensures that the underlying email.header library code is encoding as expected, using known values
-        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
         rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
         self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
 
     def test_send_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = None
 
-        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
         send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
         message = self.outbox.pop()

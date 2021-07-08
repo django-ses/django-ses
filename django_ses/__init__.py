@@ -144,7 +144,7 @@ class SESBackend(BaseEmailBackend):
                 # Get and cache the current SES max-per-second rate limit
                 # returned by the SES API.
                 rate_limit = self.get_rate_limit()
-                logger.debug(u"send_messages.throttle rate_limit='{}'".format(rate_limit))
+                logger.debug("send_messages.throttle rate_limit='{}'".format(rate_limit))
 
                 # Prune from recent_send_times anything more than a few seconds
                 # ago. Even though SES reports a maximum per-second, the way
@@ -195,8 +195,8 @@ class SESBackend(BaseEmailBackend):
                 num_sent += 1
                 if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
                     logger.debug(
-                        u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
-                        u"ses-configuration-set='{}'".format(
+                        "send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
+                        "ses-configuration-set='{}'".format(
                             message.from_email,
                             ", ".join(message.recipients()),
                             message.extra_headers['message_id'],
@@ -204,7 +204,7 @@ class SESBackend(BaseEmailBackend):
                             message.extra_headers['X-SES-CONFIGURATION-SET']
                         ))
                 else:
-                    logger.debug(u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
+                    logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
                         message.from_email,
                         ", ".join(message.recipients()),
                         message.extra_headers['message_id'],

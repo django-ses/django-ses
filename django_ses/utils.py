@@ -7,16 +7,9 @@ from io import StringIO
 
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
-try:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import urlopen, URLError
+from urllib.parse import urlparse
+from urllib.request import urlopen
+from urllib.error import URLError
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
@@ -117,7 +110,7 @@ class EventMessageVerifier(object):
             # hijacked then all bets are off.
             response = requests.get(cert_url)
             if response.status_code != 200:
-                logger.warning(u'Could not download certificate from %s: "%s"', cert_url, response.status_code)
+                logger.warning('Could not download certificate from %s: "%s"', cert_url, response.status_code)
                 self._certificate = None
                 return self._certificate
 
@@ -127,7 +120,7 @@ class EventMessageVerifier(object):
             try:
                 self._certificate = M2Crypto.X509.load_cert_string(response.content)
             except M2Crypto.X509.X509Error as e:
-                logger.warning(u'Could not load certificate from %s: "%s"', cert_url, e)
+                logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
                 self._certificate = None
 
         return self._certificate
@@ -148,9 +141,9 @@ class EventMessageVerifier(object):
                     parts = trusted_domain.split('.')
                     if url_obj.netloc.split('.')[-len(parts):] == parts:
                         return cert_url
-            logger.warning(u'Untrusted certificate URL: "%s"', cert_url)
+            logger.warning('Untrusted certificate URL: "%s"', cert_url)
         else:
-            logger.warning(u'No signing certificate URL: "%s"', cert_url)
+            logger.warning('No signing certificate URL: "%s"', cert_url)
         return None
 
     def _get_bytes_to_sign(self):
@@ -184,7 +177,7 @@ class EventMessageVerifier(object):
             ]
         else:
             # Unrecognized type
-            logger.warning(u'Unrecognized SNS message Type: "%s"', msg_type)
+            logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
 
         outbytes = StringIO()
@@ -236,7 +229,7 @@ def verify_bounce_message(msg):
 
 def confirm_sns_subscription(notification):
     logger.info(
-        u'Received subscription confirmation: TopicArn: %s',
+        'Received subscription confirmation: TopicArn: %s',
         notification.get('TopicArn'),
         extra={
             'notification': notification,
@@ -250,7 +243,7 @@ def confirm_sns_subscription(notification):
     except URLError as e:
         # Some kind of error occurred when confirming the request.
         logger.error(
-            u'Could not confirm subscription: "%s"', e,
+            'Could not confirm subscription: "%s"', e,
             extra={
                 'notification': notification,
             },

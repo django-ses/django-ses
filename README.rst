@@ -409,7 +409,7 @@ __ https://github.com/bancek/django-smtp-ssl
 
 Requirements
 ============
-django-ses requires boto3 and django >= 1.11.
+django-ses requires boto3 and django >= 2.2.
 
 Full List of Settings
 =====================
@@ -522,9 +522,9 @@ To create a release::
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg
     :target: http://badge.fury.io/py/django-ses
-.. |build| image:: https://travis-ci.com/django-ses/django-ses.svg?branch=master
-    :target: https://travis-ci.com/django-ses/django-ses
-.. |python| image:: https://img.shields.io/badge/python-2.7+-blue.svg
+.. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
+.. |python| image:: https://img.shields.io/badge/python-3.5+-blue.svg
     :target: https://pypi.org/project/django-ses/
-.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.0+%7C%203.0-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-2.2%7C%203.0+-blue.svg
     :target: https://www.djangoproject.com/

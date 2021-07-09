@@ -140,7 +140,7 @@ setup(
     version=version,
     packages=find_packages(exclude=['example', 'tests']),
     package_data=package_data,
-    python_requires='>=2.7',
+    python_requires='>=3.5',
     author='Harry Marr',
     author_email='harry@hmarr.com',
     url='https://github.com/django-ses/django-ses',

@@ -32,6 +32,7 @@ class Command(BaseCommand):
             aws_secret_access_key=settings.SECRET_KEY,
             region_name=settings.AWS_SES_REGION_NAME,
             endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+            config=settings.AWS_SES_CONFIG,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)

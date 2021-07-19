@@ -2,7 +2,8 @@ from django.conf import settings
 
 __all__ = ('ACCESS_KEY', 'SECRET_KEY', 'AWS_SES_REGION_NAME',
            'AWS_SES_REGION_ENDPOINT', 'AWS_SES_AUTO_THROTTLE',
-           'AWS_SES_RETURN_PATH', 'DKIM_DOMAIN', 'DKIM_PRIVATE_KEY',
+           'AWS_SES_CONFIG',  'AWS_SES_RETURN_PATH',
+           'DKIM_DOMAIN', 'DKIM_PRIVATE_KEY',
            'DKIM_SELECTOR', 'DKIM_HEADERS', 'TIME_ZONE')
 
 ACCESS_KEY = getattr(settings, 'AWS_SES_ACCESS_KEY_ID',
@@ -19,6 +20,7 @@ AWS_SES_REGION_ENDPOINT_URL = getattr(settings, 'AWS_SES_REGION_ENDPOINT_URL',
                                       'https://' + AWS_SES_REGION_ENDPOINT)
 
 AWS_SES_AUTO_THROTTLE = getattr(settings, 'AWS_SES_AUTO_THROTTLE', 0.5)
+AWS_SES_CONFIG = getattr(settings, 'AWS_SES_CONFIG', None)
 AWS_SES_RETURN_PATH = getattr(settings, 'AWS_SES_RETURN_PATH', None)
 AWS_SES_CONFIGURATION_SET = getattr(settings, 'AWS_SES_CONFIGURATION_SET', None)
 

@@ -45,6 +45,13 @@ def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim
     return message
 
 
+def cast_nonzero_to_float(val):
+    """Cast nonzero number to float; on zero or None, return None"""
+    if not val:
+        return None
+    return float(val)
+
+
 class SESBackend(BaseEmailBackend):
     """A Django Email backend that uses Amazon's Simple Email Service.
     """
@@ -60,7 +67,7 @@ class SESBackend(BaseEmailBackend):
         self._access_key = aws_secret_key or settings.SECRET_KEY
         self._region_name = aws_region_name if aws_region_name else settings.AWS_SES_REGION_NAME
         self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT_URL
-        self._throttle = float(aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE)
+        self._throttle = cast_nonzero_to_float(aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE)
         self._config = aws_config or settings.AWS_SES_CONFIG
 
         self.dkim_domain = dkim_domain or settings.DKIM_DOMAIN

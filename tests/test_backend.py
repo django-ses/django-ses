@@ -187,6 +187,28 @@ class SESBackendTest(TestCase):
         self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')
 
 
+class SESBackendTestInitialize(TestCase):
+    def test_auto_throttle(self):
+        """
+        Ensure that SESBackend handles aws_auto_throttle correctly
+        """
+        for throttle_param, throttle_setting, expected_throttle_val in (
+            # If provided, we should cast parameter to float
+            (1.0, 2.0, 1.0),
+            ("1.0", 2.0, 1.0),
+
+            # On 0 or None, we should fall back to the value in Django settings,
+            # casting that value to a float
+            (0, 2.0, 2.0),
+            (None, 2.0, 2.0),
+            (None, "1.0", 1.0),
+            (None, None, None),
+        ):
+            settings.AWS_SES_AUTO_THROTTLE = throttle_setting
+            backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
+            self.assertEqual(backend._throttle, expected_throttle_val)
+
+
 class SESBackendTestReturn(TestCase):
     def setUp(self):
         # TODO: Fix this -- this is going to cause side effects

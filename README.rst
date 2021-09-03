@@ -203,7 +203,7 @@ Using signal 'click_received' for manager send email. For example::
 
 
     @receiver(click_received)
-    def click_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
+    def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
         ...
 
 SES Event Monitoring with Configuration Sets

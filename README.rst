@@ -167,7 +167,7 @@ Using signal 'send_received' for manager send email. For example::
 
 
     @receiver(send_received)
-    def send_handler(sender, mail_obj, send_obj, raw_message,  *args, **kwargs):
+    def send_handler(sender, mail_obj, raw_message,  *args, **kwargs):
         ...
 
 Delivery
@@ -191,7 +191,7 @@ Using signal 'open_received' for manager open email. For example::
 
 
     @receiver(open_received)
-    def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
+    def open_handler(sender, mail_obj, raw_message, *args, **kwargs):
         ...
 
 Click
@@ -203,8 +203,13 @@ Using signal 'click_received' for manager send email. For example::
 
 
     @receiver(click_received)
-    def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
+    def click_handler(sender, mail_obj, raw_message, *args, **kwargs):
         ...
+        
+Testing Signals
+===============
+
+If you would like to test your signals, you can optionally disable `AWS_SES_VERIFY_EVENT_SIGNATURES` in settings. Examples for the JSON object AWS SNS sends can be found here: https://docs.aws.amazon.com/sns/latest/dg/sns-message-and-json-formats.html#http-subscription-confirmation-json
 
 SES Event Monitoring with Configuration Sets
 ============================================

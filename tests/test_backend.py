@@ -186,6 +186,30 @@ class SESBackendTest(TestCase):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')
 
+    def test_source_arn_is_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
+        """
+        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
+        settings.AWS_SES_FROM_ARN = 'arn:aws:ses:eu-central-1:222222222222:identity/example.com'
+        settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertEqual(mail['SourceArn'], 'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
+        self.assertEqual(mail['FromArn'], 'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
+        self.assertEqual(mail['ReturnPathArn'], 'arn:aws:ses:eu-central-1:333333333333:identity/example.com')
+
+    def test_source_arn_is_NOT_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are not present, if nothing has been
+        configured.
+        """
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertNotIn('SourceArn', mail)
+        self.assertNotIn('FromArn', mail)
+        self.assertNotIn('ReturnPathArn', mail)
+
 
 class SESBackendTestReturn(TestCase):
     def setUp(self):

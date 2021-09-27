@@ -201,7 +201,7 @@ class SESBackendTest(TestCase):
 
     def test_source_arn_is_NOT_set(self):
         """
-        Ensure that the helpers for Identity Owner for SES Sending Authorization are None, if nothing has been
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are not present, if nothing has been
         configured.
         """
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])

@@ -311,6 +311,23 @@ Example DNS record published to Route53 with boto:
 .. _DomainKeys: http://dkim.org/
 
 
+Identity Owners
+===============
+
+With Identity owners, you can use validated SES-domains across multiple accounts:
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+This is useful if you got multiple environments in different accounts and still want to send mails via the same domain.
+
+You can configure the following environment variables to use them as described in boto3-docs_::
+
+    AWS_SES_SOURCE_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+    AWS_SES_FROM_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+    AWS_SES_RETURN_PATH_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+
+.. _boto3-docs: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ses.html#SES.Client.send_raw_email
+
+
 SES Sending Stats
 =================
 
@@ -452,6 +469,18 @@ Full List of Settings
   then email messages will be signed with the specified key.   You will also
   need to publish your public key on DNS; the selector is set to ``ses`` by
   default.  See http://dkim.org/ for further detail.
+
+``AWS_SES_SOURCE_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+``AWS_SES_FROM_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+``AWS_SES_RETURN_PATH_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
 
 ``AWS_SES_VERIFY_EVENT_SIGNATURES``, ``AWS_SES_VERIFY_BOUNCE_SIGNATURES``
   Optional. Default is True. Verify the contents of the message by matching the signature

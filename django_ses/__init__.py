@@ -50,8 +50,9 @@ class SESBackend(BaseEmailBackend):
     def __init__(self, fail_silently=False, aws_access_key=None,
                  aws_secret_key=None, aws_region_name=None,
                  aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
-                 dkim_domain=None, dkim_key=None, dkim_selector=None,
-                 dkim_headers=None, **kwargs):
+                 dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
+                 ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
+                 **kwargs):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
@@ -65,6 +66,10 @@ class SESBackend(BaseEmailBackend):
         self.dkim_key = dkim_key or settings.DKIM_PRIVATE_KEY
         self.dkim_selector = dkim_selector or settings.DKIM_SELECTOR
         self.dkim_headers = dkim_headers or settings.DKIM_HEADERS
+
+        self.ses_source_arn = ses_source_arn or settings.AWS_SES_SOURCE_ARN
+        self.ses_from_arn = ses_from_arn or settings.AWS_SES_FROM_ARN
+        self.ses_return_path_arn = ses_return_path_arn or settings.AWS_SES_RETURN_PATH_ARN
 
         self.connection = None
 
@@ -178,17 +183,25 @@ class SESBackend(BaseEmailBackend):
                 recent_send_times.append(now)
                 # end of throttling
 
+            kwargs = dict(
+                Source=source or message.from_email,
+                Destinations=message.recipients(),
+                # todo attachments?
+                RawMessage={'Data': dkim_sign(message.message().as_string(),
+                                              dkim_key=self.dkim_key,
+                                              dkim_domain=self.dkim_domain,
+                                              dkim_selector=self.dkim_selector,
+                                              dkim_headers=self.dkim_headers)}
+            )
+            if self.ses_source_arn:
+                kwargs['SourceArn'] = self.ses_source_arn
+            if self.ses_from_arn:
+                kwargs['FromArn'] = self.ses_from_arn
+            if self.ses_return_path_arn:
+                kwargs['ReturnPathArn'] = self.ses_return_path_arn
+
             try:
-                response = self.connection.send_raw_email(
-                    Source=source or message.from_email,
-                    Destinations=message.recipients(),
-                    # todo attachments?
-                    RawMessage={'Data': dkim_sign(message.message().as_string(),
-                                                  dkim_key=self.dkim_key,
-                                                  dkim_domain=self.dkim_domain,
-                                                  dkim_selector=self.dkim_selector,
-                                                  dkim_headers=self.dkim_headers)}
-                )
+                response = self.connection.send_raw_email(**kwargs)
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response['MessageId']
                 message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']

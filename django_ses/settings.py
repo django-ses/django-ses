@@ -30,6 +30,10 @@ DKIM_SELECTOR = getattr(settings, 'DKIM_SELECTOR', 'ses')
 DKIM_HEADERS = getattr(settings, 'DKIM_HEADERS',
                        ('From', 'To', 'Cc', 'Subject'))
 
+AWS_SES_SOURCE_ARN = getattr(settings, 'AWS_SES_SOURCE_ARN', None)
+AWS_SES_FROM_ARN = getattr(settings, 'AWS_SES_FROM_ARN', None)
+AWS_SES_RETURN_PATH_ARN = getattr(settings, 'AWS_SES_RETURN_PATH_ARN', None)
+
 TIME_ZONE = settings.TIME_ZONE
 
 VERIFY_EVENT_SIGNATURES = getattr(settings, 'AWS_SES_VERIFY_EVENT_SIGNATURES',

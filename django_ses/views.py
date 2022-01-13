@@ -5,7 +5,7 @@ import boto3
 import pytz
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import View
+from django.views.generic.base import TemplateView, View
 
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
@@ -94,52 +94,59 @@ def sum_stats(stats_data):
     }
 
 
-@superuser_only
-def dashboard(request):
+@method_decorator(superuser_only, name='dispatch')
+class DashboardView(TemplateView):
     """
     Graph SES send statistics over time.
     """
-    cache_key = 'vhash:django_ses_stats'
-    cached_view = cache.get(cache_key)
-    if cached_view:
-        return cached_view
+    template_name = 'django_ses/send_stats.html'
 
-    ses_conn = boto3.client(
-        'ses',
-        aws_access_key_id=settings.ACCESS_KEY,
-        aws_secret_access_key=settings.SECRET_KEY,
-        region_name=settings.AWS_SES_REGION_NAME,
-        endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
-        config=settings.AWS_SES_CONFIG,
-    )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    quota_dict = ses_conn.get_send_quota()
-    verified_emails_dict = ses_conn.list_verified_email_addresses()
-    stats = ses_conn.get_send_statistics()
+        ses_conn = boto3.client(
+            'ses',
+            aws_access_key_id=settings.ACCESS_KEY,
+            aws_secret_access_key=settings.SECRET_KEY,
+            region_name=settings.AWS_SES_REGION_NAME,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+            config=settings.AWS_SES_CONFIG,
+        )
 
-    verified_emails = emails_parse(verified_emails_dict)
-    ordered_data = stats_to_list(stats)
-    summary = sum_stats(ordered_data)
+        quota_dict = ses_conn.get_send_quota()
+        verified_emails_dict = ses_conn.list_verified_email_addresses()
+        stats = ses_conn.get_send_statistics()
+        verified_emails = emails_parse(verified_emails_dict)
+        ordered_data = stats_to_list(stats)
+        summary = sum_stats(ordered_data)
+        
+        context.update({
+            'title': 'SES Statistics',
+            'datapoints': ordered_data,
+            '24hour_quota': quota_dict['Max24HourSend'],
+            '24hour_sent': quota_dict['SentLast24Hours'],
+            '24hour_remaining':
+                quota_dict['Max24HourSend'] -
+                quota_dict['SentLast24Hours'],
+            'persecond_rate': quota_dict['MaxSendRate'],
+            'verified_emails': verified_emails,
+            'summary': summary,
+            'access_key': settings.ACCESS_KEY,
+            'local_time': True,
+        })
 
-    extra_context = {
-        'title': 'SES Statistics',
-        'datapoints': ordered_data,
-        '24hour_quota': quota_dict['Max24HourSend'],
-        '24hour_sent': quota_dict['SentLast24Hours'],
-        '24hour_remaining':
-            quota_dict['Max24HourSend'] -
-            quota_dict['SentLast24Hours'],
-        'persecond_rate': quota_dict['MaxSendRate'],
-        'verified_emails': verified_emails,
-        'summary': summary,
-        'access_key': settings.ACCESS_KEY,
-        'local_time': True,
-    }
+        return context
 
-    response = render(request, 'django_ses/send_stats.html', extra_context)
-
-    cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
-    return response
+    
+    def dispatch(request, *args, **kwargs):
+        cache_key = 'vhash:django_ses_stats'
+        cached_view = cache.get(cache_key)
+        if cached_view:
+            return cached_view
+        
+        response = super().dispatch(request, *args, **kwargs)
+        cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
+        return response
 
 
 @require_POST

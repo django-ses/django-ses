@@ -1,8 +1,8 @@
 from django.urls import path
 
-from django_ses.views import dashboard
+from django_ses.views import DashboardView
 
 
 urlpatterns = [
-    path('', dashboard, name='django_ses_stats'),
+    path('', DashboardView.as_view(), name='django_ses_stats'),
 ]

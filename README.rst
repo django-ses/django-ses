@@ -352,13 +352,29 @@ To generate and view SES sending statistics reports, include, update
 
 *Optional enhancements to stats:*
 
+Override the dashboard view
+---------------------------
+You can override the Dashboard view, for example, to add more context data
+
+    class CustomSESDashboardView(DashboardView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context.update(**admin.site.each_context(self.request))
+            return context
+
+Then update your urls
+
+    urlpatterns += path('admin/django-ses/', CustomSESDashboardView.as_view(), name='django_ses_stats'),
+
 
 Link the dashboard from the admin
 ---------------------------------
 You can use adminplus for this (https://github.com/jsocol/django-adminplus)::
 
-    from django_ses.views import dashboard
-    admin.site.register_view('django-ses', dashboard, 'Django SES Stats')
+    from django_ses.views import DashboardView
+    admin.site.register_view('django-ses', DashboardView.as_view(), 'Django SES Stats')
+
+
 
 Store daily stats
 -----------------

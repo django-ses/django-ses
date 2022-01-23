@@ -137,14 +137,13 @@ class DashboardView(TemplateView):
 
         return context
 
-    
-    def dispatch(request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         cache_key = 'vhash:django_ses_stats'
         cached_view = cache.get(cache_key)
         if cached_view:
             return cached_view
         
-        response = super().dispatch(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs).render()
         cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
         return response
 

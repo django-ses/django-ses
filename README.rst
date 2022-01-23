@@ -354,7 +354,7 @@ To generate and view SES sending statistics reports, include, update
 
 Override the dashboard view
 ---------------------------
-You can override the Dashboard view, for example, to add more context data
+You can override the Dashboard view, for example, to add more context data::
 
     class CustomSESDashboardView(DashboardView):
         def get_context_data(self, **kwargs):
@@ -362,7 +362,7 @@ You can override the Dashboard view, for example, to add more context data
             context.update(**admin.site.each_context(self.request))
             return context
 
-Then update your urls
+Then update your urls::
 
     urlpatterns += path('admin/django-ses/', CustomSESDashboardView.as_view(), name='django_ses_stats'),
 

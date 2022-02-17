@@ -13,6 +13,14 @@ Django-SES is a drop-in mail backend for Django_. Instead of sending emails
 through a traditional SMTP mail server, Django-SES routes email through
 Amazon Web Services' excellent Simple Email Service (SES_).
 
+
+Please Contribute!
+==================
+This project is maintained, but not actively used by the maintainer. Interested
+in helping maintain this project? Reach out via GitHub Issues if you're actively
+using `django-ses` and would be interested in contributing to it.
+
+
 Changelog
 =========
 

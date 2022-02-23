@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
-        django-version: [22, 30, 31, 32]
+        django-version: [22, 30, 31, 32, 40]
 
         exclude:
 
@@ -25,6 +25,15 @@ jobs:
 
           - python-version: 3.5
             django-version: 32
+
+          - python-version: 3.5
+            django-version: 40
+
+          - python-version: 3.6
+            django-version: 40
+
+          - python-version: 3.7
+            django-version: 40
 
     steps:
       - uses: actions/checkout@v2

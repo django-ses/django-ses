@@ -568,14 +568,12 @@ If you want to debug the tests, just add this file as a python script to your ID
 Creating a Release
 ==================
 
-To create a release::
+To create a release:
 
-    virtualenv -p python3 ~/.virtualenvs/django-ses
-    workon django-ses
-    pip3 install twine
-    python3 setup.py sdist
-    python3 setup.py bdist_wheel --universal
-    twine upload dist/*
+* Run ``poetry version {patch|minor|major}`` as explained in `the docs <https://python-poetry.org/docs/cli/#version>`_. This will update the version in pyproject.toml.
+* Commit that change and use git to tag that commit with a version that matches the pattern ``v*.*.*``.
+* Push the tag and the commit (not some IDEs don't push tags by default).
+
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg
     :target: http://badge.fury.io/py/django-ses

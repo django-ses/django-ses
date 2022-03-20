@@ -581,7 +581,7 @@ To create a release::
     :target: http://badge.fury.io/py/django-ses
 .. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
-.. |python| image:: https://img.shields.io/badge/python-3.5+-blue.svg
+.. |python| image:: https://img.shields.io/badge/python-3.7+-blue.svg
     :target: https://pypi.org/project/django-ses/
-.. |django| image:: https://img.shields.io/badge/django-2.2%7C%203.0+-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-2.2%7C%203.2+-blue.svg
     :target: https://www.djangoproject.com/

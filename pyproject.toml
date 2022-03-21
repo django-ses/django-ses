@@ -6,7 +6,7 @@ authors = [
     "Harry Marr <harry@hmarr.com>",
     "Wes Winham <winhamwr@gmail.com>",
     "Ross Lawley <ross.lawley@gmail.com>",
-    "Paul Craciunoiu",
+    "Paul Craciunoiu <paul@craciunoiu.net>",
 ]
 classifiers = [
     'Development Status :: 4 - Beta',
@@ -34,8 +34,11 @@ boto3 = ">=1.0.0"
 pytz = ">=2016.10"
 django = ">=2.2"
 importlib-metadata = {version = "^1.0", python = "<3.8"}
-requests = {version = "^2", extras = ["bounce", "events"]}
-M2Crypto = {version = "*", extras = ["bounce", "events"]}
+
+[tool.poetry.extras]
+bounce =  ["requests<3", "M2Crypto"]
+events = ["requests<3", "M2Crypto"]
+
 
 [tool.poetry.dev-dependencies]
 

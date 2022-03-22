@@ -9,10 +9,13 @@ from datetime import datetime, timedelta
 from time import sleep
 
 
-# When changing this, remember to change it in setup.py
-VERSION = (2, 6, 1)
-__version__ = '.'.join([str(x) for x in VERSION])
-__author__ = 'Harry Marr'
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:
+    # Shim for Python 3.7. Remove when support is dropped.
+    import importlib_metadata
+
+__version__ = importlib_metadata.version(__name__)
 __all__ = ('SESBackend',)
 
 # These would be nice to make class-level variables, but the backend is

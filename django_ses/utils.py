@@ -1,9 +1,7 @@
 import base64
 import logging
 import warnings
-from builtins import str as text
 from builtins import bytes
-from io import StringIO
 
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
@@ -12,7 +10,6 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_str
 from django_ses import settings
 
 logger = logging.getLogger(__name__)
@@ -180,18 +177,11 @@ class EventMessageVerifier(object):
             logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
 
-        outbytes = StringIO()
-        for field_name in fields_to_sign:
-            field_value = smart_str(self._data.get(field_name, ''),
-                                    errors="replace")
-            if field_value:
-                outbytes.write(text(field_name))
-                outbytes.write(text("\n"))
-                outbytes.write(text(field_value))
-                outbytes.write(text("\n"))
+        bytes_to_sign = ""
+        for field in fields_to_sign:
+            bytes_to_sign += f"{field}\n{self._data[field]}\n"
 
-        response = outbytes.getvalue()
-        return bytes(response, 'utf-8')
+        return bytes_to_sign.encode()
 
 
 def BounceMessageVerifier(*args, **kwargs):

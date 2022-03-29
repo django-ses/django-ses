@@ -80,9 +80,15 @@ class BounceMessageVerifierTest(TestCase):
         self.assertEqual(verifier._get_cert_url(), None)
 
     def test_get_bytes_to_sign(self):
-        verifier = BounceMessageVerifier({
-            'Type': 'Notification'
-        })
-        result = verifier._get_bytes_to_sign()
-        self.assertEqual(result, b'Type\nNotification\n')
-        self.assertTrue(isinstance(result, bytes))
+        verifier = BounceMessageVerifier(self.simple_msg)
+        actual_result = verifier._get_bytes_to_sign()
+        correct_result = (
+            b"Message\nMessage text\n"
+            b"MessageId\nSome ID\n"
+            b"Subject\nEquity for all\n"
+            b"Timestamp\nYesterday\n"
+            b"TopicArn\narn:aws...\n"
+            b"Type\nNotification\n"
+        )
+        self.assertEqual(actual_result, correct_result)
+        self.assertTrue(isinstance(actual_result, bytes))

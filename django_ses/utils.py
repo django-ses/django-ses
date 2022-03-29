@@ -211,11 +211,11 @@ class EventMessageVerifier(object):
             logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
 
-        bytes_to_sign = ""
+        bytes_to_sign = []
         for field in fields_to_sign:
-            bytes_to_sign += f"{field}\n{self._data[field]}\n"
+            bytes_to_sign.append(f"{field}\n{self._data[field]}\n")
 
-        return bytes_to_sign.encode()
+        return "".join(bytes_to_sign).encode()
 
 
 def BounceMessageVerifier(*args, **kwargs):

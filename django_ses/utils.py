@@ -14,6 +14,8 @@ from django_ses import settings
 
 logger = logging.getLogger(__name__)
 
+_CERT_CACHE = {}
+
 
 class EventMessageVerifier(object):
     """
@@ -21,6 +23,12 @@ class EventMessageVerifier(object):
 
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
+
+    _REQ_DEP_TMPL = (
+        "%s is required for event message verification. Please install "
+        "`django-ses` with the `event` extra - e.g. "
+        "`pip install django-ses[events]`."
+    )
 
     def __init__(self, notification):
         """
@@ -69,58 +77,56 @@ class EventMessageVerifier(object):
         """
         Retrieves the certificate used to sign the event message.
 
-        TODO: Cache the certificate based on the cert URL so we don't have to
-        retrieve it for each event message. *We would need to do it in a
-        secure way so that the cert couldn't be overwritten in the cache*
+        :returns: None if the cert cannot be retrieved. Else, gets the cert
+        caches it, and returns it, or simply returns it if already cached.
         """
-        if not hasattr(self, '_certificate'):
-            cert_url = self._get_cert_url()
-            # Only load certificates from a certain domain?
-            # Without some kind of trusted domain check, any old joe could
-            # craft a event message and sign it using his own certificate
-            # and we would happily load and verify it.
+        cert_url = self._get_cert_url()
+        if not cert_url:
+            return None
 
-            if not cert_url:
-                self._certificate = None
-                return self._certificate
+        if cert_url in _CERT_CACHE:
+            return _CERT_CACHE[cert_url]
 
-            try:
-                import requests
-            except ImportError:
-                raise ImproperlyConfigured(
-                    "`requests` is required for event message verification. "
-                    "Please consider installing the `django-ses` with the "
-                    "`event` extra - e.g. `pip install django-ses[events]`."
-                )
+        # Only load certificates from a certain domain?
+        # Without some kind of trusted domain check, any old joe could
+        # craft a event message and sign it using his own certificate
+        # and we would happily load and verify it.
+        try:
+            import requests
+            from requests import RequestException
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`requests`")
 
-            try:
-                import M2Crypto
-            except ImportError:
-                raise ImproperlyConfigured(
-                    "`M2Crypto` is required for event message verification. "
-                    "Please consider installing the `django-ses` with the "
-                    "`event` extra - e.g. `pip install django-ses[events]`."
-                )
+        try:
+            from cryptography import x509
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`cryptography`")
 
-            # We use requests because it verifies the https certificate
-            # when retrieving the signing certificate. If https was somehow
-            # hijacked then all bets are off.
-            response = requests.get(cert_url)
-            if response.status_code != 200:
-                logger.warning('Could not download certificate from %s: "%s"', cert_url, response.status_code)
-                self._certificate = None
-                return self._certificate
+        # We use requests because it verifies the https certificate when
+        # retrieving the signing certificate. If https was somehow hijacked
+        # then all bets are off.
+        try:
+            response = requests.get(cert_url, timeout=10)
+            response.raise_for_status()
+        except RequestException as exc:
+            logger.warning(
+                "Network error downloading certificate from " "%s: %s",
+                cert_url,
+                exc,
+            )
+            _CERT_CACHE[cert_url] = None
+            return _CERT_CACHE[cert_url]
 
-            # Handle errors loading the certificate.
-            # If the certificate is invalid then return
-            # false as we couldn't verify the message.
-            try:
-                self._certificate = M2Crypto.X509.load_cert_string(response.content)
-            except M2Crypto.X509.X509Error as e:
-                logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
-                self._certificate = None
+        # Handle errors loading the certificate.
+        # If the certificate is invalid then return
+        # false as we couldn't verify the message.
+        try:
+            _CERT_CACHE[cert_url] = x509.load_pem_x509_certificate(response.content)
+        except ValueError as e:
+            logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
+            _CERT_CACHE[cert_url] = None
 
-        return self._certificate
+        return _CERT_CACHE[cert_url]
 
     def _get_cert_url(self):
         """

@@ -130,17 +130,21 @@ class EventMessageVerifier(object):
         are allowed. i.e. if amazonaws.com is in the trusted domains
         then sns.us-east-1.amazonaws.com will match.
         """
-        cert_url = self._data.get('SigningCertURL')
-        if cert_url:
-            if cert_url.startswith('https://'):
-                url_obj = urlparse(cert_url)
-                for trusted_domain in settings.EVENT_CERT_DOMAINS:
-                    parts = trusted_domain.split('.')
-                    if url_obj.netloc.split('.')[-len(parts):] == parts:
-                        return cert_url
-            logger.warning('Untrusted certificate URL: "%s"', cert_url)
-        else:
+        cert_url = self._data.get("SigningCertURL")
+        if not cert_url:
             logger.warning('No signing certificate URL: "%s"', cert_url)
+            return None
+
+        if not cert_url.startswith("https://"):
+            logger.warning('Untrusted certificate URL: "%s"', cert_url)
+            return None
+
+        url_obj = urlparse(cert_url)
+        for trusted_domain in settings.EVENT_CERT_DOMAINS:
+            parts = trusted_domain.split(".")
+            if url_obj.netloc.split(".")[-len(parts) :] == parts:
+                return cert_url
+
         return None
 
     def _get_bytes_to_sign(self):

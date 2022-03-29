@@ -37,8 +37,6 @@ is capable of authenticating with Amazon SES and correctly sending email.
 Using django-ses gives you additional features like deliverability reports that
 can be hard and/or cumbersome to obtain when using the SMTP interface.
 
-**Note:** In order to use smtp with Amazon SES, you may have to install some
-supporting packages for ssl. Check out `this SMTP SSL email backend for Django`__
 
 Why SES instead of SMTP?
 ========================
@@ -58,17 +56,14 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 
 Getting going
 =============
-Assuming you've got Django_ installed, you'll need Boto3 1.0.0 or higher. Boto_
-is a Python library that wraps the AWS API.
-
-You can do the following to install boto3 (we're using --upgrade here to
-make sure you get the latest version)::
-
-    pip install --upgrade boto3
-
-Install django-ses::
+Assuming you've got Django_ installed, you'll just need to install django-ses::
 
     pip install django-ses
+
+
+To receive bounces or webhook events install the events "extra"::
+
+    pip install django-ses[events]
 
 Add the following to your settings.py::
 
@@ -451,11 +446,12 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
 .. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
-__ https://github.com/bancek/django-smtp-ssl
+
 
 Requirements
 ============
-django-ses requires boto3 and django >= 2.2.
+django-ses requires supported version of Django or Python.
+
 
 Full List of Settings
 =====================

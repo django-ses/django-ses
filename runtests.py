@@ -34,4 +34,4 @@ settings.configure(
 django.setup()
 
 # Start the test suite now that the settings are configured.
-call_command("test", "tests")
+call_command("test", "tests", verbosity=3)

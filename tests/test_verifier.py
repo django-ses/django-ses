@@ -16,7 +16,7 @@ except ImportError:
 
 from unittest import TestCase, skipIf
 
-from django_ses.utils import BounceMessageVerifier, _CERT_CACHE
+from django_ses.utils import BounceMessageVerifier, clear_cert_cache
 
 
 class BounceMessageVerifierTest(TestCase):
@@ -48,7 +48,7 @@ class BounceMessageVerifierTest(TestCase):
 
     def tearDown(self):
         # Reset the cache after each test
-        _CERT_CACHE.clear()
+        clear_cert_cache()
 
     @skipIf(requests is None, "requests is not installed")
     @skipIf(x509 is None, "cryptography is not installed")

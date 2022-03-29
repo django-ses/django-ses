@@ -17,6 +17,17 @@ logger = logging.getLogger(__name__)
 _CERT_CACHE = {}
 
 
+def clear_cert_cache():
+    """Clear the certificate cache.
+
+    This one-liner exists to discourage imports and direct usage of
+    _CERT_CACHE.
+
+    :returns None
+    """
+    _CERT_CACHE.clear()
+
+
 class EventMessageVerifier(object):
     """
     A utility class for validating event messages

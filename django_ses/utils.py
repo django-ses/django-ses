@@ -40,36 +40,60 @@ class EventMessageVerifier(object):
     def is_verified(self):
         """
         Verifies an SES event message.
+
+        Sign the bytes from the notification and compare it to the signature in
+        the notification. If same, return True; else False.
         """
-        if self._verified is None:
-            signature = self._data.get('Signature')
-            if not signature:
-                self._verified = False
-                return self._verified
+        if self._verified is not None:
+            return self._verified
 
-            # Decode the signature from base64
-            signature = bytes(base64.b64decode(signature))
+        signature = self._data.get("Signature")
+        if not signature:
+            self._verified = False
+            return self._verified
 
-            # Get the message to sign
-            sign_bytes = self._get_bytes_to_sign()
-            if not sign_bytes:
-                self._verified = False
-                return self._verified
+        # Decode the signature from base64
+        signature = bytes(base64.b64decode(signature))
 
-            if not self.certificate:
-                self._verified = False
-                return self._verified
+        # Get the message to sign
+        sign_bytes = self._get_bytes_to_sign()
+        if not sign_bytes:
+            self._verified = False
+            return self._verified
 
-            # Extract the public key
-            pkey = self.certificate.get_pubkey()
+        if not self.certificate:
+            self._verified = False
+            return self._verified
 
-            # Use the public key to verify the signature.
-            pkey.verify_init()
-            pkey.verify_update(sign_bytes)
-            verify_result = pkey.verify_final(signature)
+        try:
+            from cryptography.exceptions import InvalidSignature
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import padding
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`cryptography`")
 
-            self._verified = verify_result == 1
+        # Extract the public key
+        pkey = self.certificate.public_key()
 
+        # Use the public key to verify the signature.
+        try:
+            # The details here do not appear to be documented, but the
+            # algorithm and padding choices work in testing, which should mean
+            # they're the right ones.
+            pkey.verify(
+                signature,
+                sign_bytes,
+                padding.PKCS1v15(),
+                hashes.SHA1(),
+            )
+        except InvalidSignature:
+            logger.warning(
+                "Invalid signature on message with ID: %s",
+                self._data.get("MessageId"),
+            )
+            self._verified = False
+        else:
+            self._verified = True
         return self._verified
 
     @property

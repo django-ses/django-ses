@@ -1,9 +1,7 @@
 import base64
 import logging
 import warnings
-from builtins import str as text
 from builtins import bytes
-from io import StringIO
 
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
@@ -12,10 +10,22 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import smart_str
 from django_ses import settings
 
 logger = logging.getLogger(__name__)
+
+_CERT_CACHE = {}
+
+
+def clear_cert_cache():
+    """Clear the certificate cache.
+
+    This one-liner exists to discourage imports and direct usage of
+    _CERT_CACHE.
+
+    :returns None
+    """
+    _CERT_CACHE.clear()
 
 
 class EventMessageVerifier(object):
@@ -24,6 +34,12 @@ class EventMessageVerifier(object):
 
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
     """
+
+    _REQ_DEP_TMPL = (
+        "%s is required for event message verification. Please install "
+        "`django-ses` with the `event` extra - e.g. "
+        "`pip install django-ses[events]`."
+    )
 
     def __init__(self, notification):
         """
@@ -35,36 +51,60 @@ class EventMessageVerifier(object):
     def is_verified(self):
         """
         Verifies an SES event message.
+
+        Sign the bytes from the notification and compare it to the signature in
+        the notification. If same, return True; else False.
         """
-        if self._verified is None:
-            signature = self._data.get('Signature')
-            if not signature:
-                self._verified = False
-                return self._verified
+        if self._verified is not None:
+            return self._verified
 
-            # Decode the signature from base64
-            signature = bytes(base64.b64decode(signature))
+        signature = self._data.get("Signature")
+        if not signature:
+            self._verified = False
+            return self._verified
 
-            # Get the message to sign
-            sign_bytes = self._get_bytes_to_sign()
-            if not sign_bytes:
-                self._verified = False
-                return self._verified
+        # Decode the signature from base64
+        signature = bytes(base64.b64decode(signature))
 
-            if not self.certificate:
-                self._verified = False
-                return self._verified
+        # Get the message to sign
+        sign_bytes = self._get_bytes_to_sign()
+        if not sign_bytes:
+            self._verified = False
+            return self._verified
 
-            # Extract the public key
-            pkey = self.certificate.get_pubkey()
+        if not self.certificate:
+            self._verified = False
+            return self._verified
 
-            # Use the public key to verify the signature.
-            pkey.verify_init()
-            pkey.verify_update(sign_bytes)
-            verify_result = pkey.verify_final(signature)
+        try:
+            from cryptography.exceptions import InvalidSignature
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import padding
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`cryptography`")
 
-            self._verified = verify_result == 1
+        # Extract the public key
+        pkey = self.certificate.public_key()
 
+        # Use the public key to verify the signature.
+        try:
+            # The details here do not appear to be documented, but the
+            # algorithm and padding choices work in testing, which should mean
+            # they're the right ones.
+            pkey.verify(
+                signature,
+                sign_bytes,
+                padding.PKCS1v15(),
+                hashes.SHA1(),
+            )
+        except InvalidSignature:
+            logger.warning(
+                "Invalid signature on message with ID: %s",
+                self._data.get("MessageId"),
+            )
+            self._verified = False
+        else:
+            self._verified = True
         return self._verified
 
     @property
@@ -72,58 +112,56 @@ class EventMessageVerifier(object):
         """
         Retrieves the certificate used to sign the event message.
 
-        TODO: Cache the certificate based on the cert URL so we don't have to
-        retrieve it for each event message. *We would need to do it in a
-        secure way so that the cert couldn't be overwritten in the cache*
+        :returns: None if the cert cannot be retrieved. Else, gets the cert
+        caches it, and returns it, or simply returns it if already cached.
         """
-        if not hasattr(self, '_certificate'):
-            cert_url = self._get_cert_url()
-            # Only load certificates from a certain domain?
-            # Without some kind of trusted domain check, any old joe could
-            # craft a event message and sign it using his own certificate
-            # and we would happily load and verify it.
+        cert_url = self._get_cert_url()
+        if not cert_url:
+            return None
 
-            if not cert_url:
-                self._certificate = None
-                return self._certificate
+        if cert_url in _CERT_CACHE:
+            return _CERT_CACHE[cert_url]
 
-            try:
-                import requests
-            except ImportError:
-                raise ImproperlyConfigured(
-                    "`requests` is required for event message verification. "
-                    "Please consider installing the `django-ses` with the "
-                    "`event` extra - e.g. `pip install django-ses[events]`."
-                )
+        # Only load certificates from a certain domain?
+        # Without some kind of trusted domain check, any old joe could
+        # craft a event message and sign it using his own certificate
+        # and we would happily load and verify it.
+        try:
+            import requests
+            from requests import RequestException
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`requests`")
 
-            try:
-                import M2Crypto
-            except ImportError:
-                raise ImproperlyConfigured(
-                    "`M2Crypto` is required for event message verification. "
-                    "Please consider installing the `django-ses` with the "
-                    "`event` extra - e.g. `pip install django-ses[events]`."
-                )
+        try:
+            from cryptography import x509
+        except ImportError:
+            raise ImproperlyConfigured(self._REQ_DEP_TMPL % "`cryptography`")
 
-            # We use requests because it verifies the https certificate
-            # when retrieving the signing certificate. If https was somehow
-            # hijacked then all bets are off.
-            response = requests.get(cert_url)
-            if response.status_code != 200:
-                logger.warning('Could not download certificate from %s: "%s"', cert_url, response.status_code)
-                self._certificate = None
-                return self._certificate
+        # We use requests because it verifies the https certificate when
+        # retrieving the signing certificate. If https was somehow hijacked
+        # then all bets are off.
+        try:
+            response = requests.get(cert_url, timeout=10)
+            response.raise_for_status()
+        except RequestException as exc:
+            logger.warning(
+                "Network error downloading certificate from " "%s: %s",
+                cert_url,
+                exc,
+            )
+            _CERT_CACHE[cert_url] = None
+            return _CERT_CACHE[cert_url]
 
-            # Handle errors loading the certificate.
-            # If the certificate is invalid then return
-            # false as we couldn't verify the message.
-            try:
-                self._certificate = M2Crypto.X509.load_cert_string(response.content)
-            except M2Crypto.X509.X509Error as e:
-                logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
-                self._certificate = None
+        # Handle errors loading the certificate.
+        # If the certificate is invalid then return
+        # false as we couldn't verify the message.
+        try:
+            _CERT_CACHE[cert_url] = x509.load_pem_x509_certificate(response.content)
+        except ValueError as e:
+            logger.warning('Could not load certificate from %s: "%s"', cert_url, e)
+            _CERT_CACHE[cert_url] = None
 
-        return self._certificate
+        return _CERT_CACHE[cert_url]
 
     def _get_cert_url(self):
         """
@@ -133,17 +171,21 @@ class EventMessageVerifier(object):
         are allowed. i.e. if amazonaws.com is in the trusted domains
         then sns.us-east-1.amazonaws.com will match.
         """
-        cert_url = self._data.get('SigningCertURL')
-        if cert_url:
-            if cert_url.startswith('https://'):
-                url_obj = urlparse(cert_url)
-                for trusted_domain in settings.EVENT_CERT_DOMAINS:
-                    parts = trusted_domain.split('.')
-                    if url_obj.netloc.split('.')[-len(parts):] == parts:
-                        return cert_url
-            logger.warning('Untrusted certificate URL: "%s"', cert_url)
-        else:
+        cert_url = self._data.get("SigningCertURL")
+        if not cert_url:
             logger.warning('No signing certificate URL: "%s"', cert_url)
+            return None
+
+        if not cert_url.startswith("https://"):
+            logger.warning('Untrusted certificate URL: "%s"', cert_url)
+            return None
+
+        url_obj = urlparse(cert_url)
+        for trusted_domain in settings.EVENT_CERT_DOMAINS:
+            parts = trusted_domain.split(".")
+            if url_obj.netloc.split(".")[-len(parts) :] == parts:
+                return cert_url
+
         return None
 
     def _get_bytes_to_sign(self):
@@ -180,18 +222,11 @@ class EventMessageVerifier(object):
             logger.warning('Unrecognized SNS message Type: "%s"', msg_type)
             return None
 
-        outbytes = StringIO()
-        for field_name in fields_to_sign:
-            field_value = smart_str(self._data.get(field_name, ''),
-                                    errors="replace")
-            if field_value:
-                outbytes.write(text(field_name))
-                outbytes.write(text("\n"))
-                outbytes.write(text(field_value))
-                outbytes.write(text("\n"))
+        bytes_to_sign = []
+        for field in fields_to_sign:
+            bytes_to_sign.append(f"{field}\n{self._data[field]}\n")
 
-        response = outbytes.getvalue()
-        return bytes(response, 'utf-8')
+        return "".join(bytes_to_sign).encode()
 
 
 def BounceMessageVerifier(*args, **kwargs):

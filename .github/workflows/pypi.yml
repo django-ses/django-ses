@@ -14,4 +14,4 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Publish to pypi
-        run: poetry publish --build --username __token__ --password $PYPI_TOKEN
+        run: poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}

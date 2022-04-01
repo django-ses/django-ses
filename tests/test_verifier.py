@@ -1,4 +1,3 @@
-import base64
 try:
     from unittest import mock
 except ImportError:
@@ -46,6 +45,18 @@ class BounceMessageVerifierTest(TestCase):
         "UnsubscribeURL": "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:364852123998:test-email:0fe0bffc-6470-4502-9414-d5e3d9fdd71e",
     }
 
+    valid_msg_missing_fields = {
+        "Type": "Notification",
+        "MessageId": "71a6b82e-0f1a-58db-b902-e2ef60f87541",
+        "TopicArn": "arn:aws:sns:us-east-1:364852123998:test-email",
+        "Message": '{"notificationType":"Bounce","bounce":{"feedbackId":"0100017fe7044080-b95aeb18-3fb8-408a-be9b-15fdbac3945a-000000","bounceType":"Permanent","bounceSubType":"General","bouncedRecipients":[{"emailAddress":"bounce@simulator.amazonses.com","action":"failed","status":"5.1.1","diagnosticCode":"smtp; 550 5.1.1 user unknown"}],"timestamp":"2022-04-01T21:24:49.000Z","remoteMtaIp":"3.231.136.178","reportingMTA":"dns; a48-30.smtp-out.amazonses.com"},"mail":{"timestamp":"2022-04-01T21:24:49.422Z","source":"jesus.islasf@alumno.buap.mx","sourceArn":"arn:aws:ses:us-east-1:364852123998:identity/jesus.islasf@alumno.buap.mx","sourceIp":"189.203.131.80","sendingAccountId":"364852123998","messageId":"0100017fe7043e8e-fc9c357d-a9a4-49bc-a4b4-fa984009d568-000000","destination":["bounce@simulator.amazonses.com"],"headersTruncated":false,"headers":[{"name":"From","value":"jesus.islasf@alumno.buap.mx"},{"name":"To","value":"bounce@simulator.amazonses.com"},{"name":"Subject","value":"Subject Test"},{"name":"MIME-Version","value":"1.0"},{"name":"Content-Type","value":"multipart/alternative;  boundary=\\"----=_Part_2196631_1474166380.1648848289426\\""}],"commonHeaders":{"from":["jesus.islasf@alumno.buap.mx"],"to":["bounce@simulator.amazonses.com"],"subject":"Subject Test"}}}',
+        "Timestamp": "2022-04-01T21:24:50.200Z",
+        "SignatureVersion": "1",
+        "Signature": "K27nwTcT0qTPKEQP3noOWV21gDGB6XnLXSwN2i+4176naErwyDSd72w44UesYE/KaRXU+Kusi7b8uoLYPOcYXHH45UCFMrStf9nzu0uIZdMSd7cFGPm0KAxqoDcP9UQw0+ssK1rjVWkywTYmeDyFF/j3IQZxTA/vINOLYbrmMKhyJUPjcZZwdgLmlKcNfKJ5PKmg5WXlr8nWtjW3K+k725nkoAZemuAFt3PmA2k35JoHphkcOBjV2f1qR9zJTOgrVQ1d6k2v6t8G7Nlg6FP5OiwThgKHkehIPfJfLhTmo05tfPCBzXYMzDbnX+HLidvkyibHlalRl/DuDxXXL7SUiA==",
+        "SigningCertURL": "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+        "UnsubscribeURL": "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:364852123998:test-email:0fe0bffc-6470-4502-9414-d5e3d9fdd71e",
+    }
+
     def tearDown(self):
         # Reset the cache after each test
         clear_cert_cache()
@@ -71,6 +82,13 @@ class BounceMessageVerifierTest(TestCase):
     def test_valid_msg_validates(self):
         """Does a valid message get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
+        self.assertTrue(verifier.is_verified())
+
+    @skipIf(requests is None, "requests is not installed")
+    @skipIf(x509 is None, "cryptography is not installed")
+    def test_valid_msg_validates(self):
+        """Does a valid message with missing fields get validated properly?"""
+        verifier = BounceMessageVerifier(self.valid_msg_missing_fields)
         self.assertTrue(verifier.is_verified())
 
     @skipIf(requests is None, "requests is not installed")

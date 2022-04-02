@@ -569,7 +569,7 @@ To create a release:
 
 * Run ``poetry version {patch|minor|major}`` as explained in `the docs <https://python-poetry.org/docs/cli/#version>`_. This will update the version in pyproject.toml.
 * Commit that change and use git to tag that commit with a version that matches the pattern ``v*.*.*``.
-* Push the tag and the commit (not some IDEs don't push tags by default).
+* Push the tag and the commit (note some IDEs don't push tags by default).
 
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg

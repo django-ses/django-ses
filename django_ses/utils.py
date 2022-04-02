@@ -224,7 +224,11 @@ class EventMessageVerifier(object):
 
         bytes_to_sign = []
         for field in fields_to_sign:
-            bytes_to_sign.append(f"{field}\n{self._data[field]}\n")
+            field_value = self._data.get(field)
+            if field_value:
+                # Some notification types do not have all fields. Only add
+                # fields with values.
+                bytes_to_sign.append(f"{field}\n{field_value}\n")
 
         return "".join(bytes_to_sign).encode()
 

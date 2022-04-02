@@ -6,6 +6,9 @@ For a list of releases, see: https://github.com/django-ses/django-ses/releases/
 
 The following changes are not yet released, but are code complete:
 
+Pulls and Issues:
+ - None
+
 Features:
 - None
 
@@ -19,6 +22,18 @@ Fixes:
 - None
 
 ## Current
+
+**3.0.1**
+
+Pulls:
+ - https://github.com/django-ses/django-ses/issues/242
+
+Fixes:
+ - Ensures that notification verification works even when notifications lack
+   certain fields.
+
+
+## Past
 
 **3.0.0**
 
@@ -59,6 +74,6 @@ Fixes:
    possible](https://github.com/psf/requests/issues/3070) for a broken 
    connection to endlessly hang an application. 
 
-## Past
+## Distant Past
 
 See: https://github.com/django-ses/django-ses/releases/

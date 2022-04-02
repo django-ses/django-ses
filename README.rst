@@ -24,7 +24,7 @@ using `django-ses` and would be interested in contributing to it.
 Changelog
 =========
 
-For details about each release, see the GitHub releases page: https://github.com/django-ses/django-ses/releases
+For details about each release, see the GitHub releases page: https://github.com/django-ses/django-ses/releases or CHANGES.md.
 
 
 Using Django directly

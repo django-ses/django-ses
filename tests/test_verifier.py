@@ -49,6 +49,8 @@ class BounceMessageVerifierTest(TestCase):
         "Type": "Notification",
         "MessageId": "71a6b82e-0f1a-58db-b902-e2ef60f87541",
         "TopicArn": "arn:aws:sns:us-east-1:364852123998:test-email",
+        # Normally you'd see a subject key/value pair here, but not on this
+        # notification.
         "Message": '{"notificationType":"Bounce","bounce":{"feedbackId":"0100017fe7044080-b95aeb18-3fb8-408a-be9b-15fdbac3945a-000000","bounceType":"Permanent","bounceSubType":"General","bouncedRecipients":[{"emailAddress":"bounce@simulator.amazonses.com","action":"failed","status":"5.1.1","diagnosticCode":"smtp; 550 5.1.1 user unknown"}],"timestamp":"2022-04-01T21:24:49.000Z","remoteMtaIp":"3.231.136.178","reportingMTA":"dns; a48-30.smtp-out.amazonses.com"},"mail":{"timestamp":"2022-04-01T21:24:49.422Z","source":"jesus.islasf@alumno.buap.mx","sourceArn":"arn:aws:ses:us-east-1:364852123998:identity/jesus.islasf@alumno.buap.mx","sourceIp":"189.203.131.80","sendingAccountId":"364852123998","messageId":"0100017fe7043e8e-fc9c357d-a9a4-49bc-a4b4-fa984009d568-000000","destination":["bounce@simulator.amazonses.com"],"headersTruncated":false,"headers":[{"name":"From","value":"jesus.islasf@alumno.buap.mx"},{"name":"To","value":"bounce@simulator.amazonses.com"},{"name":"Subject","value":"Subject Test"},{"name":"MIME-Version","value":"1.0"},{"name":"Content-Type","value":"multipart/alternative;  boundary=\\"----=_Part_2196631_1474166380.1648848289426\\""}],"commonHeaders":{"from":["jesus.islasf@alumno.buap.mx"],"to":["bounce@simulator.amazonses.com"],"subject":"Subject Test"}}}',
         "Timestamp": "2022-04-01T21:24:50.200Z",
         "SignatureVersion": "1",

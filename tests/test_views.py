@@ -66,7 +66,7 @@ def get_mock_bounce():
     }
 
     message = {
-        "eventType": "Bounce",
+        "notificationType": "Bounce",
         "mail": mail,
         "bounce": bounce,
     }
@@ -78,7 +78,7 @@ def get_mock_send():
     mail = get_mock_email()
     send = {}
     message = {
-        "eventType": "Send",
+        "notificationType": "Send",
         "mail": mail,
         "send": send,
     }
@@ -96,7 +96,7 @@ def get_mock_delivery():
         "reportingMTA": ""
     }
     message = {
-        "eventType": "Delivery",
+        "notificationType": "Delivery",
         "mail": mail,
         "delivery": delivery,
     }
@@ -112,7 +112,7 @@ def get_mock_open():
         "ipAddress": "11.111.11.111"
     }
     message = {
-        "eventType": "Open",
+        "notificationType": "Open",
         "mail": mail,
         "open": open,
     }
@@ -130,7 +130,7 @@ def get_mock_click():
         "linkTags": None
     }
     message = {
-        "eventType": "Click",
+        "notificationType": "Click",
         "mail": mail,
         "click": click,
     }

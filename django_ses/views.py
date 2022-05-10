@@ -287,7 +287,7 @@ def handle_bounce(request):
             })
         else:
             mail_obj = message.get('mail')
-            event_type = message.get('eventType')
+            event_type = message.get('notificationType')
 
             if event_type == 'Bounce':
                 # Bounce
@@ -441,7 +441,7 @@ class SESEventWebhookView(View):
                     'notification': notification,
                 })
             else:
-                event_type = message.get('eventType')
+                event_type = message.get('notificationType')
                 if event_type == 'Bounce':
                     self.handle_bounce(notification, message)
                 elif event_type == 'Complaint':

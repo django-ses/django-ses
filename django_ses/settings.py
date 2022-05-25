@@ -15,7 +15,7 @@ SECRET_KEY = getattr(settings, 'AWS_SES_SECRET_ACCESS_KEY',
 AWS_SES_REGION_NAME = getattr(settings, 'AWS_SES_REGION_NAME',
                               getattr(settings, 'AWS_DEFAULT_REGION', 'us-east-1'))
 AWS_SES_REGION_ENDPOINT = getattr(settings, 'AWS_SES_REGION_ENDPOINT',
-                                  'email.us-east-1.amazonaws.com')
+                                  f'email.{AWS_SES_REGION_NAME}.amazonaws.com')
 AWS_SES_REGION_ENDPOINT_URL = getattr(settings, 'AWS_SES_REGION_ENDPOINT_URL',
                                       'https://' + AWS_SES_REGION_ENDPOINT)
 

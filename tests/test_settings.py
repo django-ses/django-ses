@@ -25,3 +25,16 @@ class SettingsImportTest(TestCase):
         unload_django_ses()
         import django_ses
         self.assertEqual(django_ses.settings.AWS_SES_CONFIGURATION_SET, settings.AWS_SES_CONFIGURATION_SET)
+
+    def test_ses_region_to_endpoint_default_given(self):
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_NAME, 'us-east-1')
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_ENDPOINT, f'email.{django_ses.settings.AWS_SES_REGION_NAME}.amazonaws.com')
+
+    def test_ses_region_to_endpoint_set_given(self):
+        settings.AWS_SES_REGION_NAME = 'eu-west-1'
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_NAME, settings.AWS_SES_REGION_NAME)
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_ENDPOINT, f'email.{settings.AWS_SES_REGION_NAME}.amazonaws.com')

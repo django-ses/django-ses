@@ -21,19 +21,13 @@ class SettingsImportTest(TestCase):
         self.assertEqual(django_ses.settings.SECRET_KEY, settings.AWS_SES_SECRET_ACCESS_KEY)
 
     def test_aws_session_token_given(self):
-        settings.AWS_SESSION_TOKEN = "FwoGZXIvYXdzED8aDAILqEtZvcDCx+KsFCK1AUwcLbm4d+mAlRWYN+r1adKoIfwe/T117KNcql" \
-            "fbFFc6lgM1BQk9RepOZOyhNnx1ji12BMnA+Sc/9H1gi/QRt51U0EQVhcT7i9YZbipzrYMLpvxe0dwXwC7MTy7NQRkEMhpyXWgFw4Wz+" \
-            "pHdZTFI4DOEhjf/t1FcuV2jX0oS0Eqqck2YB6yY03FpQRFVFIKUFcyvt9kMP9F77iHkgnEWBxOVcfSxBHfgQDTCHCecMNDN02/u628o" \
-            "xK6elAYyLZu54kuwLAbe3hD2++FpbjCSF88DFWESks8o2PP489XCCCJrX/SnurGNfeWifA=="
+        settings.AWS_SESSION_TOKEN = "FwoGZXIvYXdzED8aDAILqEtZvcDCx+KsFCK1AUwcLbm4d+mAlRWYN+r1adKoIfw"
         unload_django_ses()
         import django_ses
         self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SESSION_TOKEN)
 
     def test_ses_session_token_given(self):
-        settings.AWS_SES_SESSION_TOKEN = "FwoGZXIvYXdzEB4aDAU4Z6TKwwidfBNJHCK1AcWwz1WuzumwEftz8hpe55Z5u6e1APH2K71UEbJBAl" \
-            "cgplAm+W8Bd7puHqMeYVMCFy8o3B9Wx/Ry6fGlY76LIqrX9VrSD6C/f914fqgK4CyrYRPd/Zh+Z4QrCLWaJboj6eOwOU2AuOCF3epfy" \
-            "C7yOmHPIR0oY3mYB32g9kUVyK7E/6nfiPcGEZQTwUd19sa3qeJwkTT0suZKSEbXhuLqw9aGwcl6VvsWfG8xQXA8aSd6gTnAH7Qo0pqT" \
-            "jQYyLYI7nmsYjpQa2aynxovr7rwKrj71PQstMbK2oKwaT1FzasM0hjs+C5uLhdEjuA=="
+        settings.AWS_SES_SESSION_TOKEN = "jQYyLYI7nmsYjpQa2aynxovr7rwKrj71PQstMbK2oKwaT1FzasM0hjs+C5uLh"
         unload_django_ses()
         import django_ses
         self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SES_SESSION_TOKEN)

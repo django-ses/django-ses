@@ -58,7 +58,7 @@ class SESBackend(BaseEmailBackend):
     """
 
     def __init__(self, fail_silently=False, aws_access_key=None,
-                 aws_secret_key=None, aws_region_name=None,
+                 aws_secret_key=None, aws_session_token=None, aws_region_name=None,
                  aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
                  ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
@@ -67,6 +67,7 @@ class SESBackend(BaseEmailBackend):
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
         self._access_key = aws_secret_key or settings.SECRET_KEY
+        self._session_token = aws_session_token or settings.SESSION_TOKEN
         self._region_name = aws_region_name if aws_region_name else settings.AWS_SES_REGION_NAME
         self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT_URL
         self._throttle = cast_nonzero_to_float(aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE)
@@ -95,6 +96,7 @@ class SESBackend(BaseEmailBackend):
                 'ses',
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
+                aws_session_token=self._session_token,
                 region_name=self._region_name,
                 endpoint_url=self._endpoint_url,
                 config=self._config

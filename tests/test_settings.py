@@ -20,6 +20,18 @@ class SettingsImportTest(TestCase):
         self.assertEqual(django_ses.settings.ACCESS_KEY, settings.AWS_SES_ACCESS_KEY_ID)
         self.assertEqual(django_ses.settings.SECRET_KEY, settings.AWS_SES_SECRET_ACCESS_KEY)
 
+    def test_aws_session_token_given(self):
+        settings.AWS_SESSION_TOKEN = "FwoGZXIvYXdzED8aDAILqEtZvcDCx+KsFCK1AUwcLbm4d+mAlRWYN+r1adKoIfw"
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SESSION_TOKEN)
+
+    def test_ses_session_token_given(self):
+        settings.AWS_SES_SESSION_TOKEN = "jQYyLYI7nmsYjpQa2aynxovr7rwKrj71PQstMbK2oKwaT1FzasM0hjs+C5uLh"
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SES_SESSION_TOKEN)
+
     def test_ses_configuration_set_given(self):
         settings.AWS_SES_CONFIGURATION_SET = "test-set"
         unload_django_ses()

@@ -57,11 +57,13 @@ class Command(BaseCommand):
 
         access_key_id = settings.ACCESS_KEY
         access_key = settings.SECRET_KEY
+        session_token = settings.SESSION_TOKEN
 
         connection = boto3.client(
             'ses',
             aws_access_key_id=access_key_id,
             aws_secret_access_key=access_key,
+            aws_session_token=session_token,
             region_name=settings.AWS_SES_REGION_NAME,
             endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
             config=settings.AWS_SES_CONFIG,

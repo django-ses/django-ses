@@ -23,6 +23,16 @@ Fixes:
 
 ## Current
 
+**3.1.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/250
+
+Features:
+  - Add support for temporary AWS credentials using session token.
+
+## Past
+
 **3.0.1**
 
 Pulls:
@@ -31,9 +41,6 @@ Pulls:
 Fixes:
  - Ensures that notification verification works even when notifications lack
    certain fields.
-
-
-## Past
 
 **3.0.0**
 

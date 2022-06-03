@@ -464,7 +464,7 @@ Full List of Settings
   where you would like to use separate access keys for different AWS services.
 
 ``AWS_SES_SESSION_TOKEN``, ``AWS_SES_SECRET_ACCESS_KEY``
-  Optional. Use one of this variables, to provide session token that is required
+  Optional. Use `AWS_SES_SESSION_TOKEN` to provide session token
   when temporary credentials are used. Details:
   https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
   https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html

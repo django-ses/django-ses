@@ -463,6 +463,12 @@ Full List of Settings
   *Required.* Alternative API keys for Amazon SES. This is useful in situations
   where you would like to use separate access keys for different AWS services.
 
+``AWS_SES_SESSION_TOKEN``, ``AWS_SES_SECRET_ACCESS_KEY``
+  Optional. Use one of this variables, to provide session token that is required
+  when temporary credentials are used. Details:
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html
+
 ``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
   Optionally specify what region your SES service is using. Note that this is
   required if your SES service is not using us-east-1, as omitting these settings

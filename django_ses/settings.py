@@ -12,6 +12,9 @@ ACCESS_KEY = getattr(settings, 'AWS_SES_ACCESS_KEY_ID',
 SECRET_KEY = getattr(settings, 'AWS_SES_SECRET_ACCESS_KEY',
                      getattr(settings, 'AWS_SECRET_ACCESS_KEY', None))
 
+SESSION_TOKEN = getattr(settings, 'AWS_SES_SESSION_TOKEN',
+                     getattr(settings, 'AWS_SESSION_TOKEN', None))
+
 AWS_SES_REGION_NAME = getattr(settings, 'AWS_SES_REGION_NAME',
                               getattr(settings, 'AWS_DEFAULT_REGION', 'us-east-1'))
 AWS_SES_REGION_ENDPOINT = getattr(settings, 'AWS_SES_REGION_ENDPOINT',

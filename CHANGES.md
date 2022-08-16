@@ -23,6 +23,20 @@ Fixes:
 
 ## Current
 
+**3.1.2**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/255
+  - https://github.com/django-ses/django-ses/pull/254
+  - https://github.com/django-ses/django-ses/pull/252
+  - https://github.com/django-ses/django-ses/pull/246
+
+
+Features:
+  - Upgrade importlib-metadata
+
+## Past
+
 **3.1.0**
 
 Pulls:
@@ -30,8 +44,6 @@ Pulls:
 
 Features:
   - Add support for temporary AWS credentials using session token.
-
-## Past
 
 **3.0.1**
 

@@ -85,13 +85,19 @@ class BounceMessageVerifierTest(TestCase):
         """Does a valid message get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
         self.assertTrue(verifier.is_verified())
+        breakpoint()
 
     @skipIf(requests is None, "requests is not installed")
     @skipIf(x509 is None, "cryptography is not installed")
-    def test_valid_msg_validates(self):
+    def test_valid_msg_missing_fields_validates(self):
         """Does a valid message with missing fields get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg_missing_fields)
-        self.assertTrue(verifier.is_verified())
+        with mock.patch.object(requests, "get") as request_get, mock.patch.object(
+            x509, "load_pem_x509_certificate"
+        ):
+            request_get.return_value.content = b"Spam"
+            request_get.return_value.status_code = 200
+            self.assertTrue(verifier.is_verified())
 
     @skipIf(requests is None, "requests is not installed")
     @skipIf(x509 is None, "cryptography is not installed")
@@ -105,8 +111,9 @@ class BounceMessageVerifierTest(TestCase):
     def test_cert_is_cached(self):
         """Does the certificate get cached properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
-        with mock.patch.object(requests, "get") as request_get, \
-                mock.patch.object(x509, "load_pem_x509_certificate"):
+        with mock.patch.object(requests, "get") as request_get, mock.patch.object(
+            x509, "load_pem_x509_certificate"
+        ):
             request_get.return_value.content = b"Spam"
             request_get.return_value.status_code = 200
             verifier.certificate
@@ -117,27 +124,33 @@ class BounceMessageVerifierTest(TestCase):
         """
         Test url trust verification
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://amazonaws.com/',
-        })
-        self.assertEqual(verifier._get_cert_url(), 'https://amazonaws.com/')
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "https://amazonaws.com/",
+            }
+        )
+        self.assertEqual(verifier._get_cert_url(), "https://amazonaws.com/")
 
     def test_http_cert_url(self):
         """
         Test url trust verification. Non-https urls should be rejected.
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'http://amazonaws.com/',
-        })
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "http://amazonaws.com/",
+            }
+        )
         self.assertEqual(verifier._get_cert_url(), None)
 
     def test_untrusted_cert_url_domain(self):
         """
         Test url trust verification. Untrusted domains should be rejected.
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://www.example.com/',
-        })
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "https://www.example.com/",
+            }
+        )
         self.assertEqual(verifier._get_cert_url(), None)
 
     def test_get_bytes_to_sign(self):

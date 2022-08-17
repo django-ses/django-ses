@@ -31,6 +31,8 @@ class BounceMessageVerifierTest(TestCase):
         "TopicArn": "arn:aws...",
         "Type": "Notification",
     }
+
+    VALID_CERT = b"-----BEGIN CERTIFICATE-----\nMIIF1zCCBL+gAwIBAgIQB9pYWG3Mi7xej22g9pobJTANBgkqhkiG9w0BAQsFADBG\nMQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRUwEwYDVQQLEwxTZXJ2ZXIg\nQ0EgMUIxDzANBgNVBAMTBkFtYXpvbjAeFw0yMTA5MDcwMDAwMDBaFw0yMjA4MTcy\nMzU5NTlaMBwxGjAYBgNVBAMTEXNucy5hbWF6b25hd3MuY29tMIIBIjANBgkqhkiG\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAutFqueT3XgP13udzxE6UpbdjOtVO5DwoMpSM\niDNMnGzF1TYH5/R2LPUOBeTB0SkKnR4kpNcUZhicpGD4aKciz/GEZ6wu65xncfT9\nH/KBOQwoXYTuClHwp6fYpGzcGFaFoEYMnijL/o4qmTSd+ukglQUgKpsDw4ofw6rU\nm2CttJo+GQSNQ9NfGR1h/0J+zsApkeSYrXRx5wNlu87z8os1C/6PBrUHwt3xXeaf\nXzfwut8aRRYsS8BySOA9DAgLfNHlfdQCjKPXKrG/ussgReyWD6n/HH+j7Uha3xos\nTzQqJifcxlTq6MxWdPR6fDaJNvqw6DOE7UjUNxHguXHlVfxhlQIDAQABo4IC6TCC\nAuUwHwYDVR0jBBgwFoAUWaRmBlKge5WSPKOUByeWdFv5PdAwHQYDVR0OBBYEFAqz\nC+vyouneE7mWWLbi9i0UsWUbMBwGA1UdEQQVMBOCEXNucy5hbWF6b25hd3MuY29t\nMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIw\nOwYDVR0fBDQwMjAwoC6gLIYqaHR0cDovL2NybC5zY2ExYi5hbWF6b250cnVzdC5j\nb20vc2NhMWIuY3JsMBMGA1UdIAQMMAowCAYGZ4EMAQIBMHUGCCsGAQUFBwEBBGkw\nZzAtBggrBgEFBQcwAYYhaHR0cDovL29jc3Auc2NhMWIuYW1hem9udHJ1c3QuY29t\nMDYGCCsGAQUFBzAChipodHRwOi8vY3J0LnNjYTFiLmFtYXpvbnRydXN0LmNvbS9z\nY2ExYi5jcnQwDAYDVR0TAQH/BAIwADCCAX0GCisGAQQB1nkCBAIEggFtBIIBaQFn\nAHYAKXm+8J45OSHwVnOfY6V35b5XfZxgCvj5TV0mXCVdx4QAAAF7vfDVkQAABAMA\nRzBFAiEA2XfHuy36aqRFiaL8c3md2mH451go8707+fRE0pEdSRACIE/g5FXTUXUZ\nPFcmOhm9TZ+uMY1i4CIQ/CKVWln6C3t+AHYAUaOw9f0BeZxWbbg3eI8MpHrMGyfL\n956IQpoN/tSLBeUAAAF7vfDVjAAABAMARzBFAiBF1MhhFP0+FQt3daDFfMYoWwnr\nmuTInrjNpwfzlvQBugIhAPYadFzr+LaxSJoiZEbEHBvTts7bT0M3eCQONA2O7w6n\nAHUAQcjKsd8iRkoQxqE6CUKHXk4xixsD6+tLx2jwkGKWBvYAAAF7vfDVdAAABAMA\nRjBEAiAtPapmFAuA71ih4NoSd5hJelzAltNQpxDMcDfDyHyU8gIgWxmaa6+2KbBu\n9xdv379zvnJACFR7jc+4asl08Dn4aagwDQYJKoZIhvcNAQELBQADggEBAA54QX0u\noFWXfMmv02CGZv4NWo5TapyeeixQ2kKpZHRdVZjxZrw+hoF6HD7P3kGjH8ztyJll\ntDxB0qgMltbPhQdScwhA6iTgoaBYqEUC/VHKd4PmmPT6yIsM36NBZVmkGlzl5uNo\n/dBgBaG0SsVJnhr5zro3c2quC7n6fVGEZhf/UgQwRnnvThnvbNKguglDMq4uEqv8\nnjKyleht+glkcmXO0m9qLKt6BOS0amy6U2GlAwRn0Wx02ndJtnRCSC6kPuRWK/SQ\nFEjB7gCK4hdKaAOuWdZpI55vF6ifOeM8toC3g7ofO8qLTnJupAG+ZitY5J3cvHWr\nHqOUdKigPDHYLRo=\n-----END CERTIFICATE-----\n"
     # Any changes to this message will break the signature validity test.
     valid_msg = {
         "Type": "Notification",
@@ -84,14 +86,20 @@ class BounceMessageVerifierTest(TestCase):
     def test_valid_msg_validates(self):
         """Does a valid message get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
-        self.assertTrue(verifier.is_verified())
+        with mock.patch.object(requests, "get") as request_get:
+            request_get.return_value.content = self.VALID_CERT
+            request_get.return_value.status_code = 200
+            self.assertTrue(verifier.is_verified())
 
     @skipIf(requests is None, "requests is not installed")
     @skipIf(x509 is None, "cryptography is not installed")
-    def test_valid_msg_validates(self):
+    def test_valid_msg_missing_fields_validates(self):
         """Does a valid message with missing fields get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg_missing_fields)
-        self.assertTrue(verifier.is_verified())
+        with mock.patch.object(requests, "get") as request_get:
+            request_get.return_value.content = self.VALID_CERT
+            request_get.return_value.status_code = 200
+            self.assertTrue(verifier.is_verified())
 
     @skipIf(requests is None, "requests is not installed")
     @skipIf(x509 is None, "cryptography is not installed")
@@ -105,8 +113,9 @@ class BounceMessageVerifierTest(TestCase):
     def test_cert_is_cached(self):
         """Does the certificate get cached properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
-        with mock.patch.object(requests, "get") as request_get, \
-                mock.patch.object(x509, "load_pem_x509_certificate"):
+        with mock.patch.object(requests, "get") as request_get, mock.patch.object(
+            x509, "load_pem_x509_certificate"
+        ):
             request_get.return_value.content = b"Spam"
             request_get.return_value.status_code = 200
             verifier.certificate
@@ -117,27 +126,33 @@ class BounceMessageVerifierTest(TestCase):
         """
         Test url trust verification
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://amazonaws.com/',
-        })
-        self.assertEqual(verifier._get_cert_url(), 'https://amazonaws.com/')
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "https://amazonaws.com/",
+            }
+        )
+        self.assertEqual(verifier._get_cert_url(), "https://amazonaws.com/")
 
     def test_http_cert_url(self):
         """
         Test url trust verification. Non-https urls should be rejected.
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'http://amazonaws.com/',
-        })
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "http://amazonaws.com/",
+            }
+        )
         self.assertEqual(verifier._get_cert_url(), None)
 
     def test_untrusted_cert_url_domain(self):
         """
         Test url trust verification. Untrusted domains should be rejected.
         """
-        verifier = BounceMessageVerifier({
-            'SigningCertURL': 'https://www.example.com/',
-        })
+        verifier = BounceMessageVerifier(
+            {
+                "SigningCertURL": "https://www.example.com/",
+            }
+        )
         self.assertEqual(verifier._get_cert_url(), None)
 
     def test_get_bytes_to_sign(self):

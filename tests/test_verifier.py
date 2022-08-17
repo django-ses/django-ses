@@ -86,9 +86,7 @@ class BounceMessageVerifierTest(TestCase):
     def test_valid_msg_validates(self):
         """Does a valid message get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg)
-        with mock.patch.object(requests, "get") as request_get, mock.patch.object(
-            x509, "load_pem_x509_certificate"
-        ):
+        with mock.patch.object(requests, "get") as request_get:
             request_get.return_value.content = self.VALID_CERT
             request_get.return_value.status_code = 200
             self.assertTrue(verifier.is_verified())
@@ -98,9 +96,7 @@ class BounceMessageVerifierTest(TestCase):
     def test_valid_msg_missing_fields_validates(self):
         """Does a valid message with missing fields get validated properly?"""
         verifier = BounceMessageVerifier(self.valid_msg_missing_fields)
-        with mock.patch.object(requests, "get") as request_get, mock.patch.object(
-            x509, "load_pem_x509_certificate"
-        ):
+        with mock.patch.object(requests, "get") as request_get:
             request_get.return_value.content = self.VALID_CERT
             request_get.return_value.status_code = 200
             self.assertTrue(verifier.is_verified())

@@ -13,10 +13,18 @@ Django-SES is a drop-in mail backend for Django_. Instead of sending emails
 through a traditional SMTP mail server, Django-SES routes email through
 Amazon Web Services' excellent Simple Email Service (SES_).
 
+
+Please Contribute!
+==================
+This project is maintained, but not actively used by the maintainer. Interested
+in helping maintain this project? Reach out via GitHub Issues if you're actively
+using `django-ses` and would be interested in contributing to it.
+
+
 Changelog
 =========
 
-For details about each release, see the GitHub releases page: https://github.com/django-ses/django-ses/releases
+For details about each release, see the GitHub releases page: https://github.com/django-ses/django-ses/releases or CHANGES.md.
 
 
 Using Django directly
@@ -29,8 +37,6 @@ is capable of authenticating with Amazon SES and correctly sending email.
 Using django-ses gives you additional features like deliverability reports that
 can be hard and/or cumbersome to obtain when using the SMTP interface.
 
-**Note:** In order to use smtp with Amazon SES, you may have to install some
-supporting packages for ssl. Check out `this SMTP SSL email backend for Django`__
 
 Why SES instead of SMTP?
 ========================
@@ -50,17 +56,14 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
 
 Getting going
 =============
-Assuming you've got Django_ installed, you'll need Boto3 1.0.0 or higher. Boto_
-is a Python library that wraps the AWS API.
-
-You can do the following to install boto3 (we're using --upgrade here to
-make sure you get the latest version)::
-
-    pip install --upgrade boto3
-
-Install django-ses::
+Assuming you've got Django_ installed, you'll just need to install django-ses::
 
     pip install django-ses
+
+
+To receive bounces or webhook events install the events "extra"::
+
+    pip install django-ses[events]
 
 Add the following to your settings.py::
 
@@ -167,7 +170,7 @@ Using signal 'send_received' for manager send email. For example::
 
 
     @receiver(send_received)
-    def send_handler(sender, mail_obj, send_obj, raw_message,  *args, **kwargs):
+    def send_handler(sender, mail_obj, raw_message,  *args, **kwargs):
         ...
 
 Delivery
@@ -191,7 +194,7 @@ Using signal 'open_received' for manager open email. For example::
 
 
     @receiver(open_received)
-    def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
+    def open_handler(sender, mail_obj, raw_message, *args, **kwargs):
         ...
 
 Click
@@ -203,8 +206,13 @@ Using signal 'click_received' for manager send email. For example::
 
 
     @receiver(click_received)
-    def click_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
+    def click_handler(sender, mail_obj, raw_message, *args, **kwargs):
         ...
+        
+Testing Signals
+===============
+
+If you would like to test your signals, you can optionally disable `AWS_SES_VERIFY_EVENT_SIGNATURES` in settings. Examples for the JSON object AWS SNS sends can be found here: https://docs.aws.amazon.com/sns/latest/dg/sns-message-and-json-formats.html#http-subscription-confirmation-json
 
 SES Event Monitoring with Configuration Sets
 ============================================
@@ -306,6 +314,23 @@ Example DNS record published to Route53 with boto:
 .. _DomainKeys: http://dkim.org/
 
 
+Identity Owners
+===============
+
+With Identity owners, you can use validated SES-domains across multiple accounts:
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+This is useful if you got multiple environments in different accounts and still want to send mails via the same domain.
+
+You can configure the following environment variables to use them as described in boto3-docs_::
+
+    AWS_SES_SOURCE_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+    AWS_SES_FROM_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+    AWS_SES_RETURN_PATH_ARN=arn:aws:ses:eu-central-1:012345678910:identity/example.com
+
+.. _boto3-docs: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ses.html#SES.Client.send_raw_email
+
+
 SES Sending Stats
 =================
 
@@ -330,13 +355,29 @@ To generate and view SES sending statistics reports, include, update
 
 *Optional enhancements to stats:*
 
+Override the dashboard view
+---------------------------
+You can override the Dashboard view, for example, to add more context data::
+
+    class CustomSESDashboardView(DashboardView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context.update(**admin.site.each_context(self.request))
+            return context
+
+Then update your urls::
+
+    urlpatterns += path('admin/django-ses/', CustomSESDashboardView.as_view(), name='django_ses_stats'),
+
 
 Link the dashboard from the admin
 ---------------------------------
 You can use adminplus for this (https://github.com/jsocol/django-adminplus)::
 
-    from django_ses.views import dashboard
-    admin.site.register_view('django-ses', dashboard, 'Django SES Stats')
+    from django_ses.views import DashboardView
+    admin.site.register_view('django-ses', DashboardView.as_view(), 'Django SES Stats')
+
+
 
 Store daily stats
 -----------------
@@ -405,11 +446,12 @@ has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/
 .. _Boto: http://boto.cloudhackers.com/
 .. _SES: http://aws.amazon.com/ses/
 .. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
-__ https://github.com/bancek/django-smtp-ssl
+
 
 Requirements
 ============
-django-ses requires boto3 and django >= 1.11.
+django-ses requires supported version of Django or Python.
+
 
 Full List of Settings
 =====================
@@ -420,6 +462,12 @@ Full List of Settings
 ``AWS_SES_ACCESS_KEY_ID``, ``AWS_SES_SECRET_ACCESS_KEY``
   *Required.* Alternative API keys for Amazon SES. This is useful in situations
   where you would like to use separate access keys for different AWS services.
+
+``AWS_SES_SESSION_TOKEN``, ``AWS_SES_SECRET_ACCESS_KEY``
+  Optional. Use `AWS_SES_SESSION_TOKEN` to provide session token
+  when temporary credentials are used. Details:
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html
 
 ``AWS_SES_REGION_NAME``, ``AWS_SES_REGION_ENDPOINT``
   Optionally specify what region your SES service is using. Note that this is
@@ -447,6 +495,18 @@ Full List of Settings
   then email messages will be signed with the specified key.   You will also
   need to publish your public key on DNS; the selector is set to ``ses`` by
   default.  See http://dkim.org/ for further detail.
+
+``AWS_SES_SOURCE_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+``AWS_SES_FROM_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
+
+``AWS_SES_RETURN_PATH_ARN``
+  Instruct Amazon SES to use a domain from another account.
+  For more information please refer to https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization-delegate-sender-tasks-email.html
 
 ``AWS_SES_VERIFY_EVENT_SIGNATURES``, ``AWS_SES_VERIFY_BOUNCE_SIGNATURES``
   Optional. Default is True. Verify the contents of the message by matching the signature
@@ -511,20 +571,18 @@ If you want to debug the tests, just add this file as a python script to your ID
 Creating a Release
 ==================
 
-To create a release::
+To create a release:
 
-    virtualenv -p python3 ~/.virtualenvs/django-ses
-    workon django-ses
-    pip3 install twine
-    python3 setup.py sdist
-    python3 setup.py bdist_wheel --universal
-    twine upload dist/*
+* Run ``poetry version {patch|minor|major}`` as explained in `the docs <https://python-poetry.org/docs/cli/#version>`_. This will update the version in pyproject.toml.
+* Commit that change and use git to tag that commit with a version that matches the pattern ``v*.*.*``.
+* Push the tag and the commit (note some IDEs don't push tags by default).
+
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg
     :target: http://badge.fury.io/py/django-ses
-.. |build| image:: https://travis-ci.com/django-ses/django-ses.svg?branch=master
-    :target: https://travis-ci.com/django-ses/django-ses
-.. |python| image:: https://img.shields.io/badge/python-2.7+-blue.svg
+.. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
+.. |python| image:: https://img.shields.io/badge/python-3.7+-blue.svg
     :target: https://pypi.org/project/django-ses/
-.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.0+%7C%203.0-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-2.2%7C%203.2+-blue.svg
     :target: https://www.djangoproject.com/

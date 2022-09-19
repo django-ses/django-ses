@@ -30,8 +30,10 @@ class Command(BaseCommand):
             'ses',
             aws_access_key_id=settings.ACCESS_KEY,
             aws_secret_access_key=settings.SECRET_KEY,
+            aws_session_token=settings.SESSION_TOKEN,
             region_name=settings.AWS_SES_REGION_NAME,
             endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+            config=settings.AWS_SES_CONFIG,
         )
         stats = connection.get_send_statistics()
         data_points = stats_to_list(stats, localize=False)

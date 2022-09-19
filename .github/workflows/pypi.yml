@@ -1,0 +1,19 @@
+name: PyPI
+on:
+  push:
+    tags:
+      - v*.*.*
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.1.0
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: Publish to pypi
+        run: poetry publish --build
+        env:
+          POETRY_PYPI_TOKEN_PYPI: "${{ secrets.PYPI_TOKEN }}"

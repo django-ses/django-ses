@@ -20,8 +20,33 @@ class SettingsImportTest(TestCase):
         self.assertEqual(django_ses.settings.ACCESS_KEY, settings.AWS_SES_ACCESS_KEY_ID)
         self.assertEqual(django_ses.settings.SECRET_KEY, settings.AWS_SES_SECRET_ACCESS_KEY)
 
+    def test_aws_session_token_given(self):
+        settings.AWS_SESSION_TOKEN = "FwoGZXIvYXdzED8aDAILqEtZvcDCx+KsFCK1AUwcLbm4d+mAlRWYN+r1adKoIfw"
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SESSION_TOKEN)
+
+    def test_ses_session_token_given(self):
+        settings.AWS_SES_SESSION_TOKEN = "jQYyLYI7nmsYjpQa2aynxovr7rwKrj71PQstMbK2oKwaT1FzasM0hjs+C5uLh"
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.SESSION_TOKEN, settings.AWS_SES_SESSION_TOKEN)
+
     def test_ses_configuration_set_given(self):
         settings.AWS_SES_CONFIGURATION_SET = "test-set"
         unload_django_ses()
         import django_ses
         self.assertEqual(django_ses.settings.AWS_SES_CONFIGURATION_SET, settings.AWS_SES_CONFIGURATION_SET)
+
+    def test_ses_region_to_endpoint_default_given(self):
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_NAME, 'us-east-1')
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_ENDPOINT, f'email.{django_ses.settings.AWS_SES_REGION_NAME}.amazonaws.com')
+
+    def test_ses_region_to_endpoint_set_given(self):
+        settings.AWS_SES_REGION_NAME = 'eu-west-1'
+        unload_django_ses()
+        import django_ses
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_NAME, 'eu-west-1')
+        self.assertEqual(django_ses.settings.AWS_SES_REGION_ENDPOINT, 'email.eu-west-1.amazonaws.com')

@@ -1,5 +1,0 @@
-include AUTHORS
-include LICENSE
-include README.rst
-recursive-include example *
-recursive-include django_ses/templates/django_ses *.html

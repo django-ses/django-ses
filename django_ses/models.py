@@ -12,5 +12,5 @@ class SESStat(models.Model):
         verbose_name = 'SES Stat'
         ordering = ['-date']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.date.strftime("%Y-%m-%d")

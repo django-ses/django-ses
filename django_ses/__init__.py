@@ -9,12 +9,13 @@ from datetime import datetime, timedelta
 from time import sleep
 
 
-default_app_config = 'django_ses.apps.DjangoSESConfig'
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:
+    # Shim for Python 3.7. Remove when support is dropped.
+    import importlib_metadata
 
-# When changing this, remember to change it in setup.py
-VERSION = (2, 0, 0)
-__version__ = '.'.join([str(x) for x in VERSION])
-__author__ = 'Harry Marr'
+__version__ = importlib_metadata.version(__name__)
 __all__ = ('SESBackend',)
 
 # These would be nice to make class-level variables, but the backend is
@@ -45,27 +46,41 @@ def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim
     return message
 
 
+def cast_nonzero_to_float(val):
+    """Cast nonzero number to float; on zero or None, return None"""
+    if not val:
+        return None
+    return float(val)
+
+
 class SESBackend(BaseEmailBackend):
     """A Django Email backend that uses Amazon's Simple Email Service.
     """
 
     def __init__(self, fail_silently=False, aws_access_key=None,
-                 aws_secret_key=None, aws_region_name=None,
-                 aws_region_endpoint=None, aws_auto_throttle=None,
-                 dkim_domain=None, dkim_key=None, dkim_selector=None,
-                 dkim_headers=None, **kwargs):
+                 aws_secret_key=None, aws_session_token=None, aws_region_name=None,
+                 aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
+                 dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
+                 ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
+                 **kwargs):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
         self._access_key = aws_secret_key or settings.SECRET_KEY
+        self._session_token = aws_session_token or settings.SESSION_TOKEN
         self._region_name = aws_region_name if aws_region_name else settings.AWS_SES_REGION_NAME
         self._endpoint_url = aws_region_endpoint if aws_region_endpoint else settings.AWS_SES_REGION_ENDPOINT_URL
-        self._throttle = aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE
+        self._throttle = cast_nonzero_to_float(aws_auto_throttle or settings.AWS_SES_AUTO_THROTTLE)
+        self._config = aws_config or settings.AWS_SES_CONFIG
 
         self.dkim_domain = dkim_domain or settings.DKIM_DOMAIN
         self.dkim_key = dkim_key or settings.DKIM_PRIVATE_KEY
         self.dkim_selector = dkim_selector or settings.DKIM_SELECTOR
         self.dkim_headers = dkim_headers or settings.DKIM_HEADERS
+
+        self.ses_source_arn = ses_source_arn or settings.AWS_SES_SOURCE_ARN
+        self.ses_from_arn = ses_from_arn or settings.AWS_SES_FROM_ARN
+        self.ses_return_path_arn = ses_return_path_arn or settings.AWS_SES_RETURN_PATH_ARN
 
         self.connection = None
 
@@ -81,8 +96,10 @@ class SESBackend(BaseEmailBackend):
                 'ses',
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
+                aws_session_token=self._session_token,
                 region_name=self._region_name,
                 endpoint_url=self._endpoint_url,
+                config=self._config
             )
 
         except Exception:
@@ -144,7 +161,7 @@ class SESBackend(BaseEmailBackend):
                 # Get and cache the current SES max-per-second rate limit
                 # returned by the SES API.
                 rate_limit = self.get_rate_limit()
-                logger.debug(u"send_messages.throttle rate_limit='{}'".format(rate_limit))
+                logger.debug("send_messages.throttle rate_limit='{}'".format(rate_limit))
 
                 # Prune from recent_send_times anything more than a few seconds
                 # ago. Even though SES reports a maximum per-second, the way
@@ -178,25 +195,33 @@ class SESBackend(BaseEmailBackend):
                 recent_send_times.append(now)
                 # end of throttling
 
+            kwargs = dict(
+                Source=source or message.from_email,
+                Destinations=message.recipients(),
+                # todo attachments?
+                RawMessage={'Data': dkim_sign(message.message().as_string(),
+                                              dkim_key=self.dkim_key,
+                                              dkim_domain=self.dkim_domain,
+                                              dkim_selector=self.dkim_selector,
+                                              dkim_headers=self.dkim_headers)}
+            )
+            if self.ses_source_arn:
+                kwargs['SourceArn'] = self.ses_source_arn
+            if self.ses_from_arn:
+                kwargs['FromArn'] = self.ses_from_arn
+            if self.ses_return_path_arn:
+                kwargs['ReturnPathArn'] = self.ses_return_path_arn
+
             try:
-                response = self.connection.send_raw_email(
-                    Source=source or message.from_email,
-                    Destinations=message.recipients(),
-                    # todo attachments?
-                    RawMessage={'Data': dkim_sign(message.message().as_string(),
-                                                  dkim_key=self.dkim_key,
-                                                  dkim_domain=self.dkim_domain,
-                                                  dkim_selector=self.dkim_selector,
-                                                  dkim_headers=self.dkim_headers)}
-                )
+                response = self.connection.send_raw_email(**kwargs)
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response['MessageId']
                 message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']
                 num_sent += 1
                 if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
                     logger.debug(
-                        u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
-                        u"ses-configuration-set='{}'".format(
+                        "send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
+                        "ses-configuration-set='{}'".format(
                             message.from_email,
                             ", ".join(message.recipients()),
                             message.extra_headers['message_id'],
@@ -204,7 +229,7 @@ class SESBackend(BaseEmailBackend):
                             message.extra_headers['X-SES-CONFIGURATION-SET']
                         ))
                 else:
-                    logger.debug(u"send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
+                    logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
                         message.from_email,
                         ", ".join(message.recipients()),
                         message.extra_headers['message_id'],

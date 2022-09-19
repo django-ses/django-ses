@@ -100,14 +100,14 @@ class SESBackendTest(TestCase):
 
     def test_rfc2047_helper(self):
         # Ensures that the underlying email.header library code is encoding as expected, using known values
-        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
         rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
         self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
 
     def test_send_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = None
 
-        unicode_from_addr = u'Unicode Name óóóóóó <from@example.com>'
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
         send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
         message = self.outbox.pop()
@@ -185,6 +185,52 @@ class SESBackendTest(TestCase):
         settings.AWS_SES_RETURN_PATH = None
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')
+
+    def test_source_arn_is_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
+        """
+        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
+        settings.AWS_SES_FROM_ARN = 'arn:aws:ses:eu-central-1:222222222222:identity/example.com'
+        settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertEqual(mail['SourceArn'], 'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
+        self.assertEqual(mail['FromArn'], 'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
+        self.assertEqual(mail['ReturnPathArn'], 'arn:aws:ses:eu-central-1:333333333333:identity/example.com')
+
+    def test_source_arn_is_NOT_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are not present, if nothing has been
+        configured.
+        """
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertNotIn('SourceArn', mail)
+        self.assertNotIn('FromArn', mail)
+        self.assertNotIn('ReturnPathArn', mail)
+
+
+class SESBackendTestInitialize(TestCase):
+    def test_auto_throttle(self):
+        """
+        Ensure that SESBackend handles aws_auto_throttle correctly
+        """
+        for throttle_param, throttle_setting, expected_throttle_val in (
+            # If provided, we should cast parameter to float
+            (1.0, 2.0, 1.0),
+            ("1.0", 2.0, 1.0),
+
+            # On 0 or None, we should fall back to the value in Django settings,
+            # casting that value to a float
+            (0, 2.0, 2.0),
+            (None, 2.0, 2.0),
+            (None, "1.0", 1.0),
+            (None, None, None),
+        ):
+            settings.AWS_SES_AUTO_THROTTLE = throttle_setting
+            backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
+            self.assertEqual(backend._throttle, expected_throttle_val)
 
 
 class SESBackendTestReturn(TestCase):

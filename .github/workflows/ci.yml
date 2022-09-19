@@ -12,78 +12,11 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9]
-        django-version: [111, 22, 30, 31, 32]
-
+        python-version: [3.7, 3.8, 3.9]
+        django-version: [22, 32, 40]
         exclude:
-          - python-version: 2.7
-            django-version: 22
-
-          - python-version: 2.7
-            django-version: 30
-
-          - python-version: 2.7
-            django-version: 31
-
-          - python-version: 2.7
-            django-version: 32
-
-          - python-version: 3.4
-            django-version: 22
-
-          - python-version: 3.4
-            django-version: 30
-
-          - python-version: 3.4
-            django-version: 31
-
-          - python-version: 3.4
-            django-version: 32
-
-          - python-version: 3.5
-            django-version: 30
-
-          - python-version: 3.5
-            django-version: 31
-
-          - python-version: 3.5
-            django-version: 32
-
-          - python-version: 3.6
-            django-version: 111
-
-          - python-version: 3.6
-            django-version: 20
-
           - python-version: 3.7
-            django-version: 111
-
-          - python-version: 3.7
-            django-version: 20
-
-          - python-version: 3.8
-            django-version: 111
-
-          - python-version: 3.8
-            django-version: 20
-
-          - python-version: 3.8
-            django-version: 21
-
-          - python-version: 3.8
-            django-version: 22
-
-          - python-version: 3.9
-            django-version: 111
-
-          - python-version: 3.9
-            django-version: 20
-
-          - python-version: 3.9
-            django-version: 21
-
-          - python-version: 3.9
-            django-version: 22
+            django-version: 40
 
     steps:
       - uses: actions/checkout@v2

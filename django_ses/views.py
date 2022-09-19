@@ -5,15 +5,12 @@ import boto3
 import pytz
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import View
+from django.views.generic.base import TemplateView, View
 
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
-try:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import urlopen, URLError
+from urllib.request import urlopen
+from urllib.error import URLError
 import copy
 import logging
 
@@ -102,6 +99,7 @@ def dashboard(request):
     """
     Graph SES send statistics over time.
     """
+    warnings.warn('This view will be removed in future versions. Consider using DashboardView instead', DeprecationWarning)
     cache_key = 'vhash:django_ses_stats'
     cached_view = cache.get(cache_key)
     if cached_view:
@@ -111,8 +109,10 @@ def dashboard(request):
         'ses',
         aws_access_key_id=settings.ACCESS_KEY,
         aws_secret_access_key=settings.SECRET_KEY,
+        aws_session_token=settings.SESSION_TOKEN,
         region_name=settings.AWS_SES_REGION_NAME,
         endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+        config=settings.AWS_SES_CONFIG,
     )
 
     quota_dict = ses_conn.get_send_quota()
@@ -142,6 +142,61 @@ def dashboard(request):
 
     cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
     return response
+
+
+@method_decorator(superuser_only, name='dispatch')
+class DashboardView(TemplateView):
+    """
+    Graph SES send statistics over time.
+    """
+    template_name = 'django_ses/send_stats.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        ses_conn = boto3.client(
+            'ses',
+            aws_access_key_id=settings.ACCESS_KEY,
+            aws_secret_access_key=settings.SECRET_KEY,
+            aws_session_token=settings.SESSION_TOKEN,
+            region_name=settings.AWS_SES_REGION_NAME,
+            endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+            config=settings.AWS_SES_CONFIG,
+        )
+
+        quota_dict = ses_conn.get_send_quota()
+        verified_emails_dict = ses_conn.list_verified_email_addresses()
+        stats = ses_conn.get_send_statistics()
+        verified_emails = emails_parse(verified_emails_dict)
+        ordered_data = stats_to_list(stats)
+        summary = sum_stats(ordered_data)
+        
+        context.update({
+            'title': 'SES Statistics',
+            'datapoints': ordered_data,
+            '24hour_quota': quota_dict['Max24HourSend'],
+            '24hour_sent': quota_dict['SentLast24Hours'],
+            '24hour_remaining':
+                quota_dict['Max24HourSend'] -
+                quota_dict['SentLast24Hours'],
+            'persecond_rate': quota_dict['MaxSendRate'],
+            'verified_emails': verified_emails,
+            'summary': summary,
+            'access_key': settings.ACCESS_KEY,
+            'local_time': True,
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        cache_key = 'vhash:django_ses_stats'
+        cached_view = cache.get(cache_key)
+        if cached_view:
+            return cached_view
+        
+        response = super().get(request, *args, **kwargs).render()
+        cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
+        return response
 
 
 @require_POST
@@ -181,7 +236,7 @@ def handle_bounce(request):
         notification = json.loads(raw_json.decode('utf-8'))
     except ValueError as e:
         # TODO: What kind of response should be returned here?
-        logger.warning(u'Received bounce with bad JSON: "%s"', e)
+        logger.warning('Received bounce with bad JSON: "%s"', e)
         return HttpResponseBadRequest()
 
     # Verify the authenticity of the bounce message.
@@ -190,7 +245,7 @@ def handle_bounce(request):
         # Don't send any info back when the notification is not
         # verified. Simply, don't process it.
         logger.info(
-            u'Received unverified notification: Type: %s',
+            'Received unverified notification: Type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -203,7 +258,7 @@ def handle_bounce(request):
         # Process the (un)subscription confirmation.
 
         logger.info(
-            u'Received subscription confirmation: TopicArn: %s',
+            'Received subscription confirmation: TopicArn: %s',
             notification.get('TopicArn'),
             extra={
                 'notification': notification,
@@ -217,7 +272,7 @@ def handle_bounce(request):
         except URLError as e:
             # Some kind of error occurred when confirming the request.
             logger.error(
-                u'Could not confirm subscription: "%s"', e,
+                'Could not confirm subscription: "%s"', e,
                 extra={
                     'notification': notification,
                 },
@@ -229,7 +284,7 @@ def handle_bounce(request):
         except ValueError as e:
             # The message isn't JSON.
             # Just ignore the notification.
-            logger.warning(u'Received bounce with bad JSON: "%s"', e, extra={
+            logger.warning('Received bounce with bad JSON: "%s"', e, extra={
                 'notification': notification,
             })
         else:
@@ -245,7 +300,7 @@ def handle_bounce(request):
                 bounce_type = bounce_obj.get('bounceType')
                 bounce_subtype = bounce_obj.get('bounceSubType')
                 logger.info(
-                    u'Received bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
+                    'Received bounce notification: feedbackId: %s, bounceType: %s, bounceSubType: %s',
                     feedback_id, bounce_type, bounce_subtype,
                     extra={
                         'notification': notification,
@@ -266,7 +321,7 @@ def handle_bounce(request):
                 feedback_id = complaint_obj.get('feedbackId')
                 feedback_type = complaint_obj.get('complaintFeedbackType')
                 logger.info(
-                    u'Received complaint notification: feedbackId: %s, feedbackType: %s',
+                    'Received complaint notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -287,7 +342,7 @@ def handle_bounce(request):
                 feedback_id = delivery_obj.get('feedbackId')
                 feedback_type = delivery_obj.get('deliveryFeedbackType')
                 logger.info(
-                    u'Received delivery notification: feedbackId: %s, feedbackType: %s',
+                    'Received delivery notification: feedbackId: %s, feedbackType: %s',
                     feedback_id, feedback_type,
                     extra={
                         'notification': notification,
@@ -303,12 +358,12 @@ def handle_bounce(request):
             else:
                 # We received an unknown notification type. Just log and
                 # ignore it.
-                logger.warning(u"Received unknown event", extra={
+                logger.warning("Received unknown event", extra={
                     'notification': notification,
                 })
     else:
         logger.info(
-            u'Received unknown notification type: %s',
+            'Received unknown notification type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -358,7 +413,7 @@ class SESEventWebhookView(View):
             notification = json.loads(raw_json.decode('utf-8'))
         except ValueError as e:
             # TODO: What kind of response should be returned here?
-            logger.warning(u'Received notification with bad JSON: "%s"', e)
+            logger.warning('Received notification with bad JSON: "%s"', e)
             return HttpResponseBadRequest("The request body could not be deserialized. Bad JSON.")
 
         # Verify the authenticity of the event message.
@@ -366,7 +421,7 @@ class SESEventWebhookView(View):
             # Don't send any info back when the notification is not
             # verified. Simply, don't process it.
             logger.info(
-                u'Received unverified notification: Type: %s',
+                'Received unverified notification: Type: %s',
                 notification.get('Type'),
                 extra={
                     'notification': notification,
@@ -384,7 +439,7 @@ class SESEventWebhookView(View):
             except ValueError as e:
                 # The message isn't JSON.
                 # Just ignore the notification.
-                logger.warning(u'Received bounce with bad JSON: "%s"', e, extra={
+                logger.warning('Received bounce with bad JSON: "%s"', e, extra={
                     'notification': notification,
                 })
             else:
@@ -415,7 +470,7 @@ class SESEventWebhookView(View):
 
     def handle_unknown_notification_type(self, notification):
         logger.info(
-            u'Received unknown notification type: %s',
+            'Received unknown notification type: %s',
             notification.get('Type'),
             extra={
                 'notification': notification,
@@ -427,7 +482,7 @@ class SESEventWebhookView(View):
 
     def handle_unsubscribe_confirmation(self, notification):
         logger.info(
-            u'Received unsubscribe confirmation: TopicArn: %s',
+            'Received unsubscribe confirmation: TopicArn: %s',
             notification.get('TopicArn'),
             extra={
                 'notification': notification,
@@ -490,7 +545,7 @@ class SESEventWebhookView(View):
         feedback_id = event_obj.get('feedbackId')
         feedback_type = event_obj.get('deliveryFeedbackType')
         logger.info(
-            u'Received %s notification: feedbackId: %s, feedbackType: %s',
+            'Received %s notification: feedbackId: %s, feedbackType: %s',
             event_name, feedback_id, feedback_type,
             extra={
                 'notification': notification,
@@ -508,6 +563,6 @@ class SESEventWebhookView(View):
     def handle_unknown_event_type(self, notification, message):
         # We received an unknown notification type. Just log and
         # ignore it.
-        logger.warning(u"Received unknown event", extra={
+        logger.warning("Received unknown event", extra={
             'notification': notification,
         })

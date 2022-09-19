@@ -57,22 +57,25 @@ class Command(BaseCommand):
 
         access_key_id = settings.ACCESS_KEY
         access_key = settings.SECRET_KEY
+        session_token = settings.SESSION_TOKEN
 
         connection = boto3.client(
             'ses',
             aws_access_key_id=access_key_id,
             aws_secret_access_key=access_key,
+            aws_session_token=session_token,
             region_name=settings.AWS_SES_REGION_NAME,
             endpoint_url=settings.AWS_SES_REGION_ENDPOINT_URL,
+            config=settings.AWS_SES_CONFIG,
         )
 
         if email_to_add:
             if verbosity != '0':
-                print("Adding email: " + email_to_add)
+                print(("Adding email: " + email_to_add))
             connection.verify_email_address(EmailAddress=email_to_add)
         elif email_to_delete:
             if verbosity != '0':
-                print("Removing email: " + email_to_delete)
+                print(("Removing email: " + email_to_delete))
             connection.delete_verified_email_address(EmailAddress=email_to_delete)
         elif list_emails:
             if verbosity != '0':

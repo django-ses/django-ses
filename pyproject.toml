@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "django-ses"
+version = "3.1.2"
+description = "A Django email backend for Amazon's Simple Email Service"
+authors = [
+    "Harry Marr <harry@hmarr.com>",
+    "Wes Winham <winhamwr@gmail.com>",
+    "Ross Lawley <ross.lawley@gmail.com>",
+    "Paul Craciunoiu <paul@craciunoiu.net>",
+]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Framework :: Django',
+    'Framework :: Django :: 2.2',
+    'Framework :: Django :: 3.2',
+    'Framework :: Django :: 4.0',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+]
+license = "MIT"
+readme = "README.rst"
+repository = "https://github.com/django-ses/django-ses"
+include = ["example", "tests"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+boto3 = ">=1.0.0"
+pytz = ">=2016.10"
+django = ">=2.2"
+importlib-metadata = {version = ">=1", python = "<3.8"}
+cryptography = {version = "^36.0.2", optional = true}
+requests = {version = "^2.27.1", optional = true}
+
+[tool.poetry.extras]
+bounce =  ["requests", "cryptography"]
+events = ["requests", "cryptography"]
+
+
+[tool.poetry.dev-dependencies]
+tox = "^3.24.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

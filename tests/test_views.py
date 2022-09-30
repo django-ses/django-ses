@@ -42,7 +42,7 @@ def get_mock_notification(message):
     }
 
 
-def get_mock_bounce():
+def get_mock_bounce(type_specifier):
     mail = get_mock_email()
     bounce = {
         "bounceType": "Permanent",
@@ -66,7 +66,7 @@ def get_mock_bounce():
     }
 
     message = {
-        "eventType": "Bounce",
+        type_specifier: "Bounce",
         "mail": mail,
         "bounce": bounce,
     }
@@ -153,11 +153,33 @@ class HandleBounceTestCase(TestCase):
         bounce_received.receivers = self._old_bounce_receivers
         complaint_received.receivers = self._old_complaint_receivers
 
-    def test_handle_bounce(self):
+    def test_handle_bounce_event(self):
         """
         Test handling a normal bounce request.
         """
-        req_mail_obj, req_bounce_obj, notification = get_mock_bounce()
+        req_mail_obj, req_bounce_obj, notification = get_mock_bounce("eventType")
+
+        def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_bounce_obj, bounce_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
+        bounce_received.connect(_handler)
+
+        # Mock the verification
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+
+            response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(_handler.call_count, 1)
+
+    def test_handle_bounce_notification(self):
+        """
+        Test handling a normal bounce request.
+        """
+        req_mail_obj, req_bounce_obj, notification = get_mock_bounce("notificationType")
 
         def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
             _handler.call_count += 1
@@ -195,7 +217,7 @@ class HandleEventTestCase(TestCase):
         """
         Test handling a normal bounce request.
         """
-        req_mail_obj, req_bounce_obj, notification = get_mock_bounce()
+        req_mail_obj, req_bounce_obj, notification = get_mock_bounce("eventType")
 
         def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
             _handler.call_count += 1
@@ -211,6 +233,29 @@ class HandleEventTestCase(TestCase):
             response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
+
+
+    def test_handle_bounce_notification(self):
+        """
+        Test handling a normal bounce request.
+        """
+        req_mail_obj, req_bounce_obj, notification = get_mock_bounce("notificationType")
+
+        def _handler(sender, mail_obj, bounce_obj, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_bounce_obj, bounce_obj)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
+        bounce_received.connect(_handler)
+
+        # Mock the verification
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(_handler.call_count, 1)
+
 
     def test_handle_send_event(self):
         """

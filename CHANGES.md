@@ -23,6 +23,15 @@ Fixes:
 
 ## Current
 
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/259
+
+Fixes:
+  - Use eventType and fall back to notificationType consistently for SES events.
+    Fixes #174.
+
+## Past
+
 **3.1.2**
 
 Pulls:
@@ -34,8 +43,6 @@ Pulls:
 
 Features:
   - Upgrade importlib-metadata
-
-## Past
 
 **3.1.0**
 

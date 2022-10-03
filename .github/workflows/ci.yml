@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, 3.10]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
         django-version: [22, 32, 40, 41]
         exclude:
-          - python-version: 3.7
+          - python-version: "3.7"
             django-version: 40
-          - python-version: 3.7
+          - python-version: "3.7"
             django-version: 41
 
     steps:

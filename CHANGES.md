@@ -23,7 +23,7 @@ Fixes:
 
 ## Current
 
-**3.2.1**
+**3.2.2**
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/263
@@ -33,6 +33,15 @@ Fixes:
     Fixes #262.
 
 ## Past
+
+**3.2.1**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/264
+
+Fixes:
+  - Support different versions of requests (loosen required version)
+    Fixes #262. See also #263.
 
 **3.2.0**
 

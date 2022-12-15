@@ -7,10 +7,10 @@ For a list of releases, see: https://github.com/django-ses/django-ses/releases/
 The following changes are not yet released, but are code complete:
 
 Pulls and Issues:
- - None
+ - https://github.com/django-ses/django-ses/pull/267
 
 Features:
-- None
+- Experimental SESv2 Client under feature flag
 
 Changes:
 - None

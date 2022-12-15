@@ -62,6 +62,7 @@ class SESBackend(BaseEmailBackend):
                  aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
                  ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
+                 use_ses_v2=False,
                  **kwargs):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
@@ -82,6 +83,8 @@ class SESBackend(BaseEmailBackend):
         self.ses_from_arn = ses_from_arn or settings.AWS_SES_FROM_ARN
         self.ses_return_path_arn = ses_return_path_arn or settings.AWS_SES_RETURN_PATH_ARN
 
+        self._use_ses_v2 = use_ses_v2 or settings.USE_SES_V2
+
         self.connection = None
 
     def open(self):
@@ -93,7 +96,7 @@ class SESBackend(BaseEmailBackend):
 
         try:
             self.connection = boto3.client(
-                'ses',
+                'sesv2' if self._use_ses_v2 else 'ses',
                 aws_access_key_id=self._access_key_id,
                 aws_secret_access_key=self._access_key,
                 aws_session_token=self._session_token,
@@ -154,66 +157,14 @@ class SESBackend(BaseEmailBackend):
             # well below the actual SES throttle.
             # Set the setting to 0 or None to disable throttling.
             if self._throttle:
-                global recent_send_times
+                self._update_throttling()
 
-                now = datetime.now()
-
-                # Get and cache the current SES max-per-second rate limit
-                # returned by the SES API.
-                rate_limit = self.get_rate_limit()
-                logger.debug("send_messages.throttle rate_limit='{}'".format(rate_limit))
-
-                # Prune from recent_send_times anything more than a few seconds
-                # ago. Even though SES reports a maximum per-second, the way
-                # they enforce the limit may not be on a one-second window.
-                # To be safe, we use a two-second window (but allow 2 times the
-                # rate limit) and then also have a default rate limit factor of
-                # 0.5 so that we really limit the one-second amount in two
-                # seconds.
-                window = 2.0  # seconds
-                window_start = now - timedelta(seconds=window)
-                new_send_times = []
-                for time in recent_send_times:
-                    if time > window_start:
-                        new_send_times.append(time)
-                recent_send_times = new_send_times
-
-                # If the number of recent send times in the last 1/_throttle
-                # seconds exceeds the rate limit, add a delay.
-                # Since I'm not sure how Amazon determines at exactly what
-                # point to throttle, better be safe than sorry and let in, say,
-                # half of the allowed rate.
-                if len(new_send_times) > rate_limit * window * self._throttle:
-                    # Sleep the remainder of the window period.
-                    delta = now - new_send_times[0]
-                    total_seconds = (delta.microseconds + (delta.seconds +
-                                     delta.days * 24 * 3600) * 10**6) / 10**6
-                    delay = window - total_seconds
-                    if delay > 0:
-                        sleep(delay)
-
-                recent_send_times.append(now)
-                # end of throttling
-
-            kwargs = dict(
-                Source=source or message.from_email,
-                Destinations=message.recipients(),
-                # todo attachments?
-                RawMessage={'Data': dkim_sign(message.message().as_string(),
-                                              dkim_key=self.dkim_key,
-                                              dkim_domain=self.dkim_domain,
-                                              dkim_selector=self.dkim_selector,
-                                              dkim_headers=self.dkim_headers)}
-            )
-            if self.ses_source_arn:
-                kwargs['SourceArn'] = self.ses_source_arn
-            if self.ses_from_arn:
-                kwargs['FromArn'] = self.ses_from_arn
-            if self.ses_return_path_arn:
-                kwargs['ReturnPathArn'] = self.ses_return_path_arn
+            kwargs = self._get_send_email_parameters(message, source)
 
             try:
-                response = self.connection.send_raw_email(**kwargs)
+                response = (self.connection.send_email(**kwargs)
+                            if self._use_ses_v2
+                            else self.connection.send_raw_email(**kwargs))
                 message.extra_headers['status'] = 200
                 message.extra_headers['message_id'] = response['MessageId']
                 message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']
@@ -249,6 +200,86 @@ class SESBackend(BaseEmailBackend):
             self.close()
 
         return num_sent
+
+    def _update_throttling(self):
+        global recent_send_times
+        now = datetime.now()
+        # Get and cache the current SES max-per-second rate limit
+        # returned by the SES API.
+        rate_limit = self.get_rate_limit()
+        logger.debug("send_messages.throttle rate_limit='{}'".format(rate_limit))
+        # Prune from recent_send_times anything more than a few seconds
+        # ago. Even though SES reports a maximum per-second, the way
+        # they enforce the limit may not be on a one-second window.
+        # To be safe, we use a two-second window (but allow 2 times the
+        # rate limit) and then also have a default rate limit factor of
+        # 0.5 so that we really limit the one-second amount in two
+        # seconds.
+        window = 2.0  # seconds
+        window_start = now - timedelta(seconds=window)
+        new_send_times = []
+        for time in recent_send_times:
+            if time > window_start:
+                new_send_times.append(time)
+        recent_send_times = new_send_times
+        # If the number of recent send times in the last 1/_throttle
+        # seconds exceeds the rate limit, add a delay.
+        # Since I'm not sure how Amazon determines at exactly what
+        # point to throttle, better be safe than sorry and let in, say,
+        # half of the allowed rate.
+        if len(new_send_times) > rate_limit * window * self._throttle:
+            # Sleep the remainder of the window period.
+            delta = now - new_send_times[0]
+            total_seconds = (delta.microseconds + (delta.seconds +
+                                                   delta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+            delay = window - total_seconds
+            if delay > 0:
+                sleep(delay)
+        recent_send_times.append(now)
+        # end of throttling
+
+    def _get_send_email_parameters(self, message, source):
+        return (self._get_v2_parameters(message, source)
+                if self._use_ses_v2
+                else self._get_v1_parameters(message, source))
+
+    def _get_v2_parameters(self, message, source):
+        params = dict(
+            FromEmailAddress=source or message.from_email,
+            Destination={
+                'ToAddresses': message.recipients()
+            },
+            Content={
+                'Raw': {
+                    'Data': dkim_sign(message.message().as_string(),
+                                      dkim_key=self.dkim_key,
+                                      dkim_domain=self.dkim_domain,
+                                      dkim_selector=self.dkim_selector,
+                                      dkim_headers=self.dkim_headers)
+                }
+            }
+        )
+        if self.ses_from_arn or self.ses_source_arn:
+            params['FromEmailAddressIdentityArn'] = self.ses_from_arn or self.ses_source_arn
+        return params
+
+    def _get_v1_parameters(self, message, source):
+        params = dict(
+            Source=source or message.from_email,
+            Destinations=message.recipients(),
+            RawMessage={'Data': dkim_sign(message.message().as_string(),
+                                          dkim_key=self.dkim_key,
+                                          dkim_domain=self.dkim_domain,
+                                          dkim_selector=self.dkim_selector,
+                                          dkim_headers=self.dkim_headers)}
+        )
+        if self.ses_source_arn:
+            params['SourceArn'] = self.ses_source_arn
+        if self.ses_from_arn:
+            params['FromArn'] = self.ses_from_arn
+        if self.ses_return_path_arn:
+            params['ReturnPathArn'] = self.ses_return_path_arn
+        return params
 
     def get_rate_limit(self):
         if self._access_key_id in cached_rate_limits:

@@ -290,11 +290,22 @@ class SESBackend(BaseEmailBackend):
             raise Exception(
                 "No connection is available to check current SES rate limit.")
         try:
-            quota_dict = self.connection.get_send_quota()
-            max_per_second = quota_dict['MaxSendRate']
-            ret = float(max_per_second)
-            cached_rate_limits[self._access_key_id] = ret
-            return ret
+            return self._get_v2_send_quota() if self._use_ses_v2 else self._get_v1_send_quota()
         finally:
             if new_conn_created:
                 self.close()
+
+    def _get_v2_send_quota(self):
+        account_dict = self.connection.get_account()
+        quota_dict = account_dict['SendQuota']
+        max_per_second = quota_dict['MaxSendRate']
+        ret = float(max_per_second)
+        cached_rate_limits[self._access_key_id] = ret
+        return ret
+
+    def _get_v1_send_quota(self):
+        quota_dict = self.connection.get_send_quota()
+        max_per_second = quota_dict['MaxSendRate']
+        ret = float(max_per_second)
+        cached_rate_limits[self._access_key_id] = ret
+        return ret

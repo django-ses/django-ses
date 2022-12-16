@@ -158,7 +158,6 @@ class SESBackendTest(TestCase):
 
 class SESV2BackendTest(TestCase):
     def setUp(self):
-        # TODO: Fix this -- this is going to cause side effects
         django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
         settings.USE_SES_V2 = True
         settings.AWS_SES_FROM_ARN = None

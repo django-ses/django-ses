@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install Poetry
-        uses: snok/install-poetry@v1.1.0
+        uses: snok/install-poetry@latest
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true

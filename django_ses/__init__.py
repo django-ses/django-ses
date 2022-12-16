@@ -244,6 +244,10 @@ class SESBackend(BaseEmailBackend):
                 else self._get_v1_parameters(message, source))
 
     def _get_v2_parameters(self, message, source):
+        """V2-Style raw payload for `send_email`.
+
+        https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
+        """
         params = dict(
             FromEmailAddress=source or message.from_email,
             Destination={
@@ -264,6 +268,10 @@ class SESBackend(BaseEmailBackend):
         return params
 
     def _get_v1_parameters(self, message, source):
+        """V1-Style raw payload for `send_raw_email`
+
+        https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/ses.html#SES.Client.send_raw_email
+        """
         params = dict(
             Source=source or message.from_email,
             Destinations=message.recipients(),
@@ -296,6 +304,10 @@ class SESBackend(BaseEmailBackend):
                 self.close()
 
     def _get_v2_send_quota(self):
+        """This needs to come from the `get_account` endpoint as a nested response in V2.
+
+        https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.get_account
+        """
         account_dict = self.connection.get_account()
         quota_dict = account_dict['SendQuota']
         max_per_second = quota_dict['MaxSendRate']

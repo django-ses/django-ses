@@ -7,10 +7,10 @@ For a list of releases, see: https://github.com/django-ses/django-ses/releases/
 The following changes are not yet released, but are code complete:
 
 Pulls and Issues:
- - https://github.com/django-ses/django-ses/pull/267
+ - None
 
 Features:
-- Experimental SESv2 Client under feature flag
+- None
 
 Changes:
 - None
@@ -23,6 +23,18 @@ Fixes:
 
 ## Current
 
+
+**3.3.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/267
+  - https://github.com/django-ses/django-ses/pull/269
+
+Fixes:
+  - Support of SESv2 client. Fixes #229.
+## Past
+
+
 **3.2.2**
 
 Pulls:
@@ -31,8 +43,6 @@ Pulls:
 Fixes:
   - Support newer versions of cryptography (loosen required version)
     Fixes #262.
-
-## Past
 
 **3.2.1**
 

@@ -62,13 +62,21 @@ class FakeSESConnection:
 
     def send_raw_email(self, **kwargs):
         self.outbox.append(kwargs)
-        response = {
+        return {
             'MessageId': 'fake_message_id',
             'ResponseMetadata': {
                 'RequestId': 'fake_request_id',
                 },
             }
-        return response
+
+    def send_email(self, **kwargs):
+        self.outbox.append(kwargs)
+        return {
+            'MessageId': 'fake_message_id',
+            'ResponseMetadata': {
+                'RequestId': 'fake_request_id',
+                },
+            }
 
 
 class FakeSESBackend(django_ses.SESBackend):
@@ -148,6 +156,76 @@ class SESBackendTest(TestCase):
         self.assertEqual(config_set_callable.dkim_selector, 'ses')
         self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
 
+class SESV2BackendTest(TestCase):
+    def setUp(self):
+        django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
+        settings.USE_SES_V2 = True
+        settings.AWS_SES_FROM_ARN = None
+        settings.AWS_SES_SOURCE_ARN = None
+        django_ses.boto3.client = FakeSESConnection
+        self.outbox = FakeSESConnection.outbox
+
+    def tearDown(self):
+        # Empty outbox every time test finishes
+        settings.USE_SES_V2 = False
+        FakeSESConnection.outbox = []
+
+    def _rfc2047_helper(self, value_to_encode):
+        # references: https://docs.python.org/3/library/email.header.html, https://tools.ietf.org/html/rfc2047.html
+        name, addr = email.utils.parseaddr(value_to_encode)
+        name = email.header.Header(name).encode()
+        return email.utils.formataddr((name, addr))
+
+    def test_rfc2047_helper(self):
+        # Ensures that the underlying email.header library code is encoding as expected, using known values
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
+        rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
+        self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
+
+    def test_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
+
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
+
+        send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
+        self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+
+    def test_configuration_set_send_mail(self):
+        settings.AWS_SES_CONFIGURATION_SET = 'test-set'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
+        self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'test-set')
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+
+    def test_configuration_set_callable_send_mail(self):
+        config_set_callable = SESConfigurationSetTester('my-config-set')
+        settings.AWS_SES_CONFIGURATION_SET = config_set_callable
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
+        # ensure we got the correct configuration message payload
+        self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'my-config-set')
+        self.assertEqual(mail['subject'], 'subject')
+        self.assertEqual(mail['from'], 'from@example.com')
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'body')
+        # ensure we passed in the proper arguments to our callable
+        self.assertEqual(config_set_callable.message.subject, 'subject')
+        self.assertEqual(config_set_callable.dkim_domain, None)
+        self.assertEqual(config_set_callable.dkim_key, None)
+        self.assertEqual(config_set_callable.dkim_selector, 'ses')
+        self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
+
     def test_dkim_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = None
         # DKIM verification uses DNS to retrieve the public key when checking
@@ -178,26 +256,11 @@ class SESBackendTest(TestCase):
                             message.replace('from@example.com', 'from@spam.com')))
 
     def test_return_path(self):
-        """
-        Ensure that the 'Source' argument sent into send_raw_email uses
-        settings.AWS_SES_RETURN_PATH, defaults to from address.
+        """Ensure that the 'Source' argument sent into send_raw_email uses FromEmailAddress.
         """
         settings.AWS_SES_RETURN_PATH = None
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')
-
-    def test_source_arn_is_set(self):
-        """
-        Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
-        """
-        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
-        settings.AWS_SES_FROM_ARN = 'arn:aws:ses:eu-central-1:222222222222:identity/example.com'
-        settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        mail = self.outbox.pop()
-        self.assertEqual(mail['SourceArn'], 'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
-        self.assertEqual(mail['FromArn'], 'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
-        self.assertEqual(mail['ReturnPathArn'], 'arn:aws:ses:eu-central-1:333333333333:identity/example.com')
+        self.assertEqual(self.outbox.pop()['FromEmailAddress'], 'from@example.com')
 
     def test_source_arn_is_NOT_set(self):
         """
@@ -206,9 +269,27 @@ class SESBackendTest(TestCase):
         """
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         mail = self.outbox.pop()
-        self.assertNotIn('SourceArn', mail)
-        self.assertNotIn('FromArn', mail)
-        self.assertNotIn('ReturnPathArn', mail)
+        self.assertNotIn('FromEmailAddressIdentityArn', mail)
+
+    def test_source_arn_is_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
+        """
+        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertEqual(mail['FromEmailAddressIdentityArn'], 'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
+
+    def test_from_arn_takes_precedence_when_source_arn_is_set(self):
+        """
+        Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
+        """
+        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
+        settings.AWS_SES_FROM_ARN = 'arn:aws:ses:eu-central-1:222222222222:identity/example.com'
+        settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        mail = self.outbox.pop()
+        self.assertEqual(mail['FromEmailAddressIdentityArn'], 'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
 
 
 class SESBackendTestInitialize(TestCase):

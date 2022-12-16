@@ -37,6 +37,8 @@ AWS_SES_SOURCE_ARN = getattr(settings, 'AWS_SES_SOURCE_ARN', None)
 AWS_SES_FROM_ARN = getattr(settings, 'AWS_SES_FROM_ARN', None)
 AWS_SES_RETURN_PATH_ARN = getattr(settings, 'AWS_SES_RETURN_PATH_ARN', None)
 
+USE_SES_V2 = getattr(settings, 'USE_SES_V2', False)
+
 TIME_ZONE = settings.TIME_ZONE
 
 VERIFY_EVENT_SIGNATURES = getattr(settings, 'AWS_SES_VERIFY_EVENT_SIGNATURES',

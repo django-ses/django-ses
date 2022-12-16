@@ -79,6 +79,9 @@ Add the following to your settings.py::
     AWS_SES_REGION_NAME = 'us-west-2'
     AWS_SES_REGION_ENDPOINT = 'email.us-west-2.amazonaws.com'
 
+    # If you want to use the SESv2 client
+    USE_SES_V2 = True
+
 Alternatively, instead of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, you
 can include the following two settings values. This is useful in situations
 where you would like to use a separate access key to send emails via SES than

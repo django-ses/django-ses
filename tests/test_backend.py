@@ -6,7 +6,8 @@ from django.conf import settings as django_settings
 from django.utils.encoding import smart_str
 from django.core.mail import send_mail
 from django.test import TestCase
-
+from unittest import mock
+from freezegun import freeze_time
 import django_ses
 from django_ses import settings
 
@@ -312,6 +313,28 @@ class SESBackendTestInitialize(TestCase):
             settings.AWS_SES_AUTO_THROTTLE = throttle_setting
             backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
             self.assertEqual(backend._throttle, expected_throttle_val)
+
+    @mock.patch("django_ses.sleep") 
+    def test_throttling_delay(self, sleep_mock):
+        """
+        Ensure that SESBackend throttles correctly
+        """
+       
+        for rate_limit, auto_tick_seconds, aws_auto_throttle, expected_sleep_count in (
+            (5, 0.1, 0.5, 5),
+            (10, 0.1, 0.5, 0),
+            (5, 0.4, 1, 0),
+        ):  
+            with freeze_time("2022-01-9", auto_tick_seconds=auto_tick_seconds), mock.patch("django_ses.SESBackend.get_rate_limit", return_value=rate_limit) as get_rate_limit_mock:
+                sleep_mock.reset_mock()
+                django_ses.recent_send_times = []
+                backend = django_ses.SESBackend(aws_auto_throttle=aws_auto_throttle)
+
+                
+                for _ in range(10):
+                    backend._update_throttling()
+                assert get_rate_limit_mock.call_count == 10
+                assert sleep_mock.call_count == expected_sleep_count
 
 
 class SESBackendTestReturn(TestCase):

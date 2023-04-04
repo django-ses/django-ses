@@ -481,6 +481,7 @@ Full List of Settings
 
 ``AWS_SES_RETURN_PATH``
   Instruct Amazon SES to forward bounced emails and complaints to this email.
+  Works only v2 client.
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
 
 ``AWS_SES_CONFIGURATION_SET``

@@ -260,6 +260,7 @@ class SESV2BackendTest(TestCase):
         """Ensure that the 'Source' argument sent into send_raw_email uses FromEmailAddress.
         """
         settings.AWS_SES_RETURN_PATH = None
+        settings.AWS_SES_FROM_EMAIL = 'from@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FromEmailAddress'], 'from@example.com')
 
@@ -267,8 +268,7 @@ class SESV2BackendTest(TestCase):
         """
         Ensure that the notification address argument uses FeedbackForwardingEmailAddress.
         """
-        settings.AWS_SES_FROM_EMAIL = 'reply@example.com'
-
+        settings.AWS_SES_RETURN_PATH = 'reply@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'reply@example.com')
 
@@ -334,8 +334,14 @@ class SESBackendTestReturn(TestCase):
     def tearDown(self):
         # Empty outbox everytime test finishes
         FakeSESConnection.outbox = []
-
-    def test_return_path(self):
-        settings.AWS_SES_RETURN_PATH = "return@example.com"
+    
+    def test_from_email(self):
+        settings.AWS_SES_FROM_EMAIL = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'return@example.com')
+    
+    def test_return_path(self):
+        settings.USE_SES_V2 = True
+        settings.AWS_SES_RETURN_PATH = "return@example.com"
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'return@example.com')

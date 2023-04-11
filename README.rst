@@ -479,10 +479,15 @@ Full List of Settings
   http://readthedocs.org/docs/boto/en/latest/ref/ses.html#boto.ses.regions
   http://docs.aws.amazon.com/general/latest/gr/rande.html
 
-``AWS_SES_RETURN_PATH``
-  Instruct Amazon SES to forward bounced emails and complaints to this email.
-  It only works in the v2 client.
+``AWS_SES_FROM_EMAIL``
+  Optional. The email addres use as the "From" address for the email. The address that you specify has to be verified.  
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
+
+``AWS_SES_RETURN_PATH``
+  Optional. Use `AWS_SES_RETURN_PATH` to receive complaint notifications
+  It only works in the v2 client.
+  https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html#API_SendEmail_RequestSyntax
+
 
 ``AWS_SES_CONFIGURATION_SET``
   Optional. Use this to mark your e-mails as from being from a particular SES

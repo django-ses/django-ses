@@ -239,7 +239,7 @@ class SESBackend(BaseEmailBackend):
         recent_send_times.append(now)
         # end of throttling
 
-    def _get_send_email_parameters(self, message, source, email_feedack):   
+    def _get_send_email_parameters(self, message, source, email_feedack):
         return (self._get_v2_parameters(message, source, email_feedack)
                 if self._use_ses_v2
                 else self._get_v1_parameters(message, source))

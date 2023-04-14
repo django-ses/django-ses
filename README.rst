@@ -480,7 +480,7 @@ Full List of Settings
   http://docs.aws.amazon.com/general/latest/gr/rande.html
 
 ``AWS_SES_FROM_EMAIL``
-  Optional. The email addres use as the "From" address for the email. The address that you specify has to be verified.  
+  Optional. The email addres to be used as the "From" address for the email. The address that you specify has to be verified.  
   For more information please refer to http://aws.amazon.com/ses/faqs/#38
 
 ``AWS_SES_RETURN_PATH``

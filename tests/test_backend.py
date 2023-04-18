@@ -336,9 +336,9 @@ class SESBackendTestReturn(TestCase):
         FakeSESConnection.outbox = []
     
     def test_from_email(self):
-        settings.AWS_SES_FROM_EMAIL = "return@example.com"
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        self.assertEqual(self.outbox.pop()['Source'], 'return@example.com')
+        settings.AWS_SES_FROM_EMAIL = "my_default_from@example.com"
+        send_mail('subject', 'body', 'ignored_from@example.com', ['to@example.com'])
+        self.assertEqual(self.outbox.pop()['Source'], 'my_default_from@example.com')
     
     def test_return_path(self):
         settings.USE_SES_V2 = True

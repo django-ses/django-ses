@@ -485,7 +485,7 @@ Full List of Settings
 
 ``AWS_SES_RETURN_PATH``
   Optional. Use `AWS_SES_RETURN_PATH` to receive complaint notifications
-  It only works in the v2 client.
+  You must use the v2 client by setting `USE_SES_V2=True` for this setting to work, otherwise it is ignored.
   https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html#API_SendEmail_RequestSyntax
 
 

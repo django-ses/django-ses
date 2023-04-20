@@ -344,5 +344,7 @@ class SESBackendTestReturn(TestCase):
         settings.USE_SES_V2 = True
         settings.AWS_SES_RETURN_PATH = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        self.assertEqual(self.outbox.pop()['Source'], 'from@example.com')
-        self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'return@example.com')
+        message = self.outbox.pop()
+
+        self.assertEqual(message['FromEmailAddress'], 'my_default_from@example.com')
+        self.assertEqual(message['FeedbackForwardingEmailAddress'], 'return@example.com')

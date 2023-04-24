@@ -481,8 +481,7 @@ Full List of Settings
 
 ``AWS_SES_FROM_EMAIL``
   Optional. The email address to be used as the "From" address for the email. The address that you specify has to be verified.  
-  For more information please refer to http://aws.amazon.com/ses/faqs/#38
-
+  For more information please refer to https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
 ``AWS_SES_RETURN_PATH``
   Optional. Use `AWS_SES_RETURN_PATH` to receive complaint notifications
   You must use the v2 client by setting `USE_SES_V2=True` for this setting to work, otherwise it is ignored.

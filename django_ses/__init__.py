@@ -127,7 +127,8 @@ class SESBackend(BaseEmailBackend):
             return
 
         num_sent = 0
-        source = settings.AWS_SES_RETURN_PATH
+        source = settings.AWS_SES_FROM_EMAIL
+        email_feedback = settings.AWS_SES_RETURN_PATH
         for message in email_messages:
             # SES Configuration sets. If the AWS_SES_CONFIGURATION_SET setting
             # is not None, append the appropriate header to the message so that
@@ -159,7 +160,7 @@ class SESBackend(BaseEmailBackend):
             if self._throttle:
                 self._update_throttling()
 
-            kwargs = self._get_send_email_parameters(message, source)
+            kwargs = self._get_send_email_parameters(message, source, email_feedback)
 
             try:
                 response = (self.connection.send_email(**kwargs)
@@ -238,17 +239,18 @@ class SESBackend(BaseEmailBackend):
         recent_send_times.append(now)
         # end of throttling
 
-    def _get_send_email_parameters(self, message, source):
-        return (self._get_v2_parameters(message, source)
+    def _get_send_email_parameters(self, message, source, email_feedack):
+        return (self._get_v2_parameters(message, source, email_feedack)
                 if self._use_ses_v2
                 else self._get_v1_parameters(message, source))
 
-    def _get_v2_parameters(self, message, source):
+    def _get_v2_parameters(self, message, source, email_feedback):
         """V2-Style raw payload for `send_email`.
 
         https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
         """
         params = dict(
+            FeedbackForwardingEmailAddress=email_feedback,
             FromEmailAddress=source or message.from_email,
             Destination={
                 'ToAddresses': message.recipients()

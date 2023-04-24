@@ -156,6 +156,7 @@ class SESBackendTest(TestCase):
         self.assertEqual(config_set_callable.dkim_selector, 'ses')
         self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
 
+
 class SESV2BackendTest(TestCase):
     def setUp(self):
         django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
@@ -259,8 +260,17 @@ class SESV2BackendTest(TestCase):
         """Ensure that the 'Source' argument sent into send_raw_email uses FromEmailAddress.
         """
         settings.AWS_SES_RETURN_PATH = None
+        settings.AWS_SES_FROM_EMAIL = 'from@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FromEmailAddress'], 'from@example.com')
+
+    def test_feedback_forwarding(self):
+        """
+        Ensure that the notification address argument uses FeedbackForwardingEmailAddress.
+        """
+        settings.AWS_SES_RETURN_PATH = 'reply@example.com'
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'reply@example.com')
 
     def test_source_arn_is_NOT_set(self):
         """
@@ -324,8 +334,17 @@ class SESBackendTestReturn(TestCase):
     def tearDown(self):
         # Empty outbox everytime test finishes
         FakeSESConnection.outbox = []
-
+    
+    def test_from_email(self):
+        settings.AWS_SES_FROM_EMAIL = "my_default_from@example.com"
+        send_mail('subject', 'body', 'ignored_from@example.com', ['to@example.com'])
+        self.assertEqual(self.outbox.pop()['Source'], 'my_default_from@example.com')
+    
     def test_return_path(self):
+        settings.USE_SES_V2 = True
         settings.AWS_SES_RETURN_PATH = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
-        self.assertEqual(self.outbox.pop()['Source'], 'return@example.com')
+        message = self.outbox.pop()
+
+        self.assertEqual(message['FromEmailAddress'], 'my_default_from@example.com')
+        self.assertEqual(message['FeedbackForwardingEmailAddress'], 'return@example.com')

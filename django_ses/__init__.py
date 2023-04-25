@@ -250,7 +250,6 @@ class SESBackend(BaseEmailBackend):
         https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
         """
         params = dict(
-            FeedbackForwardingEmailAddress=email_feedback,
             FromEmailAddress=source or message.from_email,
             Destination={
                 'ToAddresses': message.recipients()
@@ -267,6 +266,9 @@ class SESBackend(BaseEmailBackend):
         )
         if self.ses_from_arn or self.ses_source_arn:
             params['FromEmailAddressIdentityArn'] = self.ses_from_arn or self.ses_source_arn
+        if email_feedback is not None:
+            params['FeedbackForwardingEmailAddress'] = email_feedback
+            
         return params
 
     def _get_v1_parameters(self, message, source):

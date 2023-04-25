@@ -479,14 +479,19 @@ Full List of Settings
   http://readthedocs.org/docs/boto/en/latest/ref/ses.html#boto.ses.regions
   http://docs.aws.amazon.com/general/latest/gr/rande.html
 
+``USE_SES_V2``
+  Optional. If you want to use client v2, you'll need to add `USE_SES_V2=True`. 
+  Some settings will need this flag enabled.
+  See https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#id87
+
 ``AWS_SES_FROM_EMAIL``
   Optional. The email address to be used as the "From" address for the email. The address that you specify has to be verified.  
   For more information please refer to https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
+
 ``AWS_SES_RETURN_PATH``
   Optional. Use `AWS_SES_RETURN_PATH` to receive complaint notifications
   You must use the v2 client by setting `USE_SES_V2=True` for this setting to work, otherwise it is ignored.
   https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html#API_SendEmail_RequestSyntax
-
 
 ``AWS_SES_CONFIGURATION_SET``
   Optional. Use this to mark your e-mails as from being from a particular SES

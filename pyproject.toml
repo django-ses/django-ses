@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-ses"
-version = "3.4.0"
+version = "3.4.1"
 description = "A Django email backend for Amazon's Simple Email Service"
 authors = [
     "Harry Marr <harry@hmarr.com>",

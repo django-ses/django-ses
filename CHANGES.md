@@ -26,14 +26,23 @@ Fixes:
 **3.4.0**
 
 Pulls:
+  - https://github.com/django-ses/django-ses/pull/279
+
+Fixes:
+  - https://github.com/django-ses/django-ses/issues/278
+  - Fix for: "Invalid type for parameter FeedbackForwardingEmailAddress, value: None"
+
+## Past
+
+**3.4.0**
+
+Pulls:
   - https://github.com/django-ses/django-ses/pull/276
 
 Fixes:
   - BREAKING CHANGE: New behavior of `AWS_SES_RETURN_PATH` to only be used for bounces/returns.
   - Add `AWS_SES_FROM_EMAIL` to use as `from` address.
   - See https://github.com/django-ses/django-ses/pull/276/files#r1169200001 for example.
-
-## Past
 
 **3.3.0**
 

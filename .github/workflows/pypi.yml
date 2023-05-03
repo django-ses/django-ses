@@ -6,6 +6,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v2
       - name: Install Poetry
@@ -15,5 +18,3 @@ jobs:
           virtualenvs-in-project: true
       - name: Publish to pypi
         run: poetry publish --build
-        env:
-          POETRY_PYPI_TOKEN_PYPI: "${{ secrets.PYPI_TOKEN }}"

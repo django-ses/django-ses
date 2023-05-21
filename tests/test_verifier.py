@@ -126,12 +126,15 @@ class BounceMessageVerifierTest(TestCase):
         """
         Test url trust verification
         """
+        cert_url = (
+            "https://sns.test-example.amazonaws.com/SimpleNotificationService-abcd.pem"
+        )
         verifier = BounceMessageVerifier(
             {
-                "SigningCertURL": "https://amazonaws.com/",
+                "SigningCertURL": cert_url,
             }
         )
-        self.assertEqual(verifier._get_cert_url(), "https://amazonaws.com/")
+        self.assertEqual(verifier._get_cert_url(), cert_url)
 
     def test_http_cert_url(self):
         """

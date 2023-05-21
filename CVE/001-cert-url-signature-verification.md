@@ -1,7 +1,3 @@
-# Remove this
-
-No worries, thanks for your efforts. Once you have a patch ready, I'd encourage you to create an advisory/CVE as it will let users know about the issue and also be helpful to reference for me and my client :). GitHub should let you do this pretty easily (https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/creating-a-repository-security-advisory).
-
 # Certificate URL: signature verification exposure
 
 0. TL;DR:

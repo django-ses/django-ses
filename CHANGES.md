@@ -23,7 +23,18 @@ Fixes:
 
 ## Current
 
-**3.4.0**
+**3.5.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/284
+
+Fixes:
+  - Security issue in certificate domain validation, see https://github.com/django-ses/django-ses/security/advisories/GHSA-qg36-9jxh-fj25
+
+## Past
+
+
+**3.4.1**
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/279
@@ -31,8 +42,6 @@ Pulls:
 Fixes:
   - https://github.com/django-ses/django-ses/issues/278
   - Fix for: "Invalid type for parameter FeedbackForwardingEmailAddress, value: None"
-
-## Past
 
 **3.4.0**
 

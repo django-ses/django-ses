@@ -23,6 +23,73 @@ Fixes:
 
 ## Current
 
+**3.5.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/284
+
+Fixes:
+  - Security issue in certificate domain validation, see https://github.com/django-ses/django-ses/security/advisories/GHSA-qg36-9jxh-fj25
+
+## Past
+
+
+**3.4.1**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/279
+
+Fixes:
+  - https://github.com/django-ses/django-ses/issues/278
+  - Fix for: "Invalid type for parameter FeedbackForwardingEmailAddress, value: None"
+
+**3.4.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/276
+
+Fixes:
+  - BREAKING CHANGE: New behavior of `AWS_SES_RETURN_PATH` to only be used for bounces/returns.
+  - Add `AWS_SES_FROM_EMAIL` to use as `from` address.
+  - See https://github.com/django-ses/django-ses/pull/276/files#r1169200001 for example.
+
+**3.3.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/267
+  - https://github.com/django-ses/django-ses/pull/269
+
+Fixes:
+  - Support of SESv2 client. Fixes #229.
+
+**3.2.2**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/263
+
+Fixes:
+  - Support newer versions of cryptography (loosen required version)
+    Fixes #262.
+
+**3.2.1**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/264
+
+Fixes:
+  - Support different versions of requests (loosen required version)
+    Fixes #262. See also #263.
+
+**3.2.0**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/259
+
+Fixes:
+  - Use eventType and fall back to notificationType consistently for SES events.
+    Fixes #174.
+
+
 **3.1.2**
 
 Pulls:
@@ -34,8 +101,6 @@ Pulls:
 
 Features:
   - Upgrade importlib-metadata
-
-## Past
 
 **3.1.0**
 

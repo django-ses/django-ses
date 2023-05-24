@@ -13,12 +13,14 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
-        django-version: [22, 32, 40, 41]
+        django-version: [22, 32, 40, 41, 42]
         exclude:
           - python-version: "3.7"
             django-version: 40
           - python-version: "3.7"
             django-version: 41
+          - python-version: "3.7"
+            django-version: 42
 
     steps:
       - uses: actions/checkout@v2

@@ -1,4 +1,4 @@
-name: PyPI
+name: Publish on PyPI
 on:
   push:
     tags:
@@ -6,14 +6,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       - name: Install Poetry
-        uses: snok/install-poetry@v1
+        uses: abatilo/actions-poetry@v2
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+          python-version: 3.11
       - name: Publish to pypi
-        run: poetry publish --build
-        env:
-          POETRY_PYPI_TOKEN_PYPI: "${{ secrets.PYPI_TOKEN }}"
+        run: poetry build
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

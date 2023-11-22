@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "django-ses"
 version = "3.5.0"
-description = "A Django email backend for Amazon's Simple Email Service"
+description = "A Django email backend for Amazon's Simple Email Service (SES)"
 authors = [
     "Harry Marr <harry@hmarr.com>",
     "Wes Winham <winhamwr@gmail.com>",
@@ -25,6 +25,8 @@ classifiers = [
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
 ]
 license = "MIT"
 readme = "README.rst"

@@ -22,7 +22,7 @@ jobs:
           - python-version: "3.7"
             django-version: 42
           - python-version: "3.12"
-            django-version: 22
+            django-version: 42
 
     steps:
       - uses: actions/checkout@v3

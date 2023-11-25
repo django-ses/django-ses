@@ -2,9 +2,9 @@ name: Unit tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -12,15 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         django-version: [22, 32, 40, 41, 42]
         exclude:
-          - python-version: "3.7"
-            django-version: 40
-          - python-version: "3.7"
-            django-version: 41
-          - python-version: "3.7"
-            django-version: 42
+          - python-version: "3.12"
+            django-version: 22
 
     steps:
       - uses: actions/checkout@v3

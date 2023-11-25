@@ -21,7 +21,6 @@ classifiers = [
     'Framework :: Django :: 4.0',
     'Framework :: Django :: 4.1',
     'Framework :: Django :: 4.2',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
@@ -34,7 +33,7 @@ repository = "https://github.com/django-ses/django-ses"
 include = ["example", "tests"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 boto3 = ">=1.0.0"
 pytz = ">=2016.10"
 django = ">=2.2"

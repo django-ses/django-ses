@@ -20,7 +20,7 @@ signature was found to be flawed as it allowed users to specify arbitrary public
 
 The [`SESEventWebhookView`](https://github.com/django-ses/django-ses/blob/3a3280382810268476cb6c71d4c66833257db0cc/django_ses/views.py#L379)
 view class implements a [`post` handler](https://github.com/django-ses/django-ses/blob/3a3280382810268476cb6c71d4c66833257db0cc/django_ses/views.py#L409)
-which receives signed requests. By default (as [noted](https://github.com/django-ses/django-ses/tree/master#full-list-of-settings) in the README)
+which receives signed requests. By default (as [noted](https://github.com/django-ses/django-ses/tree/main#full-list-of-settings) in the README)
 signature verification is enabled. Signature verification is [performed](https://github.com/django-ses/django-ses/blob/3a3280382810268476cb6c71d4c66833257db0cc/django_ses/views.py#L420)
 by the [`verify_event_message`](https://github.com/django-ses/django-ses/blob/3a3280382810268476cb6c71d4c66833257db0cc/django_ses/utils.py#L252)
 utility function which uses the `EventMessageVerifier.is_verified` method.

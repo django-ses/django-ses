@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 _CERT_CACHE = {}
 
 SES_REGEX_CERT_URL = re.compile(
-    "(?i)^https://sns\.[a-z0-9\-]+\.amazonaws\.com(\.cn)?/SimpleNotificationService\-[a-z0-9]+\.pem$"
+    r"(?i)^https://sns\.[a-z0-9\-]+\.amazonaws\.com(\.cn)?/SimpleNotificationService\-[a-z0-9]+\.pem$"
 )
 
 

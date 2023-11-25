@@ -23,6 +23,17 @@ Fixes:
 
 ## Current
 
+**3.5.1**
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/281
+  - https://github.com/django-ses/django-ses/pull/291
+  - https://github.com/django-ses/django-ses/pull/289
+  - https://github.com/django-ses/django-ses/pull/284
+
+
+## Past
+
 **3.5.0**
 
 Pulls:
@@ -30,9 +41,6 @@ Pulls:
 
 Fixes:
   - Security issue in certificate domain validation, see https://github.com/django-ses/django-ses/security/advisories/GHSA-qg36-9jxh-fj25
-
-## Past
-
 
 **3.4.1**
 

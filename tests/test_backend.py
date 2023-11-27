@@ -3,9 +3,9 @@
 import email
 
 from django.conf import settings as django_settings
-from django.utils.encoding import smart_str
 from django.core.mail import send_mail
 from django.test import TestCase
+from django.utils.encoding import smart_str
 
 import django_ses
 from django_ses import settings
@@ -272,7 +272,7 @@ class SESV2BackendTest(TestCase):
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'reply@example.com')
 
-    def test_source_arn_is_NOT_set(self):
+    def test_source_arn_is_not_set(self):
         """
         Ensure that the helpers for Identity Owner for SES Sending Authorization are not present, if nothing has been
         configured.
@@ -288,7 +288,8 @@ class SESV2BackendTest(TestCase):
         settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         mail = self.outbox.pop()
-        self.assertEqual(mail['FromEmailAddressIdentityArn'], 'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
+        self.assertEqual(mail['FromEmailAddressIdentityArn'],
+                         'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
 
     def test_from_arn_takes_precedence_when_source_arn_is_set(self):
         """
@@ -299,7 +300,8 @@ class SESV2BackendTest(TestCase):
         settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         mail = self.outbox.pop()
-        self.assertEqual(mail['FromEmailAddressIdentityArn'], 'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
+        self.assertEqual(mail['FromEmailAddressIdentityArn'],
+                         'arn:aws:ses:eu-central-1:222222222222:identity/example.com')
 
 
 class SESBackendTestInitialize(TestCase):
@@ -334,12 +336,12 @@ class SESBackendTestReturn(TestCase):
     def tearDown(self):
         # Empty outbox everytime test finishes
         FakeSESConnection.outbox = []
-    
+
     def test_from_email(self):
         settings.AWS_SES_FROM_EMAIL = "my_default_from@example.com"
         send_mail('subject', 'body', 'ignored_from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'my_default_from@example.com')
-    
+
     def test_return_path(self):
         settings.USE_SES_V2 = True
         settings.AWS_SES_RETURN_PATH = "return@example.com"

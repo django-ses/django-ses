@@ -1,29 +1,23 @@
+import copy
 import json
+import logging
 import warnings
+from urllib.error import URLError
+from urllib.request import urlopen
 
 import boto3
 import pytz
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import TemplateView, View
-
-from django_ses.deprecation import RemovedInDjangoSES20Warning
-
-from urllib.request import urlopen
-from urllib.error import URLError
-import copy
-import logging
-
-
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.views.generic.base import TemplateView, View
 
-from django_ses import settings
-from django_ses import signals
-from django_ses import utils
+from django_ses import settings, signals, utils
+from django_ses.deprecation import RemovedInDjangoSES20Warning
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +93,8 @@ def dashboard(request):
     """
     Graph SES send statistics over time.
     """
-    warnings.warn('This view will be removed in future versions. Consider using DashboardView instead', DeprecationWarning)
+    warnings.warn('This view will be removed in future versions. Consider using DashboardView instead',
+                  DeprecationWarning)
     cache_key = 'vhash:django_ses_stats'
     cached_view = cache.get(cache_key)
     if cached_view:
@@ -170,7 +165,7 @@ class DashboardView(TemplateView):
         verified_emails = emails_parse(verified_emails_dict)
         ordered_data = stats_to_list(stats)
         summary = sum_stats(ordered_data)
-        
+
         context.update({
             'title': 'SES Statistics',
             'datapoints': ordered_data,
@@ -193,7 +188,7 @@ class DashboardView(TemplateView):
         cached_view = cache.get(cache_key)
         if cached_view:
             return cached_view
-        
+
         response = super().get(request, *args, **kwargs).render()
         cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
         return response

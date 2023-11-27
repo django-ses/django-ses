@@ -45,10 +45,41 @@ requests = {version = ">=2.27.1", optional = true}
 bounce =  ["requests", "cryptography"]
 events = ["requests", "cryptography"]
 
-
 [tool.poetry.dev-dependencies]
 tox = "^3.24.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+select = [
+    "E",       # pycodestyle errors
+    "W",       # pycodestyle warnings
+    "F",       # Pyflakes
+    "N",       # pep8-naming
+    "I",       # isort
+]
+
+ignore = [
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = [
+    "E",       # pycodestyle errors
+    "W",       # pycodestyle warnings
+    "F",       # Pyflakes
+    "N",       # pep8-naming
+    "I",       # isort
+]
+unfixable = []
+
+# Same as Black.
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.12
+target-version = "py312"

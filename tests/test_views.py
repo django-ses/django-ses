@@ -8,9 +8,15 @@ except ImportError:
 from django.test import TestCase
 from django.urls import reverse
 
-from django_ses.signals import bounce_received, complaint_received, send_received, delivery_received, open_received, \
-    click_received
 from django_ses import utils as ses_utils
+from django_ses.signals import (
+    bounce_received,
+    click_received,
+    complaint_received,
+    delivery_received,
+    open_received,
+    send_received,
+)
 
 
 def get_mock_email():
@@ -125,7 +131,8 @@ def get_mock_click():
     click = {
         "timestamp": "2021-01-26T14:38:55.540Z",
         "ipAddress": "11.111.11.111",
-        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Safari/605.1.15",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) "
+                     "Version/14.0 Safari/605.1.15",
         "link": "github.com/django-ses/django-ses",
         "linkTags": None
     }
@@ -171,7 +178,8 @@ class HandleBounceTestCase(TestCase):
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
 
-            response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -193,7 +201,8 @@ class HandleBounceTestCase(TestCase):
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
 
-            response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -230,7 +239,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -252,7 +262,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -274,7 +285,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -295,7 +307,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -316,7 +329,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -337,7 +351,8 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
@@ -358,6 +373,7 @@ class HandleEventTestCase(TestCase):
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:
             verify.return_value = False
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification), content_type="application/json")
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, "Signature verification failed.".encode())

@@ -32,12 +32,6 @@ readme = "README.rst"
 repository = "https://github.com/django-ses/django-ses"
 include = ["example", "tests"]
 
-[project.urls]
-'Homepage' = 'https://github.com/django-ses/django-ses'
-'Documentation' = 'https://github.com/django-ses/django-ses/blob/main/README.rst'
-'Bugtracker' = 'https://github.com/django-ses/django-ses/issues'
-'Changelog' = 'https://github.com/django-ses/django-ses/blob/main/CHANGES.md'
-
 [tool.poetry.dependencies]
 python = "^3.8"
 boto3 = ">=1.0.0"

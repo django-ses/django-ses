@@ -23,7 +23,9 @@ Fixes:
 
 ## Current
 
-**3.5.1**
+**3.5.1/3.5.2**
+
+Double release because the wrong commit was tagged, sorry.
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/281

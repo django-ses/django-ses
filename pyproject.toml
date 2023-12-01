@@ -30,13 +30,13 @@ classifiers = [
 license = "MIT"
 readme = "README.rst"
 repository = "https://github.com/django-ses/django-ses"
+homepage = "https://github.com/django-ses/django-ses"
+documentation = "https://github.com/django-ses/django-ses/blob/main/README.rst"
 include = ["example", "tests"]
 
-[project.urls]
-'Homepage' = 'https://github.com/django-ses/django-ses'
-'Documentation' = 'https://github.com/django-ses/django-ses/blob/main/README.rst'
-'Bugtracker' = 'https://github.com/django-ses/django-ses/issues'
-'Changelog' = 'https://github.com/django-ses/django-ses/blob/main/CHANGES.md'
+[tool.poetry.urls]
+"Bugtracker" = "https://github.com/django-ses/django-ses/issues"
+"Changelog" = "https://github.com/django-ses/django-ses/blob/main/CHANGES.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"

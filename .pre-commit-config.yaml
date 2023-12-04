@@ -1,0 +1,10 @@
+# You find the full pre-commit-tools docs here:
+# https://pre-commit.com/
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      # Run the Ruff linter.
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]

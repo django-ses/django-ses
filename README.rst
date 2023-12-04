@@ -573,6 +573,32 @@ If you'd like to fix a bug, add a feature, etc
     Write your own test showing the issue has been resolved, or the feature
     works as intended.
 
+Git hooks (via pre-commit)
+==========================
+
+We use pre-push hooks to ensure that only linted code reaches our remote repository and pipelines aren't triggered in
+vain.
+
+To enable the configured pre-push hooks, you need to [install](https://pre-commit.com/) pre-commit and run once::
+
+    pre-commit install -t pre-push -t pre-commit --install-hooks
+
+This will permanently install the git hooks for both, frontend and backend, in your local
+[`.git/hooks`](./.git/hooks) folder.
+The hooks are configured in the [`.pre-commit-config.yaml`](.pre-commit-config.yaml).
+
+You can check whether hooks work as intended using the [run](https://pre-commit.com/#pre-commit-run) command::
+
+    pre-commit run [hook-id] [options]
+
+Example: run single hook::
+
+    pre-commit run ruff --all-files --hook-stage push
+
+Example: run all hooks of pre-push stage::
+
+    pre-commit run --all-files --hook-stage push
+
 Running Tests
 =============
 To run the tests::

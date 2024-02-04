@@ -16,7 +16,7 @@ urlpatterns = [
     re_path(r'^send-email/$', views.send_email, name='send-email'),
     re_path(r'^reporting/', include('django_ses.urls')),
 
-    re_path(r'^bounce/', 'django_ses.views.handle_bounce', name='handle_bounce'),       # Deprecated, see SESEventWebhookView.
+    re_path(r'^bounce/', 'django_ses.views.handle_bounce', name='handle_bounce'),  # Deprecated, see SESEventWebhookView
     re_path(r'^event-webhook/', SESEventWebhookView.as_view(), name='event_webhook'),
 ]
 

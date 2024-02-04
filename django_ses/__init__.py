@@ -1,13 +1,12 @@
 import logging
+from datetime import datetime, timedelta
+from time import sleep
 
 import boto3
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
 from django.core.mail.backends.base import BaseEmailBackend
+
 from django_ses import settings
-
-from datetime import datetime, timedelta
-from time import sleep
-
 
 try:
     import importlib.metadata as importlib_metadata
@@ -268,7 +267,7 @@ class SESBackend(BaseEmailBackend):
             params['FromEmailAddressIdentityArn'] = self.ses_from_arn or self.ses_source_arn
         if email_feedback is not None:
             params['FeedbackForwardingEmailAddress'] = email_feedback
-            
+
         return params
 
     def _get_v1_parameters(self, message, source):

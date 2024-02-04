@@ -252,7 +252,7 @@ class EventMessageVerifier(object):
         return "".join(bytes_to_sign).encode()
 
 
-def BounceMessageVerifier(*args, **kwargs):
+def BounceMessageVerifier(*args, **kwargs):  # noqa: N802
     warnings.warn(
         "utils.BounceMessageVerifier is deprecated. It is renamed to EventMessageVerifier.",
         RemovedInDjangoSES20Warning,

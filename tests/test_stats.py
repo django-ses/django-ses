@@ -1,6 +1,6 @@
-import pytz
 from datetime import datetime
 
+import pytz
 from django.test import TestCase
 
 from django_ses.views import emails_parse, stats_to_list, sum_stats

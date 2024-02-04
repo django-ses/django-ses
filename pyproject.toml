@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-ses"
-version = "3.5.1"
+version = "3.5.2"
 description = "A Django email backend for Amazon's Simple Email Service (SES)"
 authors = [
     "Harry Marr <harry@hmarr.com>",
@@ -30,7 +30,13 @@ classifiers = [
 license = "MIT"
 readme = "README.rst"
 repository = "https://github.com/django-ses/django-ses"
+homepage = "https://github.com/django-ses/django-ses"
+documentation = "https://github.com/django-ses/django-ses/blob/main/README.rst"
 include = ["example", "tests"]
+
+[tool.poetry.urls]
+"Bugtracker" = "https://github.com/django-ses/django-ses/issues"
+"Changelog" = "https://github.com/django-ses/django-ses/blob/main/CHANGES.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"

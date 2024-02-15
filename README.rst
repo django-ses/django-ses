@@ -342,6 +342,17 @@ Django SES comes with two ways of viewing sending statistics.
 The first one is a simple read-only report on your 24 hour sending quota,
 verified email addresses and bi-weekly sending statistics.
 
+To enable the dashboard to retrieve data from AWS, you need to update the IAM policy by adding the following actions::
+
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ses:ListVerifiedEmailAddresses",
+            "ses:GetSendStatistics"
+        ],
+        "Resource": "*"
+    }
+
 To generate and view SES sending statistics reports, include, update
 ``INSTALLED_APPS``::
 

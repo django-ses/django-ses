@@ -255,7 +255,7 @@ class SESBackend(BaseEmailBackend):
             },
             Content={
                 'Raw': {
-                    'Data': dkim_sign(message.message().as_string(),
+                    'Data': dkim_sign(message.message().as_bytes(linesep="\r\n"),
                                       dkim_key=self.dkim_key,
                                       dkim_domain=self.dkim_domain,
                                       dkim_selector=self.dkim_selector,
@@ -278,7 +278,7 @@ class SESBackend(BaseEmailBackend):
         params = dict(
             Source=source or message.from_email,
             Destinations=message.recipients(),
-            RawMessage={'Data': dkim_sign(message.message().as_string(),
+            RawMessage={'Data': dkim_sign(message.message().as_bytes(linesep="\r\n"),
                                           dkim_key=self.dkim_key,
                                           dkim_domain=self.dkim_domain,
                                           dkim_selector=self.dkim_selector,

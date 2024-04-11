@@ -23,6 +23,19 @@ Fixes:
 
 ## Current
 
+**3.6.0**
+
+Fixes unicode surrogate issues from 3.11.9 and 3.12.3
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/316
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/315
+
+## Past
+
 **3.5.1/3.5.2**
 
 Double release because the wrong commit was tagged, sorry.
@@ -33,8 +46,6 @@ Pulls:
   - https://github.com/django-ses/django-ses/pull/289
   - https://github.com/django-ses/django-ses/pull/284
 
-
-## Past
 
 **3.5.0**
 

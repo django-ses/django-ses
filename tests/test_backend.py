@@ -115,16 +115,30 @@ class SESBackendTest(TestCase):
     def test_send_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = None
 
-        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
+        from_addr = 'Albertus Magnus <albertus.magnus@example.com>'
 
-        send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
+        send_mail('subject', 'body', from_addr, ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
-        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
+        self.assertEqual(mail['from'], self._rfc2047_helper(from_addr))
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
+
+    def test_send_mail_unicode_body(self):
+        settings.AWS_SES_CONFIGURATION_SET = None
+
+        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
+
+        send_mail('Scandinavian', 'Sören & Björn', unicode_from_addr, ['to@example.com'])
+        message = self.outbox.pop()
+        mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
+        self.assertTrue('X-SES-CONFIGURAITON-SET' not in mail.keys())
+        self.assertEqual(mail['subject'], 'Scandinavian')
+        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
+        self.assertEqual(mail['to'], 'to@example.com')
+        self.assertEqual(mail.get_payload(), 'Sören & Björn')
 
     def test_configuration_set_send_mail(self):
         settings.AWS_SES_CONFIGURATION_SET = 'test-set'

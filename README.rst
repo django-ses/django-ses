@@ -5,7 +5,7 @@ Django-SES
 :Author: Harry Marr (http://github.com/hmarr, http://twitter.com/harrymarr)
 :Collaborators: Paul Craciunoiu (http://github.com/pcraciunoiu, http://twitter.com/embrangler)
 
-|pypi| |build| |python| |django|
+|pypi| |pypi-downloads| |build| |python| |django|
 
 A bird's eye view
 =================
@@ -630,9 +630,12 @@ To create a release:
 
 .. |pypi| image:: https://badge.fury.io/py/django-ses.svg
     :target: http://badge.fury.io/py/django-ses
+.. |pypi-downloads| image:: https://img.shields.io/pypi/dm/django-ses?style=flat
+    :target: https://pypi.org/project/django-ses/
 .. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
-.. |python| image:: https://img.shields.io/badge/python-3.7+-blue.svg
+.. |python| image:: https://img.shields.io/badge/python-3.8|3.9|3.10|3.11|3.12-blue.svg
     :target: https://pypi.org/project/django-ses/
-.. |django| image:: https://img.shields.io/badge/django-2.2%7C%203.2+-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-4.2%7C%205.0+-blue.svg
     :target: https://www.djangoproject.com/
+

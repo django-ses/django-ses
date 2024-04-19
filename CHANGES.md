@@ -23,6 +23,16 @@ Fixes:
 
 ## Current
 
+**4.0.0**
+
+Drops support for Django 2 and python 3.7
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/318
+  - https://github.com/django-ses/django-ses/pull/321
+
+## Past
+
 **3.6.0**
 
 Fixes unicode surrogate issues from 3.11.9 and 3.12.3
@@ -33,8 +43,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/315
-
-## Past
 
 **3.5.1/3.5.2**
 

@@ -18,10 +18,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install required packages
-        run: pip install ruff
+        run: pip install pre-commit
 
-      - name: Run linter "Ruff"
-        run: ruff .
+      - name: Run linters
+        run: pre-commit run --all-files --hook-stage push
 
   build:
     name: Python ${{ matrix.python-version }}, django ${{ matrix.django-version }}

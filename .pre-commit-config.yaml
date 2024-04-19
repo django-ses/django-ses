@@ -3,8 +3,16 @@
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.6
+    rev: v0.4.0
     hooks:
       # Run the Ruff linter.
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.16.0
+    hooks:
+      - id: django-upgrade
+        args: [--target-version, "3.2"]
+        language_version: python3.12
+        stages: [ push ]

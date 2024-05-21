@@ -56,15 +56,17 @@ class SESBackend(BaseEmailBackend):
     """A Django Email backend that uses Amazon's Simple Email Service.
     """
 
-    def __init__(self, fail_silently=False, aws_access_key=None,
+    def __init__(self, fail_silently=False,aws_session_profile=None, aws_access_key=None,
                  aws_secret_key=None, aws_session_token=None, aws_region_name=None,
                  aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
                  ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
                  use_ses_v2=False,
-                 **kwargs):
+        **kwargs
+    ):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
+        self._session_profile = aws_session_profile or settings.AWS_SESSION_PROFILE
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
         self._access_key = aws_secret_key or settings.SECRET_KEY
         self._session_token = aws_session_token or settings.SESSION_TOKEN
@@ -86,6 +88,16 @@ class SESBackend(BaseEmailBackend):
 
         self.connection = None
 
+    def create_session(self) -> boto3.Session:
+        if self._session_profile:
+            return boto3.Session(profile_name=self._session_profile)
+
+        return boto3.Session(
+            aws_access_key_id=self._access_key_id,
+            aws_secret_access_key=self._access_key,
+            aws_session_token=self._session_token,
+        )
+
     def open(self):
         """Create a connection to the AWS API server. This can be reused for
         sending multiple emails.
@@ -94,14 +106,11 @@ class SESBackend(BaseEmailBackend):
             return False
 
         try:
-            self.connection = boto3.client(
-                'sesv2' if self._use_ses_v2 else 'ses',
-                aws_access_key_id=self._access_key_id,
-                aws_secret_access_key=self._access_key,
-                aws_session_token=self._session_token,
+            self.connection = self.create_session().client(
+                "sesv2" if self._use_ses_v2 else "ses",
                 region_name=self._region_name,
                 endpoint_url=self._endpoint_url,
-                config=self._config
+                config=self._config,
             )
 
         except Exception:

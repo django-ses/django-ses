@@ -69,11 +69,11 @@ Add the following to your settings.py::
 
     EMAIL_BACKEND = 'django_ses.SESBackend'
 
-    # These are optional -- if they're set as environment variables they won't
-    # need to be set here as well
+    # These are optional if you are using AWS IAM Roles https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html
     AWS_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
     AWS_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
-
+    # https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html
+    AWS_SESSION_PROFILE = 'YOUR-PROFILE-NAME'
     # Additionally, if you are not using the default AWS region of us-east-1,
     # you need to specify a region, like so:
     AWS_SES_REGION_NAME = 'us-west-2'

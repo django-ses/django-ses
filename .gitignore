@@ -8,3 +8,5 @@ dist/*
 .tox/*
 .idea
 .vscode/*
+#pyenv local 
+.python-version

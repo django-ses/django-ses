@@ -23,6 +23,24 @@ Fixes:
 
 ## Current
 
+**4.1.0**
+
+Adds support for AWS Session Profile with a new setting.
+
+This is a minor bump due to the new setting, it also changes the way the
+connection is initialized, see [here](https://github.com/django-ses/django-ses/pull/323/files#diff-0cbba929f061bb8c1faa375bac96beeb00879395919333f2c0a0791e8a9265a7R109).
+
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/323
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/322
+
+
+## Past
+
 **4.0.0**
 
 Drops support for Django 2 and python 3.7
@@ -30,8 +48,6 @@ Drops support for Django 2 and python 3.7
 Pulls:
   - https://github.com/django-ses/django-ses/pull/318
   - https://github.com/django-ses/django-ses/pull/321
-
-## Past
 
 **3.6.0**
 

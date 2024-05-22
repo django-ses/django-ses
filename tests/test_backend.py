@@ -78,6 +78,10 @@ class FakeSESConnection:
                 },
             }
 
+    @classmethod
+    def client(cls, *args, **kwargs):
+        return cls(args, kwargs)
+
 
 class FakeSESBackend(django_ses.SESBackend):
     """
@@ -88,12 +92,14 @@ class FakeSESBackend(django_ses.SESBackend):
     def get_rate_limit(self):
         return 10
 
+    def create_session(self) -> FakeSESConnection:
+        return FakeSESConnection
+
 
 class SESBackendTest(TestCase):
     def setUp(self):
         # TODO: Fix this -- this is going to cause side effects
-        django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
-        django_ses.boto3.client = FakeSESConnection
+        django_settings.EMAIL_BACKEND = "tests.test_backend.FakeSESBackend"
         self.outbox = FakeSESConnection.outbox
 
     def tearDown(self):
@@ -177,7 +183,6 @@ class SESV2BackendTest(TestCase):
         settings.USE_SES_V2 = True
         settings.AWS_SES_FROM_ARN = None
         settings.AWS_SES_SOURCE_ARN = None
-        django_ses.boto3.client = FakeSESConnection
         self.outbox = FakeSESConnection.outbox
 
     def tearDown(self):

@@ -1,11 +1,12 @@
 from django.conf import settings
 
-__all__ = ('ACCESS_KEY', 'SECRET_KEY', 'AWS_SES_REGION_NAME',
+__all__ = ('AWS_SESSION_PROFILE','ACCESS_KEY', 'SECRET_KEY', 'AWS_SES_REGION_NAME',
            'AWS_SES_REGION_ENDPOINT', 'AWS_SES_AUTO_THROTTLE',
            'AWS_SES_CONFIG',  'AWS_SES_RETURN_PATH',
            'DKIM_DOMAIN', 'DKIM_PRIVATE_KEY',
            'DKIM_SELECTOR', 'DKIM_HEADERS', 'TIME_ZONE')
 
+AWS_SESSION_PROFILE = getattr(settings, "AWS_SESSION_PROFILE", None)
 ACCESS_KEY = getattr(settings, 'AWS_SES_ACCESS_KEY_ID',
                      getattr(settings, 'AWS_ACCESS_KEY_ID', None))
 

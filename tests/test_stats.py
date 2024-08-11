@@ -1,9 +1,15 @@
 from datetime import datetime
 
-import pytz
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from django.test import TestCase
 
 from django_ses.views import emails_parse, stats_to_list, sum_stats
+
+UTC = ZoneInfo('UTC')
 
 # Mock of what boto's SESConnection.get_send_statistics() returns
 STATS_DICT = {
@@ -14,7 +20,7 @@ STATS_DICT = {
             'DeliveryAttempts': 11,
             'Rejects': 0,
             'Timestamp':
-                datetime(2011, 2, 28, 13, 50, tzinfo=pytz.utc),
+                datetime(2011, 2, 28, 13, 50, tzinfo=UTC),
         },
         {
             'Bounces': 1,
@@ -22,7 +28,7 @@ STATS_DICT = {
             'DeliveryAttempts': 3,
             'Rejects': 0,
             'Timestamp':
-                datetime(2011, 2, 24, 23, 35, tzinfo=pytz.utc),
+                datetime(2011, 2, 24, 23, 35, tzinfo=UTC),
         },
         {
             'Bounces': 0,
@@ -30,7 +36,7 @@ STATS_DICT = {
             'DeliveryAttempts': 8,
             'Rejects': 0,
             'Timestamp':
-                datetime(2011, 2, 24, 16, 35, tzinfo=pytz.utc),
+                datetime(2011, 2, 24, 16, 35, tzinfo=UTC),
         },
         {
             'Bounces': 0,
@@ -38,7 +44,7 @@ STATS_DICT = {
             'DeliveryAttempts': 33,
             'Rejects': 0,
             'Timestamp':
-                datetime(2011, 2, 25, 20, 35, tzinfo=pytz.utc),
+                datetime(2011, 2, 25, 20, 35, tzinfo=UTC),
         },
         {
             'Bounces': 0,
@@ -46,7 +52,7 @@ STATS_DICT = {
             'DeliveryAttempts': 3,
             'Rejects': 3,
             'Timestamp':
-                datetime(2011, 2, 28, 23, 35, tzinfo=pytz.utc),
+                datetime(2011, 2, 28, 23, 35, tzinfo=UTC),
         },
         {
             'Bounces': 0,
@@ -54,7 +60,7 @@ STATS_DICT = {
             'DeliveryAttempts': 2,
             'Rejects': 3,
             'Timestamp':
-                datetime(2011, 2, 25, 22, 50, tzinfo=pytz.utc),
+                datetime(2011, 2, 25, 22, 50, tzinfo=UTC),
         },
         {
             'Bounces': 0,
@@ -62,7 +68,7 @@ STATS_DICT = {
             'DeliveryAttempts': 6,
             'Rejects': 0,
             'Timestamp':
-                datetime(2011, 3, 1, 13, 20, tzinfo=pytz.utc),
+                datetime(2011, 3, 1, 13, 20, tzinfo=UTC),
         },
     ],
 }
@@ -100,7 +106,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 8,
                 'Rejects': 0,
                 'Timestamp':
-                    datetime(2011, 2, 24, 16, 35, tzinfo=pytz.utc),
+                    datetime(2011, 2, 24, 16, 35, tzinfo=UTC),
             },
             {
                 'Bounces': 1,
@@ -108,7 +114,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 3,
                 'Rejects': 0,
                 'Timestamp':
-                    datetime(2011, 2, 24, 23, 35, tzinfo=pytz.utc),
+                    datetime(2011, 2, 24, 23, 35, tzinfo=UTC),
             },
             {
                 'Bounces': 0,
@@ -116,7 +122,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 33,
                 'Rejects': 0,
                 'Timestamp':
-                    datetime(2011, 2, 25, 20, 35, tzinfo=pytz.utc),
+                    datetime(2011, 2, 25, 20, 35, tzinfo=UTC),
             },
             {
                 'Bounces': 0,
@@ -124,7 +130,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 2,
                 'Rejects': 3,
                 'Timestamp':
-                    datetime(2011, 2, 25, 22, 50, tzinfo=pytz.utc),
+                    datetime(2011, 2, 25, 22, 50, tzinfo=UTC),
             },
             {
                 'Bounces': 1,
@@ -132,7 +138,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 11,
                 'Rejects': 0,
                 'Timestamp':
-                    datetime(2011, 2, 28, 13, 50, tzinfo=pytz.utc),
+                    datetime(2011, 2, 28, 13, 50, tzinfo=UTC),
             },
             {
                 'Bounces': 0,
@@ -140,7 +146,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 3,
                 'Rejects': 3,
                 'Timestamp':
-                    datetime(2011, 2, 28, 23, 35, tzinfo=pytz.utc),
+                    datetime(2011, 2, 28, 23, 35, tzinfo=UTC),
             },
             {
                 'Bounces': 0,
@@ -148,7 +154,7 @@ class StatParsingTest(TestCase):
                 'DeliveryAttempts': 6,
                 'Rejects': 0,
                 'Timestamp':
-                    datetime(2011, 3, 1, 13, 20, tzinfo=pytz.utc),
+                    datetime(2011, 3, 1, 13, 20, tzinfo=UTC),
             },
         ]
         actual = stats_to_list(self.stats_dict, localize=False)

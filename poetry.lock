@@ -691,4 +691,4 @@ events = ["cryptography", "requests"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "e8bfd33da2312a13d93cde6ff83bff690fe196ceae5eae8ede01cb63074ea7e7"
+content-hash = "4b295d59aba47321f187e437ebd1c11716cd53bb74b7707d2bccd3b34e686c6b"

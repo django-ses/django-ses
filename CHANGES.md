@@ -23,6 +23,15 @@ Fixes:
 
 ## Current
 
+**4.1.1**
+
+Drop requirement for pytz
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/329
+
+## Past
+
 **4.1.0**
 
 Adds support for AWS Session Profile with a new setting.
@@ -37,9 +46,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/322
-
-
-## Past
 
 **4.0.0**
 

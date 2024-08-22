@@ -6,7 +6,12 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 import boto3
-import pytz
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -33,7 +38,7 @@ def superuser_only(view_func):
     return _inner
 
 
-def stats_to_list(stats_dict, localize=pytz):
+def stats_to_list(stats_dict, localize=True):
     """
     Parse the output of ``SESConnection.get_send_statistics()`` in to an
     ordered list of 15-minute summaries.
@@ -42,14 +47,14 @@ def stats_to_list(stats_dict, localize=pytz):
     result = copy.deepcopy(stats_dict)
     datapoints = []
     if localize:
-        current_tz = localize.timezone(settings.TIME_ZONE)
+        current_tz = ZoneInfo(settings.TIME_ZONE)
     else:
         current_tz = None
     for dp in result['SendDataPoints']:
         if current_tz:
             utc_dt = dp['Timestamp']
-            dp['Timestamp'] = current_tz.normalize(
-                utc_dt.astimezone(current_tz))
+            # normalisation isn't needed for zoneinfo
+            dp['Timestamp'] = utc_dt.astimezone(current_tz)
         datapoints.append(dp)
 
     datapoints.sort(key=lambda x: x['Timestamp'])

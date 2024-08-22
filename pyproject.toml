@@ -39,11 +39,11 @@ include = ["example", "tests"]
 [tool.poetry.dependencies]
 python = "^3.8"
 boto3 = ">=1.0.0"
-pytz = ">=2016.10"
 django = ">=3.2"
 importlib-metadata = {version = ">=1", python = "<3.8"}
+backports-zoneinfo = {version = ">=0.2.1", python = "<3.9"}
 cryptography = {version = ">=36.0.2", optional = true}
-requests = {version = ">=2.27.1", optional = true}
+requests = {version = ">=2.32.1", optional = true}
 
 [tool.poetry.extras]
 bounce =  ["requests", "cryptography"]

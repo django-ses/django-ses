@@ -1,10 +1,11 @@
 import datetime
+from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
 
 from django_ses.management.commands import get_ses_statistics as mod_get_ses_statistics
-from django_ses.models import SESStat
+from django_ses.models import BlacklistedEmail, SESStat
 
 data_points = [
     {
@@ -79,3 +80,58 @@ class SESCommandTest(TestCase):
         self.assertEqual(stat.delivery_attempts, 3)
         self.assertEqual(stat.bounces, 4)
         self.assertEqual(stat.rejects, 5)
+
+
+class BlacklistCommandRTest(TestCase):
+    def test_add_command(self):
+        blacklisted = BlacklistedEmail.objects.all().count()
+        self.assertEqual(blacklisted, 0)
+
+        call_command('blacklist', '--add', 'foo@bar.com')
+
+        blacklisted = BlacklistedEmail.objects.get(email='foo@bar.com')
+        self.assertEqual(blacklisted.email, 'foo@bar.com')
+
+    def test_delete_command(self):
+        BlacklistedEmail.objects.create(email='foo@bar.com')
+        BlacklistedEmail.objects.create(email='foo2@bar.com')
+        BlacklistedEmail.objects.create(email='foo3@bar.com')
+
+        blacklisted = BlacklistedEmail.objects.get(email='foo@bar.com')
+        self.assertEqual(blacklisted.email, 'foo@bar.com')
+
+        call_command('blacklist', '--delete', 'foo@bar.com')
+
+        blacklisted = BlacklistedEmail.objects.filter(email='foo@bar.com').count()
+        self.assertEqual(blacklisted, 0)
+
+        blacklisted = BlacklistedEmail.objects.all().count()
+        self.assertEqual(blacklisted, 2)
+
+    def test_list_command(self):
+        BlacklistedEmail.objects.create(email='foo@bar.com')
+        BlacklistedEmail.objects.create(email='foo2@bar.com')
+        BlacklistedEmail.objects.create(email='foo3@bar.com')
+
+        out = StringIO()
+        call_command('blacklist', '--list', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 3)
+        self.assertIn('foo@bar.com', lines)
+        self.assertIn('foo2@bar.com', lines)
+        self.assertIn('foo3@bar.com', lines)
+
+    def test_search_command(self):
+        BlacklistedEmail.objects.create(email='aaa@foo.com')
+        BlacklistedEmail.objects.create(email='aaa@bar.com')
+        BlacklistedEmail.objects.create(email='bbb@foo.com')
+        BlacklistedEmail.objects.create(email='bbb@bar.com')
+        BlacklistedEmail.objects.create(email='ccc@foo.com')
+        BlacklistedEmail.objects.create(email='ccc@bar.com')
+
+        out = StringIO()
+        call_command('blacklist', '--search', 'bbb', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 2)
+        self.assertIn('bbb@foo.com', lines)
+        self.assertIn('bbb@bar.com', lines)

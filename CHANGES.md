@@ -10,7 +10,7 @@ Pulls and Issues:
  - None
 
 Features:
-- None
+- Automatic handling of bounce and complaint events, managed with a blacklist
 
 Changes:
 - None
@@ -180,23 +180,23 @@ Pulls and Issues:
    - https://github.com/django-ses/django-ses/issues/176
 
 Features:
- - AWS certificates fetched by the notification verifier are now cached. 
-   Previously, each notification that you received and verified would perform 
+ - AWS certificates fetched by the notification verifier are now cached.
+   Previously, each notification that you received and verified would perform
    an HTTP GET to AWS to download the certificate. This was unnecessary and has
    been replaced with a simple in-memory cache.
- - The repository now uses poetry and a pyproject.toml file for dependency and 
-   metadata management. This fixes #232, and lands support for Python 3.10 
-   while tidying up a bunch of older Python files (setup.py, manifest.in, and 
+ - The repository now uses poetry and a pyproject.toml file for dependency and
+   metadata management. This fixes #232, and lands support for Python 3.10
+   while tidying up a bunch of older Python files (setup.py, manifest.in, and
    AUTHORS are all removed).
  - The README has been updated and simplified.
  - A new GitHub Action will auto-release tagged commits to PyPi.
- - Verification tests now verify their cryptographic functions against real 
+ - Verification tests now verify their cryptographic functions against real
    data and a real certificate.
 
 Changes:
  - The dependency on m2Crypto is removed and is replaced with the
    `cryptography` package. This simplifies the install and moves django-ses to
-   a more modern cryptography toolkit. If you previously had installed `SWIG` 
+   a more modern cryptography toolkit. If you previously had installed `SWIG`
    or `libssl-dev`, those dependencies are no longer needed for this package.
 
 Deprecations:
@@ -205,9 +205,9 @@ Deprecations:
 
 Fixes:
  - A hang was removed from the notification verifier by adding a `timeout`
-   parameter to the certificate download code. Without this timeout, [it was 
-   possible](https://github.com/psf/requests/issues/3070) for a broken 
-   connection to endlessly hang an application. 
+   parameter to the certificate download code. Without this timeout, [it was
+   possible](https://github.com/psf/requests/issues/3070) for a broken
+   connection to endlessly hang an application.
 
 ## Distant Past
 

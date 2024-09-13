@@ -138,6 +138,15 @@ class SESBackend(BaseEmailBackend):
         source = settings.AWS_SES_FROM_EMAIL
         email_feedback = settings.AWS_SES_RETURN_PATH
         for message in email_messages:
+            if settings.AWS_SES_USE_BLACKLIST:
+                from django_ses import utils
+                message.to = utils.filter_blacklisted_recipients(message.to)
+                message.cc = utils.filter_blacklisted_recipients(message.cc)
+                message.bcc = utils.filter_blacklisted_recipients(message.bcc)
+
+                if len(message.to) + len(message.cc) + len(message.bcc) == 0:
+                    return
+
             # SES Configuration sets. If the AWS_SES_CONFIGURATION_SET setting
             # is not None, append the appropriate header to the message so that
             # SES knows which configuration set it belongs to.

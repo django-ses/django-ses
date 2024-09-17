@@ -145,6 +145,7 @@ class SESBackend(BaseEmailBackend):
                 message.bcc = utils.filter_blacklisted_recipients(message.bcc)
 
                 if len(message.to) + len(message.cc) + len(message.bcc) == 0:
+                    logger.debug('Refusing to send email. All recipients were filtered by the blacklist')
                     return
 
             # SES Configuration sets. If the AWS_SES_CONFIGURATION_SET setting

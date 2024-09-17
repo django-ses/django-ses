@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 from django.core.management.base import BaseCommand
+from django.core.paginator import Paginator
 
 from django_ses import models
 
@@ -37,6 +38,20 @@ def _add_options(target):
             default=False,
             help='Search for blacklisted emails'
         ),
+        target(
+            '--page',
+            dest='page',
+            default=1,
+            type=int,
+            help='Page in the results. Starts at 1.'
+        ),
+        target(
+            '--limit',
+            dest='limit',
+            default=1000,
+            type=int,
+            help='Number of displayed emails per page. Use 0 for unlimited.'
+        )
     )
 
 
@@ -47,7 +62,8 @@ class Command(BaseCommand):
         _add_options(parser.add_argument)
 
     def handle(self, *args, verbosity=0, email_to_add='', email_to_delete='',
-               list_emails='', search_email='', **options):
+               list_emails='', search_email='', page=1,
+               limit=1000, **options):
         if email_to_add:
             if verbosity != '0':
                 self.stdout.write(f"Adding email: {email_to_add}")
@@ -59,10 +75,23 @@ class Command(BaseCommand):
         elif list_emails:
             if verbosity != '0':
                 self.stdout.write("Listing blacklisted emails:")
-            for obj in models.BlacklistedEmail.objects.all():
+
+            objs = models.BlacklistedEmail.objects.all()
+
+            if limit > 0:
+                paginator = Paginator(objs, per_page=limit)
+                objs = paginator.page(page).object_list
+
+            for obj in objs:
                 self.stdout.write(obj.email)
         elif search_email:
             if verbosity != '0':
                 self.stdout.write("Searching blacklisted emails:")
-            for obj in models.BlacklistedEmail.objects.filter(email__icontains=search_email):
+            objs = models.BlacklistedEmail.objects.filter(email__icontains=search_email)
+
+            if limit > 0:
+                paginator = Paginator(objs, per_page=limit)
+                objs = paginator.page(page).object_list
+
+            for obj in objs:
                 self.stdout.write(obj.email)

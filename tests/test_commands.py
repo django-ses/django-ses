@@ -121,6 +121,38 @@ class BlacklistCommandRTest(TestCase):
         self.assertIn('foo2@bar.com', lines)
         self.assertIn('foo3@bar.com', lines)
 
+    def test_list_command_pagination(self):
+        for i in range(55):
+            BlacklistedEmail.objects.create(email=f'foo{i}@bar.com')
+
+        out = StringIO()
+        call_command('blacklist', '--list', '--page', '1', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 10)
+        for i in range(10):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--list', '--page', '2', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 10)
+        for i in range(10, 20):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--list', '--page', '6', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 5)
+        for i in range(50, 55):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--list', '--limit', '0', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 55)
+        for i in range(55):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
     def test_search_command(self):
         BlacklistedEmail.objects.create(email='aaa@foo.com')
         BlacklistedEmail.objects.create(email='aaa@bar.com')
@@ -135,3 +167,35 @@ class BlacklistCommandRTest(TestCase):
         self.assertEqual(len(lines), 2)
         self.assertIn('bbb@foo.com', lines)
         self.assertIn('bbb@bar.com', lines)
+
+    def test_search_command_pagination(self):
+        for i in range(55):
+            BlacklistedEmail.objects.create(email=f'foo{i}@bar.com')
+
+        out = StringIO()
+        call_command('blacklist', '--search', 'foo', '--page', '1', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 10)
+        for i in range(10):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--search', 'foo', '--page', '2', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 10)
+        for i in range(10, 20):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--search', 'foo', '--page', '6', '--limit', '10', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 5)
+        for i in range(50, 55):
+            self.assertIn(f'foo{i}@bar.com', lines)
+
+        out = StringIO()
+        call_command('blacklist', '--search', 'foo', '--limit', '0', stdout=out)
+        lines = out.getvalue().strip().splitlines()[1:]
+        self.assertEqual(len(lines), 55)
+        for i in range(55):
+            self.assertIn(f'foo{i}@bar.com', lines)

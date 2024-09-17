@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
@@ -12,21 +11,21 @@ def _add_options(target):
         target(
             '-a',
             '--add',
-            dest='add',
+            dest='email_to_add',
             default=False,
             help='Adds an email to your blacklist'
         ),
         target(
             '-d',
             '--delete',
-            dest='delete',
+            dest='email_to_delete',
             default=False,
             help='Removes an email from your blacklist'
         ),
         target(
             '-l',
             '--list',
-            dest='list',
+            dest='list_emails',
             default=False,
             action='store_true',
             help='Outputs all blacklisted emails'
@@ -34,7 +33,7 @@ def _add_options(target):
         target(
             '-s',
             '--search',
-            dest='search',
+            dest='search_email',
             default=False,
             help='Search for blacklisted emails'
         ),
@@ -44,21 +43,11 @@ def _add_options(target):
 class Command(BaseCommand):
     """Add, delete or list blacklisted email addresses"""
 
-    if hasattr(BaseCommand, 'option_list'):
-        # Django < 1.10
-        option_list = BaseCommand.option_list + _add_options(make_option)
-    else:
-        # Django >= 1.10
-        def add_arguments(self, parser):
-            _add_options(parser.add_argument)
+    def add_arguments(self, parser):
+        _add_options(parser.add_argument)
 
-    def handle(self, *args, **options):
-        verbosity = options.get('verbosity', 0)
-        email_to_add = options.get('add', '')
-        email_to_delete = options.get('delete', '')
-        list_emails = options.get('list', False)
-        search_email = options.get('search', '')
-
+    def handle(self, *args, verbosity=0, email_to_add='', email_to_delete='',
+               list_emails='', search_email='', **options):
         if email_to_add:
             if verbosity != '0':
                 self.stdout.write(f"Adding email: {email_to_add}")

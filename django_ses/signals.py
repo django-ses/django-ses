@@ -12,7 +12,7 @@ click_received = Signal()
 
 
 def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
-    if not settings.AWS_SES_ENABLE_BOUNCE_BLACKLIST:
+    if not settings.AWS_SES_ADD_BOUNCE_TO_BLACKLIST:
         return
 
     from django_ses.utils import get_permanent_bounced_emails_from_bounce_obj
@@ -22,7 +22,7 @@ def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):
 
 
 def complaint_handler(sender, mail_obj, complaint_obj, raw_message, *args, **kwargs):
-    if not settings.AWS_SES_ENABLE_COMPLAINT_BLACKLIST:
+    if not settings.AWS_SES_ADD_COMPLAINT_TO_BLACKLIST:
         return
 
     from django_ses.utils import get_emails_from_complaint_obj

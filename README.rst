@@ -155,7 +155,7 @@ Using signal 'bounce_received' for manager bounce email. For example::
 The most common use case for irrecoverable bounces (status ``5xx``) is to add the
 email(s) that caused the bounce to a blacklist in order to avoid sending more
 emails and triggering more bounces. ``django-ses`` provides a builtin blacklist
-that does this. Check ``AWS_SES_ENABLE_BOUNCE_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
+that does this. Check ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Complaint
 ---------
@@ -172,7 +172,7 @@ Using signal 'complaint_received' for manager complaint email. For example::
 The most common use case for complaints is to add the email(s) that caused the
 complaint to a blacklist in order to avoid sending more emails and triggering
 more complaints. ``django-ses`` provides a builtin blacklist that does this.
-Check ``AWS_SES_ENABLE_COMPLAINT_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
+Check ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Send
 ----
@@ -557,12 +557,12 @@ Full List of Settings
 ``EVENT_CERT_DOMAINS``, ``BOUNCE_CERT_DOMAINS``
   Optional. Default is 'amazonaws.com' and 'amazon.com'.
 
-``AWS_SES_ENABLE_BOUNCE_BLACKLIST``
+``AWS_SES_ADD_BOUNCE_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered an
   irrecoverable bounce (status in the ``5xx`` range) will be added to the
   blacklist.
 
-``AWS_SES_ENABLE_COMPLAINT_BLACKLIST``
+``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered a complaint
   will be added to the blacklist.
 

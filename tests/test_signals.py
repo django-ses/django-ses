@@ -21,7 +21,7 @@ class SignalsTestCase(TestCase):
         self.assertEqual(count, 0)
 
         # ... but after enabling the feature...
-        settings.AWS_SES_ENABLE_BOUNCE_BLACKLIST = True
+        settings.AWS_SES_ADD_BOUNCE_TO_BLACKLIST = True
 
         # ... it should inser the email in the blacklist
         signals.bounce_handler(None, mail_obj, bounce_obj, notification)
@@ -41,7 +41,7 @@ class SignalsTestCase(TestCase):
         self.assertEqual(count, 0)
 
         # ... but after enabling the feature...
-        settings.AWS_SES_ENABLE_COMPLAINT_BLACKLIST = True
+        settings.AWS_SES_ADD_COMPLAINT_TO_BLACKLIST = True
 
         # ... it should inser the email in the blacklist
         signals.complaint_handler(None, mail_obj, complaint_obj, notification)

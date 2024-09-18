@@ -3,7 +3,7 @@
 import email
 
 from django.conf import settings as django_settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.test import TestCase
 from django.utils.encoding import smart_str
 
@@ -57,6 +57,7 @@ class FakeSESConnection:
     """
     outbox = []
 
+    """Override `SESConnection.__init__ to skip session creation."""
     def __init__(self, *args, **kwargs):
         pass
 
@@ -153,6 +154,29 @@ class SESBackendTest(TestCase):
         # It should have sent the email because even if 'xyz@bar.com' is
         # blacklisted, AWS_SES_USE_BLACKLIST is set to False
         self.assertEqual(len_queue + 1, len(self.outbox))
+
+    def test_send_mail_to_cc_bcc_when_blacklisted(self):
+        settings.AWS_SES_USE_BLACKLIST = True
+        models.BlacklistedEmail.objects.create(email='foo1@bar.com')
+        models.BlacklistedEmail.objects.create(email='foo2@bar.com')
+
+        len_queue = len(self.outbox)
+        email = EmailMessage(
+            subject='Hello',
+            body='world',
+            from_email='from@email.com',
+            to=['foo@bar.com'],
+            bcc=['foo1@bar.com', 'foo3@bar.com'],
+            cc=['foo2@bar.com', 'foo4@bar.com']
+        )
+        email.send()
+
+        self.assertEqual(len_queue + 1, len(self.outbox))
+        destinations = self.outbox[0].get('Destinations')
+        self.assertEqual(len(destinations), 3)
+        self.assertIn('foo@bar.com', destinations)
+        self.assertIn('foo3@bar.com', destinations)
+        self.assertIn('foo4@bar.com', destinations)
 
     def test_send_mail_unicode_body(self):
         settings.AWS_SES_CONFIGURATION_SET = None

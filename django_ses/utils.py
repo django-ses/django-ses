@@ -331,10 +331,7 @@ def filter_blacklisted_recipients(addresses):
     if isinstance(addresses, str):
         addresses = [addresses]
 
-    filtered_addresses = []
-    for recipient in addresses:
-        addr = parseaddr(recipient)[1].lower()
-        if models.BlacklistedEmail.objects.filter(email=addr).exists():
-            continue
-        filtered_addresses.append(recipient)
-    return filtered_addresses
+    emails = [parseaddr(recipient)[1].lower() for recipient in addresses]
+    qs = models.BlacklistedEmail.objects.filter(email__in=emails)
+    excluded_emails = set(qs.values_list("email", flat=True))
+    return [email for email in emails if email not in excluded_emails]

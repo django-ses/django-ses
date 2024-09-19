@@ -560,11 +560,11 @@ Full List of Settings
 ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered an
   irrecoverable bounce (status in the ``5xx`` range) will be added to the
-  blacklist.
+  blacklist. Note that emails will be stored in lowercase.
 
 ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered a complaint
-  will be added to the blacklist.
+  will be added to the blacklist. Note that emails will be stored in lowercase.
 
 ``AWS_SES_USE_BLACKLIST``
   If set to ``True`` (default ``False``), calls to the ``send_mail()`` method will

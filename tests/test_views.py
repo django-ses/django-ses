@@ -6,6 +6,7 @@ try:
 except ImportError:
     import mock
 
+import django
 from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 
@@ -112,7 +113,19 @@ class HandleBounceTestCaseWithBL(TransactionTestCase):
         # moment.
         mock_func = mock.MagicMock()
         receiver = bounce_received.receivers[0]
-        receiver = (receiver[0], weakref.ref(mock_func))
+
+        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
+        # ones as well. This caused the receivers structure to change:
+        #
+        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
+        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
+        #
+        # We must account for that difference and prepare a tuple that will
+        # match the expected signature.
+        if django.VERSION[0] < 5:
+            receiver = (receiver[0], weakref.ref(mock_func))
+        else:
+            receiver = (receiver[0], weakref.ref(mock_func), False)
         bounce_received.receivers[0] = receiver
         response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
                                     content_type="application/json")
@@ -136,7 +149,20 @@ class HandleBounceTestCaseWithBL(TransactionTestCase):
         # moment.
         mock_func = mock.MagicMock()
         receiver = complaint_received.receivers[0]
-        receiver = (receiver[0], weakref.ref(mock_func))
+
+        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
+        # ones as well. This caused the receivers structure to change:
+        #
+        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
+        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
+        #
+        # We must account for that difference and prepare a tuple that will
+        # match the expected signature.
+        if django.VERSION[0] < 5:
+            receiver = (receiver[0], weakref.ref(mock_func))
+        else:
+            receiver = (receiver[0], weakref.ref(mock_func), False)
+
         complaint_received.receivers[0] = receiver
         response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
                                     content_type="application/json")

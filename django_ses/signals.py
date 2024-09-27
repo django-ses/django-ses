@@ -37,10 +37,7 @@ def _blacklist_recipients(recipients):
         ], ignore_conflicts=True)
     except Exception:
         for email in recipients:
-            try:
-                models.BlacklistedEmail.objects.get_or_create(email=email)
-            except Exception:
-                pass
+            models.BlacklistedEmail.objects.get_or_create(email=email)
 
 
 def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):

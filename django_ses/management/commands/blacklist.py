@@ -76,7 +76,7 @@ class Command(BaseCommand):
             if verbosity != '0':
                 self.stdout.write("Listing blacklisted emails:")
 
-            objs = models.BlacklistedEmail.objects.all()
+            objs = models.BlacklistedEmail.objects.all().order_by("pk")
 
             if limit > 0:
                 paginator = Paginator(objs, per_page=limit)
@@ -87,7 +87,8 @@ class Command(BaseCommand):
         elif search_email:
             if verbosity != '0':
                 self.stdout.write("Searching blacklisted emails:")
-            objs = models.BlacklistedEmail.objects.filter(email__icontains=search_email)
+            objs = models.BlacklistedEmail.objects.filter(
+                email__icontains=search_email).order_by("pk")
 
             if limit > 0:
                 paginator = Paginator(objs, per_page=limit)

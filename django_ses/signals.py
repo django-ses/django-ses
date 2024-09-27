@@ -1,3 +1,4 @@
+from django.db import NotSupportedError
 from django.dispatch import Signal
 
 from django_ses import models, settings
@@ -35,7 +36,7 @@ def _blacklist_recipients(recipients):
         models.BlacklistedEmail.objects.bulk_create([
             models.BlacklistedEmail(email=email) for email in unblacklisted_emails
         ], ignore_conflicts=True)
-    except Exception:
+    except NotSupportedError: # Oracle doesn't support "ignore_conflicts"
         for email in recipients:
             models.BlacklistedEmail.objects.get_or_create(email=email)
 

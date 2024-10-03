@@ -1,13 +1,16 @@
 import json
+import weakref
 
 try:
     from unittest import mock
 except ImportError:
     import mock
 
-from django.test import TestCase
+import django
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 
+from django_ses import settings
 from django_ses import utils as ses_utils
 from django_ses.signals import (
     bounce_received,
@@ -17,132 +20,14 @@ from django_ses.signals import (
     open_received,
     send_received,
 )
-
-
-def get_mock_email():
-    return {
-        "timestamp": "2012-05-25T14:59:38.623-07:00",
-        "messageId": "000001378603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000",
-        "source": "sender@example.com",
-        "destination": [
-            "recipient1@example.com",
-            "recipient2@example.com",
-            "recipient3@example.com",
-            "recipient4@example.com"
-        ]
-    }
-
-
-def get_mock_notification(message):
-    return {
-        "Type": "Notification",
-        "MessageId": "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
-        "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
-        "Subject": "Amazon SES Email Event Notification",
-        "Message": json.dumps(message),
-        "Timestamp": "2012-05-02T00:54:06.655Z",
-        "SignatureVersion": "1",
-        "Signature": "",
-        "SigningCertURL": "",
-        "UnsubscribeURL": ""
-    }
-
-
-def get_mock_bounce(type_specifier):
-    mail = get_mock_email()
-    bounce = {
-        "bounceType": "Permanent",
-        "bounceSubType": "General",
-        "bouncedRecipients": [
-            {
-                "status": "5.0.0",
-                "action": "failed",
-                "diagnosticCode": "smtp; 550 user unknown",
-                "emailAddress": "recipient1@example.com",
-            },
-            {
-                "status": "4.0.0",
-                "action": "delayed",
-                "emailAddress": "recipient2@example.com",
-            }
-        ],
-        "reportingMTA": "example.com",
-        "timestamp": "2012-05-25T14:59:38.605-07:00",
-        "feedbackId": "000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
-    }
-
-    message = {
-        type_specifier: "Bounce",
-        "mail": mail,
-        "bounce": bounce,
-    }
-    notification = get_mock_notification(message)
-    return mail, bounce, notification
-
-
-def get_mock_send():
-    mail = get_mock_email()
-    send = {}
-    message = {
-        "eventType": "Send",
-        "mail": mail,
-        "send": send,
-    }
-    notification = get_mock_notification(message)
-    return mail, send, notification
-
-
-def get_mock_delivery():
-    mail = get_mock_email()
-    delivery = {
-        "timestamp": "2021-01-26T14:38:39.270Z",
-        "processingTimeMillis": 1796,
-        "recipients": ["recipient1@example.com"],
-        "smtpResponse": "",
-        "reportingMTA": ""
-    }
-    message = {
-        "eventType": "Delivery",
-        "mail": mail,
-        "delivery": delivery,
-    }
-    notification = get_mock_notification(message)
-    return mail, delivery, notification
-
-
-def get_mock_open():
-    mail = get_mock_email()
-    open = {
-        "timestamp": "2021-01-26T14:38:52.115Z",
-        "userAgent": "Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)",
-        "ipAddress": "11.111.11.111"
-    }
-    message = {
-        "eventType": "Open",
-        "mail": mail,
-        "open": open,
-    }
-    notification = get_mock_notification(message)
-    return mail, open, notification
-
-
-def get_mock_click():
-    mail = get_mock_email()
-    click = {
-        "timestamp": "2021-01-26T14:38:55.540Z",
-        "ipAddress": "11.111.11.111",
-        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) "
-                     "Version/14.0 Safari/605.1.15",
-        "link": "github.com/django-ses/django-ses",
-        "linkTags": None
-    }
-    message = {
-        "eventType": "Click",
-        "mail": mail,
-        "click": click,
-    }
-    notification = get_mock_notification(message)
-    return mail, click, notification
+from tests.mocks import (
+    get_mock_bounce,
+    get_mock_click,
+    get_mock_complaint,
+    get_mock_delivery,
+    get_mock_open,
+    get_mock_send,
+)
 
 
 class HandleBounceTestCase(TestCase):
@@ -205,6 +90,84 @@ class HandleBounceTestCase(TestCase):
                                         content_type="application/json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
+
+
+# We're using a TransactionTestCase instead of a TestCase because we want to
+# avoid using transactions. Calls to atomic() will disconnect the signal
+# handlers, which is exactly what we're trying to test here.
+class HandleBounceTestCaseWithBL(TransactionTestCase):
+    def test_bounce_event_can_perform_blacklist(self):
+        """
+        Test if bounce events result in blacklisted emails (if the feature has
+        been enabled)
+        """
+
+        settings.VERIFY_BOUNCE_SIGNATURES = False
+
+        mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
+
+        # We can't use mock.patch("django_ses.signals.bounce_handler") here
+        # because the signal gets registered way before this code is executed.
+        # We would be late even if we tried to patch it in the setUp() method.
+        # The only way is to patch the actual .receivers prop at "this" exact
+        # moment.
+        mock_func = mock.MagicMock()
+        receiver = bounce_received.receivers[0]
+
+        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
+        # ones as well. This caused the receivers structure to change:
+        #
+        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
+        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
+        #
+        # We must account for that difference and prepare a tuple that will
+        # match the expected signature.
+        if django.VERSION[0] < 5:
+            receiver = (receiver[0], weakref.ref(mock_func))
+        else:
+            receiver = (receiver[0], weakref.ref(mock_func), False)
+        bounce_received.receivers[0] = receiver
+        response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(mock_func.call_count, 1)
+
+    def test_complaint_event_can_perform_blacklist(self):
+        """
+        Test if complaint events result in blacklisted emails (if the feature
+        has been enabled)
+        """
+
+        settings.VERIFY_BOUNCE_SIGNATURES = False
+
+        mail_obj, complaint_obj, notification = get_mock_complaint("eventType")
+
+        # We can't use mock.patch("django_ses.signals.complaint_handler") here
+        # because the signal gets registered way before this code is executed.
+        # We would be late even if we tried to patch it in the setUp() method.
+        # The only way is to patch the actual .receivers prop at "this" exact
+        # moment.
+        mock_func = mock.MagicMock()
+        receiver = complaint_received.receivers[0]
+
+        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
+        # ones as well. This caused the receivers structure to change:
+        #
+        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
+        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
+        #
+        # We must account for that difference and prepare a tuple that will
+        # match the expected signature.
+        if django.VERSION[0] < 5:
+            receiver = (receiver[0], weakref.ref(mock_func))
+        else:
+            receiver = (receiver[0], weakref.ref(mock_func), False)
+
+        complaint_received.receivers[0] = receiver
+        response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(mock_func.call_count, 1)
 
 
 class HandleEventTestCase(TestCase):

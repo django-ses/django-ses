@@ -3,12 +3,12 @@
 import email
 
 from django.conf import settings as django_settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.test import TestCase
 from django.utils.encoding import smart_str
 
 import django_ses
-from django_ses import settings
+from django_ses import models, settings
 
 # random key generated with `openssl genrsa 512`
 DKIM_PRIVATE_KEY = '''
@@ -57,8 +57,9 @@ class FakeSESConnection:
     """
     outbox = []
 
+    """Override `SESConnection.__init__ to skip session creation."""
     def __init__(self, *args, **kwargs):
-        self.outbox.append(kwargs)
+        pass
 
     def send_raw_email(self, **kwargs):
         self.outbox.append(kwargs)
@@ -131,6 +132,51 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['from'], self._rfc2047_helper(from_addr))
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
+
+    def test_send_mail_when_blacklisted(self):
+        settings.AWS_SES_USE_BLACKLIST = True
+
+        len_queue = len(self.outbox)
+        send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
+        # It should have sent the email because 'xyz@bar.com' is not blacklisted
+        self.assertEqual(len_queue + 1, len(self.outbox))
+
+        models.BlacklistedEmail.objects.create(email='xyz@bar.com')
+
+        len_queue = len(self.outbox)
+        send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
+        # It shouldn't have sent the email because 'xyz@bar.com' is blacklisted
+        self.assertEqual(len_queue, len(self.outbox))
+
+        settings.AWS_SES_USE_BLACKLIST = False
+        len_queue = len(self.outbox)
+        send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
+        # It should have sent the email because even if 'xyz@bar.com' is
+        # blacklisted, AWS_SES_USE_BLACKLIST is set to False
+        self.assertEqual(len_queue + 1, len(self.outbox))
+
+    def test_send_mail_to_cc_bcc_when_blacklisted(self):
+        settings.AWS_SES_USE_BLACKLIST = True
+        models.BlacklistedEmail.objects.create(email='foo1@bar.com')
+        models.BlacklistedEmail.objects.create(email='foo2@bar.com')
+
+        len_queue = len(self.outbox)
+        email = EmailMessage(
+            subject='Hello',
+            body='world',
+            from_email='from@email.com',
+            to=['foo@bar.com'],
+            bcc=['foo1@bar.com', 'foo3@bar.com'],
+            cc=['foo2@bar.com', 'foo4@bar.com']
+        )
+        email.send()
+
+        self.assertEqual(len_queue + 1, len(self.outbox))
+        destinations = self.outbox[0].get('Destinations')
+        self.assertEqual(len(destinations), 3)
+        self.assertIn('foo@bar.com', destinations)
+        self.assertIn('foo3@bar.com', destinations)
+        self.assertIn('foo4@bar.com', destinations)
 
     def test_send_mail_unicode_body(self):
         settings.AWS_SES_CONFIGURATION_SET = None

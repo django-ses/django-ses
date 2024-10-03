@@ -3,13 +3,14 @@ import logging
 import re
 import warnings
 from builtins import bytes
+from email.utils import parseaddr
 from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from django.core.exceptions import ImproperlyConfigured
 
-from django_ses import settings
+from django_ses import models, settings
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
 logger = logging.getLogger(__name__)
@@ -308,3 +309,29 @@ def confirm_sns_subscription(notification):
             },
             exc_info=True,
         )
+
+
+def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
+    """Extracts permanent bounced email addresses only as a list of strings.
+    https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#bounce-object
+    """
+    bounced_recipients = bounce_obj.get("bouncedRecipients", list())
+    return [br.get("emailAddress") for br in bounced_recipients if br.get("status").startswith("5")]
+
+
+def get_emails_from_complaint_obj(complaint_obj: dict) -> list:
+    """Extracts complaint email addresses from complaint_obj
+    https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#complaint-object
+    """
+    return [cr.get("emailAddress") for cr in complaint_obj.get("complainedRecipients", list())]
+
+
+def filter_blacklisted_recipients(addresses):
+    """Remove blacklisted emails from addresses"""
+    if isinstance(addresses, str):
+        addresses = [addresses]
+
+    emails = [parseaddr(recipient)[1].lower() for recipient in addresses]
+    qs = models.BlacklistedEmail.objects.filter(email__in=emails)
+    excluded_emails = set(qs.values_list("email", flat=True))
+    return [email for email in emails if email not in excluded_emails]

@@ -152,6 +152,11 @@ Using signal 'bounce_received' for manager bounce email. For example::
         print("This is bounce email object")
         print(mail_obj)
 
+The most common use case for irrecoverable bounces (status ``5xx``) is to add the
+email(s) that caused the bounce to a blacklist in order to avoid sending more
+emails and triggering more bounces. ``django-ses`` provides a builtin blacklist
+that does this. Check ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
+
 Complaint
 ---------
 Using signal 'complaint_received' for manager complaint email. For example::
@@ -163,6 +168,11 @@ Using signal 'complaint_received' for manager complaint email. For example::
     @receiver(complaint_received)
     def complaint_handler(sender, mail_obj, complaint_obj, raw_message,  *args, **kwargs):
         ...
+
+The most common use case for complaints is to add the email(s) that caused the
+complaint to a blacklist in order to avoid sending more emails and triggering
+more complaints. ``django-ses`` provides a builtin blacklist that does this.
+Check ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Send
 ----
@@ -211,7 +221,7 @@ Using signal 'click_received' for manager send email. For example::
     @receiver(click_received)
     def click_handler(sender, mail_obj, raw_message, *args, **kwargs):
         ...
-        
+
 Testing Signals
 ===============
 
@@ -443,6 +453,13 @@ If you want to keep your statistics up to date, setup ``cron`` to run this
 command a short time after midnight (UTC) daily.
 
 
+Managing the blacklist
+-----------------------------
+
+To manage the blacklist (add, remote, list), run:
+
+    python manage.py blacklist
+
 Django Builtin-in Error Emails
 ==============================
 
@@ -491,12 +508,12 @@ Full List of Settings
   http://docs.aws.amazon.com/general/latest/gr/rande.html
 
 ``USE_SES_V2``
-  Optional. If you want to use client v2, you'll need to add `USE_SES_V2=True`. 
+  Optional. If you want to use client v2, you'll need to add `USE_SES_V2=True`.
   Some settings will need this flag enabled.
   See https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#id87
 
 ``AWS_SES_FROM_EMAIL``
-  Optional. The email address to be used as the "From" address for the email. The address that you specify has to be verified.  
+  Optional. The email address to be used as the "From" address for the email. The address that you specify has to be verified.
   For more information please refer to https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.send_email
 
 ``AWS_SES_RETURN_PATH``
@@ -539,6 +556,20 @@ Full List of Settings
 
 ``EVENT_CERT_DOMAINS``, ``BOUNCE_CERT_DOMAINS``
   Optional. Default is 'amazonaws.com' and 'amazon.com'.
+
+``AWS_SES_ADD_BOUNCE_TO_BLACKLIST``
+  If set to ``True`` (default ``False``) email addresses that triggered an
+  irrecoverable bounce (status in the ``5xx`` range) will be added to the
+  blacklist. Note that emails will be stored in lowercase.
+
+``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST``
+  If set to ``True`` (default ``False``) email addresses that triggered a complaint
+  will be added to the blacklist. Note that emails will be stored in lowercase.
+
+``AWS_SES_USE_BLACKLIST``
+  If set to ``True`` (default ``False``), calls to the ``send_mail()`` method will
+  cause the recipients to be filtered using the blacklist. Any recipient that
+  exists in the blacklist will be removed from the email.
 
 .. _pydkim: http://hewgill.com/pydkim/
 

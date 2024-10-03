@@ -14,3 +14,10 @@ class SESStat(models.Model):
 
     def __str__(self):
         return self.date.strftime("%Y-%m-%d")
+
+
+class BlacklistedEmail(models.Model):
+    email = models.EmailField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.email

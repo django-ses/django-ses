@@ -10,7 +10,7 @@ Pulls and Issues:
  - None
 
 Features:
-- Automatic handling of bounce and complaint events, managed with a blacklist
+- None
 
 Changes:
 - None
@@ -23,14 +23,21 @@ Fixes:
 
 ## Current
 
+**4.2.0**
+
+Automatic handling of bounce and complaint events, managed with a blacklist
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/331
+
+## Past
+
 **4.1.1**
 
 Drop requirement for pytz
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/329
-
-## Past
 
 **4.1.0**
 

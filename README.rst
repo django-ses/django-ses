@@ -208,7 +208,7 @@ Using signal 'open_received' for manager open email. For example::
 
 
     @receiver(open_received)
-    def open_handler(sender, mail_obj, raw_message, *args, **kwargs):
+    def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
         ...
 
 Click
@@ -220,7 +220,7 @@ Using signal 'click_received' for manager send email. For example::
 
 
     @receiver(click_received)
-    def click_handler(sender, mail_obj, raw_message, *args, **kwargs):
+    def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
         ...
 
 Testing Signals

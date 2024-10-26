@@ -113,11 +113,12 @@ To set this up, install `django-ses` with the `events` extra::
 
 Then add a event url handler in your `urls.py`::
 
+    from django.urls import re_path
     from django_ses.views import SESEventWebhookView
     from django.views.decorators.csrf import csrf_exempt
     urlpatterns = [ ...
-                    url(r'^ses/event-webhook/$', SESEventWebhookView.as_view(), name='handle-event-webhook'),
-                    ...
+            re_path(r'^ses/event-webhook/$', SESEventWebhookView.as_view(), name='handle-event-webhook'),
+            ...
     ]
 
 SESEventWebhookView handles bounce, complaint, send, delivery, open and click events.
@@ -207,7 +208,7 @@ Using signal 'open_received' for manager open email. For example::
 
 
     @receiver(open_received)
-    def open_handler(sender, mail_obj, raw_message, *args, **kwargs):
+    def open_handler(sender, mail_obj, open_obj, raw_message, *args, **kwargs):
         ...
 
 Click
@@ -219,7 +220,7 @@ Using signal 'click_received' for manager send email. For example::
 
 
     @receiver(click_received)
-    def click_handler(sender, mail_obj, raw_message, *args, **kwargs):
+    def click_handler(sender, mail_obj, click_obj, raw_message, *args, **kwargs):
         ...
 
 Testing Signals

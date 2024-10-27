@@ -10,6 +10,7 @@ delivery_received = Signal()
 send_received = Signal()
 open_received = Signal()
 click_received = Signal()
+inbound_received = Signal()
 
 
 def _blacklist_recipients(recipients):

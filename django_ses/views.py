@@ -456,6 +456,8 @@ class SESEventWebhookView(View):
                     self.handle_open(notification, message)
                 elif event_type == 'Click':
                     self.handle_click(notification, message)
+                elif event_type == 'Received':
+                    self.handle_received(notification, message)
                 else:
                     self.handle_unknown_event_type(notification, message)
         else:
@@ -536,6 +538,28 @@ class SESEventWebhookView(View):
             notification=notification,
             message=message
         )
+
+    def handle_received(self, notification, message):
+        mail_obj = message.get('mail')
+        content = message.get('content')
+        receipt = message.get('receipt')
+
+        # Logging
+        logger.info(
+            'Received inbound notification',
+            extra={
+                'notification': notification,
+            },
+        )
+
+        signal_kwargs = dict(
+            sender=self._handle_event,
+            mail_obj=mail_obj,
+            content=content,
+            receipt=receipt,
+            raw_message=self.request.body,
+        )
+        signals.inbound_received.send(**signal_kwargs)
 
     def _handle_event(self, event_name, signal, notification, message):
         mail_obj = message.get('mail')

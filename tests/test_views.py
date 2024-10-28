@@ -17,6 +17,7 @@ from django_ses.signals import (
     click_received,
     complaint_received,
     delivery_received,
+    inbound_received,
     open_received,
     send_received,
 )
@@ -26,6 +27,7 @@ from tests.mocks import (
     get_mock_complaint,
     get_mock_delivery,
     get_mock_open,
+    get_mock_received_sns,
     get_mock_send,
 )
 
@@ -310,6 +312,29 @@ class HandleEventTestCase(TestCase):
             self.assertEqual(raw_message, json.dumps(notification).encode())
         _handler.call_count = 0
         click_received.connect(_handler)
+
+        # Mock the verification
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                        content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(_handler.call_count, 1)
+
+    def test_handle_received_event(self):
+        """
+        Test handling a received event request.
+        """
+        req_mail_obj, req_content, req_receipt_obj, notification = get_mock_received_sns()
+
+        def _handler(sender, mail_obj, content, receipt, raw_message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(req_mail_obj, mail_obj)
+            self.assertEqual(req_content, content)
+            self.assertEqual(req_receipt_obj, receipt)
+            self.assertEqual(raw_message, json.dumps(notification).encode())
+        _handler.call_count = 0
+        inbound_received.connect(_handler)
 
         # Mock the verification
         with mock.patch.object(ses_utils, "verify_event_message") as verify:

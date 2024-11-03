@@ -1,4 +1,5 @@
 import copy
+import importlib
 import json
 import logging
 import warnings
@@ -23,6 +24,7 @@ from django.views.generic.base import TemplateView, View
 
 from django_ses import settings, signals, utils
 from django_ses.deprecation import RemovedInDjangoSES20Warning
+from django_ses.inbound import UnprocessableError
 
 logger = logging.getLogger(__name__)
 
@@ -552,13 +554,46 @@ class SESEventWebhookView(View):
             },
         )
 
-        signal_kwargs = dict(
-            sender=self._handle_event,
-            mail_obj=mail_obj,
-            content=content,
-            receipt=receipt,
-            raw_message=self.request.body,
-        )
+        if mail_obj.get('messageId') == 'AMAZON_SES_SETUP_NOTIFICATION':
+            logger.debug('Received AWS SES setup notification, skipping...')
+            return
+
+        try:
+            module, fn = settings.AWS_SES_INBOUND_HANDLER.rsplit('.', 1)
+            module = importlib.import_module(module)
+            if hasattr(module, fn):
+                inbound_handler = getattr(module, fn)
+            else:
+                logger.error(f'Method {fn} not found in module {module}')
+                return
+        except ModuleNotFoundError:
+            logger.error(f'Module {module} could not be imported')
+            return
+
+        try:
+            handler_res = inbound_handler(**{
+                'mail_obj': mail_obj,
+                'content': content,
+                'receipt': receipt,
+                'raw_message': self.request.body,
+            })
+        except UnprocessableError:
+            return
+        # We must handle any exceptions here as we're potentially calling
+        # user-provided code. We can't know what exceptions might get raised.
+        except Exception as ex:
+            logger.error('An exception ocurred while processing inbound email')
+            logger.error(ex)
+            return
+
+        signal_kwargs = {
+            'sender': self._handle_event,
+            'mail_obj': mail_obj,
+            'content': content,
+            'receipt': receipt,
+            'raw_message': self.request.body,
+            **handler_res,
+        }
         signals.inbound_received.send(**signal_kwargs)
 
     def _handle_event(self, event_name, signal, notification, message):

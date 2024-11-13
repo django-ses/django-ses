@@ -89,7 +89,7 @@ class BaseHandler:
 
       content = self.prepare_content(content)
 
-      self.payload = self.parse_email(content)
+      self.email = self.parse_email(content)
 
       self.process()
 

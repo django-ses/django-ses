@@ -2,6 +2,7 @@ import copy
 import importlib
 import json
 import logging
+import traceback
 import warnings
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -24,7 +25,6 @@ from django.views.generic.base import TemplateView, View
 
 from django_ses import settings, signals, utils
 from django_ses.deprecation import RemovedInDjangoSES20Warning
-from django_ses.inbound import UnprocessableError
 
 logger = logging.getLogger(__name__)
 
@@ -559,42 +559,28 @@ class SESEventWebhookView(View):
             return
 
         try:
-            module, fn = settings.AWS_SES_INBOUND_HANDLER.rsplit('.', 1)
+            module, cls = settings.AWS_SES_INBOUND_HANDLER.rsplit('.', 1)
             module = importlib.import_module(module)
-            if hasattr(module, fn):
-                inbound_handler = getattr(module, fn)
+            if hasattr(module, cls):
+                inbound_handler = getattr(module, cls)
             else:
-                logger.error(f'Method {fn} not found in module {module}')
+                logger.error(f'Class {cls} not found in module {module}')
                 return
         except ModuleNotFoundError:
             logger.error(f'Module {module} could not be imported')
             return
 
         try:
-            handler_res = inbound_handler(**{
+            inbound_handler(**{
                 'mail_obj': mail_obj,
-                'content': content,
                 'receipt': receipt,
                 'raw_message': self.request.body,
-            })
-        except UnprocessableError:
-            return
+            }).handle(content=content)
         # We must handle any exceptions here as we're potentially calling
         # user-provided code. We can't know what exceptions might get raised.
-        except Exception as ex:
+        except Exception:
             logger.error('An exception ocurred while processing inbound email')
-            logger.error(ex)
-            return
-
-        signal_kwargs = {
-            'sender': self._handle_event,
-            'mail_obj': mail_obj,
-            'content': content,
-            'receipt': receipt,
-            'raw_message': self.request.body,
-            **handler_res,
-        }
-        signals.inbound_received.send(**signal_kwargs)
+            logger.error(traceback.format_exc())
 
     def _handle_event(self, event_name, signal, notification, message):
         mail_obj = message.get('mail')

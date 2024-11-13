@@ -12,6 +12,7 @@ from django.urls import reverse
 
 from django_ses import settings
 from django_ses import utils as ses_utils
+from django_ses.inbound import BaseHandler
 from django_ses.signals import (
     bounce_received,
     click_received,
@@ -324,23 +325,30 @@ class HandleEventTestCase(TestCase):
         """
         Test handling a received event request.
         """
+        settings.AWS_SES_INBOUND_HANDLER = "global.DummyClass"
+
         req_mail_obj, req_content, req_receipt_obj, notification = get_mock_received_sns()
 
-        def _handler(sender, mail_obj, content, receipt, raw_message, **kwargs):
-            _handler.call_count += 1
-            self.assertEqual(req_mail_obj, mail_obj)
-            self.assertEqual(req_content, content)
-            self.assertEqual(req_receipt_obj, receipt)
-            self.assertEqual(raw_message, json.dumps(notification).encode())
-        _handler.call_count = 0
+        class DummyClass(BaseHandler):
+            def process(self):
+                pass
 
-        # Mock the verification
-        with mock.patch.object(ses_utils, "verify_event_message") as verify:
-            verify.return_value = True
-            response = self.client.post(reverse("event_webhook"), json.dumps(notification),
-                                        content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(_handler.call_count, 1) # TODO: Fix this test
+            def handle(self):
+                pass
+
+        with mock.patch("django_ses.views.importlib.import_module") as mock_import_module:
+            mock_import_module.return_value = mock.MagicMock(DummyClass=DummyClass)
+
+            with mock.patch.object(DummyClass, "handle") as mock_handle:
+
+                # Mock the verification
+                with mock.patch.object(ses_utils, "verify_event_message") as verify:
+                    verify.return_value = True
+                    response = self.client.post(reverse("event_webhook"), json.dumps(notification),
+                                                content_type="application/json")
+                self.assertEqual(response.status_code, 200)
+
+                mock_handle.assert_called_once()
 
     def test_bad_json(self):
         """

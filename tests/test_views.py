@@ -336,7 +336,7 @@ class HandleEventTestCase(TestCase):
             def handle(self):
                 pass
 
-        with mock.patch("django_ses.views.importlib.import_module") as mock_import_module:
+        with mock.patch("importlib.import_module") as mock_import_module:
             mock_import_module.return_value = mock.MagicMock(DummyClass=DummyClass)
 
             with mock.patch.object(DummyClass, "handle") as mock_handle:

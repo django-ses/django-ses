@@ -1,4 +1,3 @@
-import array
 import base64
 import binascii
 import logging
@@ -16,9 +15,9 @@ logger = logging.getLogger(__name__)
 class InboundEmail(TypedDict):
     plain_text: str
     html_text: str
-    attachments: array.array
+    attachments: list
     subject: str
-    to: array.array
+    to: list
     message_id: str
     date: str
 
@@ -35,6 +34,10 @@ class BaseHandler:
       self.action = receipt.get('action', {})
 
   def check_action_compatibility(self):
+      """
+      This method should raise UnprocessableError if the received payload from
+      SES can't be processed
+      """
       pass
 
   def prepare_content(self, content):

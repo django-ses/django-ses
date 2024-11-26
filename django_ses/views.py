@@ -1,6 +1,8 @@
 import copy
+import importlib
 import json
 import logging
+import traceback
 import warnings
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -456,6 +458,8 @@ class SESEventWebhookView(View):
                     self.handle_open(notification, message)
                 elif event_type == 'Click':
                     self.handle_click(notification, message)
+                elif event_type == 'Received':
+                    self.handle_received(notification, message)
                 else:
                     self.handle_unknown_event_type(notification, message)
         else:
@@ -536,6 +540,47 @@ class SESEventWebhookView(View):
             notification=notification,
             message=message
         )
+
+    def handle_received(self, notification, message):
+        mail_obj = message.get('mail')
+        content = message.get('content')
+        receipt = message.get('receipt')
+
+        # Logging
+        logger.info(
+            'Received inbound notification',
+            extra={
+                'notification': notification,
+            },
+        )
+
+        if mail_obj.get('messageId') == 'AMAZON_SES_SETUP_NOTIFICATION':
+            logger.debug('Received AWS SES setup notification, skipping...')
+            return
+
+        try:
+            module, cls = settings.AWS_SES_INBOUND_HANDLER.rsplit('.', 1)
+            module = importlib.import_module(module)
+            if hasattr(module, cls):
+                inbound_handler = getattr(module, cls)
+            else:
+                logger.error(f'Class {cls} not found in module {module}')
+                return
+        except ModuleNotFoundError:
+            logger.error(f'Module {module} could not be imported')
+            return
+
+        try:
+            inbound_handler(**{
+                'mail_obj': mail_obj,
+                'receipt': receipt,
+                'raw_message': self.request.body,
+            }).handle(content=content)
+        # We must handle any exceptions here as we're potentially calling
+        # user-provided code. We can't know what exceptions might get raised.
+        except Exception:
+            logger.error('An exception ocurred while processing inbound email')
+            logger.error(traceback.format_exc())
 
     def _handle_event(self, event_name, signal, notification, message):
         mail_obj = message.get('mail')

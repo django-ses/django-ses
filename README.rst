@@ -63,7 +63,7 @@ Why SES instead of IMAP/POP?
 ============================
 
 Configuring, maintaining, and dealing with some complicated edge cases can be
-time-consuming. Receiving emails with Django-SES might be attractive to you if:
+time-consuming. REceiving emails with Django-SES might be attractive to you if:
 
 * You don't want to maintain mail servers.
 * You want programatic access to received emails.
@@ -505,9 +505,9 @@ official `SES Email receiving setup`_ instructions. Here is a quick sum up:
 2. Create a new rule set in the ``Email receiving`` section.
 3. Create a new rule in the newly created rule set.
 4. Create a new recipient condition for that rule. In the ``actions`` step pick
-either ``Publish to Amazon SNS topic`` or ``Deliver to S3 bucket``. Also create
-a new SNS topic. That should point to ``https://your-django-ses-app/ses/event-webhook/``.
-Don't enable raw message delivery.
+   either ``Publish to Amazon SNS topic`` or ``Deliver to S3 bucket``. Also create
+   a new SNS topic. That should point to ``https://your-django-ses-app/ses/event-webhook/``.
+   Don't enable raw message delivery.
 
 The difference between ``SNS`` and ``S3`` in the 4th step is that ``SNS`` will
 deliver the entire email message (headers, subject, content and attachments)

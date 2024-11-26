@@ -23,14 +23,28 @@ Fixes:
 
 ## Current
 
+**4.3.0**
+
+New feature: receiving emails. This must be manually configured if you wish to use it.
+
+Please check README updates and PR below for details. Enjoy!
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/338
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/257
+
+
+## Past
+
 **4.2.0**
 
 Automatic handling of bounce and complaint events, managed with a blacklist
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/331
-
-## Past
 
 **4.1.1**
 

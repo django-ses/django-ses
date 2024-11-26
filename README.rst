@@ -13,6 +13,11 @@ Django-SES is a drop-in mail backend for Django_. Instead of sending emails
 through a traditional SMTP mail server, Django-SES routes email through
 Amazon Web Services' excellent Simple Email Service (SES_).
 
+Django-SES can also receive emails using `SES Email receiving`_
+
+.. _SES: http://aws.amazon.com/ses/
+.. _Django: http://djangoproject.com
+.. _SES Email receiving: https://docs.aws.amazon.com/ses/latest/dg/receiving-email.html
 
 Please Contribute!
 ==================
@@ -53,6 +58,16 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
   your messages using SES's Easy DKIM feature.
 * Django-SES is a truely drop-in replacement for the default mail backend.
   Your code should require no changes.
+
+Why SES instead of IMAP/POP?
+============================
+
+Configuring, maintaining, and dealing with some complicated edge cases can be
+time-consuming. Receiving emails with Django-SES might be attractive to you if:
+
+* You don't want to maintain mail servers.
+* You want programatic access to received emails.
+* You want to react to received emails as soon as they are received.
 
 Getting going
 =============
@@ -267,6 +282,9 @@ where
 * `dkim_headers` is a list of strings containing the names of the headers to
   be DKIM signed (see DKIM, below for explanation)
 
+.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
+
+
 DKIM
 ====
 
@@ -473,12 +491,70 @@ error emails will all fail and you'll be blissfully unaware of a problem.
 to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
 has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py
 
-.. _Builtin Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
-.. _Django: http://djangoproject.com
 .. _Boto: http://boto.cloudhackers.com/
-.. _SES: http://aws.amazon.com/ses/
-.. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
+.. _Builtin Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
 
+
+Receiving emails
+================
+
+In order to setup your AWS SES account to receive emails you should follow the
+official `SES Email receiving setup`_ instructions. Here is a quick sum up:
+
+1. Add an ``MX`` entry to your domain, pointing to ``inbound-smtp.us-east-1.amazonaws.com`` (or the region of your choice).
+2. Create a new rule set in the ``Email receiving`` section.
+3. Create a new rule in the newly created rule set.
+4. Create a new recipient condition for that rule. In the ``actions`` step pick
+either ``Publish to Amazon SNS topic`` or ``Deliver to S3 bucket``. Also create
+a new SNS topic. That should point to ``https://your-django-ses-app/ses/event-webhook/``.
+Don't enable raw message delivery.
+
+The difference between ``SNS`` and ``S3`` in the 4th step is that ``SNS`` will
+deliver the entire email message (headers, subject, content and attachments)
+directly to your endpoint; ``S3``, on the other hand, will store the email message
+in a ``S3`` bucket and will deliver to your endpoint the bucket name and the
+file path, then your webhook handler should fetch that file from the ``S3`` bucket
+in order to get the actual email object.
+
+The ``SNS`` way is easier to setup, but it only supports messages up to 150kb,
+including headers.
+
+Depending which method you selected in step 4 you should inherit either from the
+``SnsHandler`` or the ``S3Handler`` class and create your own handler.
+You should then set the path of your handler in the ``AWS_SES_INBOUND_HANDLER``
+setting (eg. ``AWS_SES_INBOUND_HANDLER='my_app.service.MyReceiver'``).
+
+Example
+
+.. code-block:: python
+
+   from django_ses.inbound import SnsHandler
+
+   class MyReceiver(SnsHandler):
+       def process(self):
+           print(self.email.get("subject"))
+           print(self.email.get("plain_text"))
+
+
+The email parsing logic in Django-SES has been kept simple in order to avoid
+extra dependencies. If you wish to parse emails yourself or with a third party
+package, you can reimplement the ``parse_email`` method:
+
+.. code-block:: python
+
+   import mailparser
+   from django_ses.inbound import
+
+   class MyReceiver(SnsHandler):
+       def parse_email(self, content):
+           return mailparser.parse_from_bytes(content)
+
+       def process(self):
+           print(self.email.subject)
+           print(self.email.body)
+
+
+.. _SES Email receiving setup: https://docs.aws.amazon.com/ses/latest/dg/receiving-email-setting-up.html
 
 Requirements
 ============
@@ -571,6 +647,18 @@ Full List of Settings
   If set to ``True`` (default ``False``), calls to the ``send_mail()`` method will
   cause the recipients to be filtered using the blacklist. Any recipient that
   exists in the blacklist will be removed from the email.
+
+``AWS_SES_INBOUND_ACCESS_KEY_ID``
+  If you're inheriting from the ``S3Handler``, you should set this so that
+  Django-SES can fetch the actual email message. Make sure to attach the right
+  permission policies to the IAM.
+
+``AWS_SES_INBOUND_SECRET_ACCESS_KEY``
+  Check ``AWS_SES_INBOUND_ACCESS_KEY_ID``.
+
+``AWS_SES_INBOUND_HANDLER``
+  If you want to receive emails with Django-SES, set this to the path where your
+  handler is (eg ``my_app.service.MyReceiver``).
 
 .. _pydkim: http://hewgill.com/pydkim/
 

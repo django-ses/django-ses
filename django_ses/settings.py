@@ -66,3 +66,11 @@ BOUNCE_CERT_DOMAINS = EVENT_CERT_DOMAINS
 AWS_SES_ADD_BOUNCE_TO_BLACKLIST = getattr(settings, 'AWS_SES_ADD_BOUNCE_TO_BLACKLIST', False)
 AWS_SES_ADD_COMPLAINT_TO_BLACKLIST = getattr(settings, 'AWS_SES_ADD_COMPLAINT_TO_BLACKLIST', False)
 AWS_SES_USE_BLACKLIST = getattr(settings, 'AWS_SES_USE_BLACKLIST', False)
+
+# Inbound
+AWS_SES_INBOUND_HANDLER = getattr(settings, 'AWS_SES_INBOUND_HANDLER', 'django_ses.inbound.raw_handler')
+# Required if the configured action is set to "Deliver to Amazon S3 bucket"
+# These credentials will be used to access the bucket where the email was stored
+AWS_SES_INBOUND_ACCESS_KEY_ID = getattr(settings, 'AWS_SES_INBOUND_ACCESS_KEY_ID', '')
+AWS_SES_INBOUND_SECRET_ACCESS_KEY = getattr(settings, 'AWS_SES_INBOUND_SECRET_ACCESS_KEY', '')
+AWS_SES_INBOUND_SESSION_TOKEN = getattr(settings, 'AWS_SES_INBOUND_SESSION_TOKEN', '')

@@ -15,6 +15,7 @@ class InbounceSnsTestCase(TestCase):
             def process(self):
                 self.test_result_subject = self.email.get("subject")
                 self.test_result_plain_text = self.email.get("plain_text")
+                self.test_result_attachments = self.email.get("attachments")
 
         handler = MyReceiver(
             mail_obj=mail_obj, receipt=receipt, raw_message=notification)
@@ -22,6 +23,11 @@ class InbounceSnsTestCase(TestCase):
 
         self.assertEqual(handler.test_result_subject, "test")
         self.assertEqual(handler.test_result_plain_text, "hey!!\n")
+        self.assertEqual(len(handler.test_result_attachments), 1)
+        attachment = handler.test_result_attachments[0]
+        self.assertEqual(attachment.get("filename"), "attachmnet.png")
+        self.assertEqual(attachment.get("content_type"), "image/png")
+        self.assertEqual(len(attachment.get("data")), 3013)
 
     def test_bad_content(self):
         mail_obj, content, receipt, notification = get_mock_received_sns()
@@ -61,6 +67,7 @@ class InbounceS3TestCase(TestCase):
             def process(self):
                 self.test_result_subject = self.email.get("subject")
                 self.test_result_plain_text = self.email.get("plain_text")
+                self.test_result_attachments = self.email.get("attachments")
 
         handler = MyReceiver(
             mail_obj=mail_obj, receipt=receipt, raw_message=notification)
@@ -68,6 +75,7 @@ class InbounceS3TestCase(TestCase):
 
         self.assertEqual(handler.test_result_subject, "test")
         self.assertEqual(handler.test_result_plain_text, "hey!!\n")
+        self.assertEqual(handler.test_result_attachments, [])
 
     def test_wrong_handler(self):
         mail_obj, content, receipt, notification = get_mock_received_sns()

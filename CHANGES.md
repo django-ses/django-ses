@@ -23,6 +23,20 @@ Fixes:
 
 ## Current
 
+**4.3.1**
+
+Fix bug where a single blacklisted email causes all messages to be skipped
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/342
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/241
+
+
+## Past
+
 **4.3.0**
 
 New feature: receiving emails. This must be manually configured if you wish to use it.
@@ -35,9 +49,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/257
-
-
-## Past
 
 **4.2.0**
 

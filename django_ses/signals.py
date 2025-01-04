@@ -1,7 +1,7 @@
 from django.db import NotSupportedError
 from django.dispatch import Signal
 
-from django_ses import models, settings
+from django_ses import settings
 
 # The following fields are used from the 3 signals below: mail_obj, bounce_obj, raw_message
 bounce_received = Signal()
@@ -13,6 +13,8 @@ click_received = Signal()
 
 
 def _blacklist_recipients(recipients):
+    from django_ses import models
+
     if len(recipients) == 0:
         return
 

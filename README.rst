@@ -647,6 +647,8 @@ Full List of Settings
   If set to ``True`` (default ``False``), calls to the ``send_mail()`` method will
   cause the recipients to be filtered using the blacklist. Any recipient that
   exists in the blacklist will be removed from the email.
+  You must add ``django-ses`` to ``INSTALLED_APPS`` and run migrations to get
+  the database models required for this feature.
 
 ``AWS_SES_INBOUND_ACCESS_KEY_ID``
   If you're inheriting from the ``S3Handler``, you should set this so that

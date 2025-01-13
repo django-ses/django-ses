@@ -10,7 +10,7 @@ from urllib.request import urlopen
 
 from django.core.exceptions import ImproperlyConfigured
 
-from django_ses import models, settings
+from django_ses import settings
 from django_ses.deprecation import RemovedInDjangoSES20Warning
 
 logger = logging.getLogger(__name__)
@@ -327,6 +327,8 @@ def get_emails_from_complaint_obj(complaint_obj: dict) -> list:
 
 
 def filter_blacklisted_recipients(addresses):
+    from django_ses import models
+
     """Remove blacklisted emails from addresses"""
     if isinstance(addresses, str):
         addresses = [addresses]

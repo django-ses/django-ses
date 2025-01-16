@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 from django.test import TestCase
 
 from django_ses import models, settings, signals
@@ -83,3 +84,16 @@ class SignalsTestCase(TestCase):
         signals.complaint_handler(None, mail_obj, complaint_obj, notification)
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 1)
+
+    def test_message_sent_handler(self):
+        def _handler(sender, message, **kwargs):
+            _handler.call_count += 1
+            self.assertEqual(message.subject, 'subject')
+            self.assertEqual(message.body, 'body')
+            self.assertEqual(message.extra_headers['message_id'], 'fake_message_id')
+
+        _handler.call_count = 0
+        signals.message_sent.connect(_handler)
+
+        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        self.assertEqual(_handler.call_count, 1)

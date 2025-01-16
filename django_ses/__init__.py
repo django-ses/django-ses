@@ -7,7 +7,7 @@ import boto3
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
 from django.core.mail.backends.base import BaseEmailBackend
 
-from django_ses import settings
+from django_ses import settings, signals
 
 __version__ = importlib_metadata.version(__name__)
 __all__ = ('SESBackend',)
@@ -200,6 +200,11 @@ class SESBackend(BaseEmailBackend):
                         message.extra_headers['message_id'],
                         message.extra_headers['request_id']
                     ))
+
+                signals.message_sent.send(
+                    sender=self.send_messages,
+                    message=message,
+                )
 
             except ResponseError as err:
                 # Store failure information so to post process it if required

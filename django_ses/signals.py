@@ -4,6 +4,7 @@ from django.dispatch import Signal
 from django_ses import settings
 
 # The following fields are used from the 3 signals below: mail_obj, bounce_obj, raw_message
+message_sent = Signal()
 bounce_received = Signal()
 complaint_received = Signal()
 delivery_received = Signal()

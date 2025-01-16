@@ -23,6 +23,31 @@ Fixes:
 
 ## Current
 
+**4.3.2**
+
+Don't require `django-ses` to be in `INSTALLED_APPS` unless using the blacklist feature.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/344
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/343
+
+
+## Past
+
+**4.3.1**
+
+Fix bug where a single blacklisted email causes all messages to be skipped
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/342
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/241
+
 **4.3.0**
 
 New feature: receiving emails. This must be manually configured if you wish to use it.
@@ -35,9 +60,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/257
-
-
-## Past
 
 **4.2.0**
 

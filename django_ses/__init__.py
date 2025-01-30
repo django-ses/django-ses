@@ -201,10 +201,7 @@ class SESBackend(BaseEmailBackend):
                         message.extra_headers['request_id']
                     ))
 
-                signals.message_sent.send(
-                    sender=self.send_messages,
-                    message=message,
-                )
+                signals.message_sent.send(sender=SESBackend, message=message)
 
             except ResponseError as err:
                 # Store failure information so to post process it if required

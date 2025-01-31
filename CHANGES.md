@@ -23,6 +23,19 @@ Fixes:
 
 ## Current
 
+**4.4.0**
+
+Add a signal for message sent.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/347
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/346
+
+## Past
+
 **4.3.2**
 
 Don't require `django-ses` to be in `INSTALLED_APPS` unless using the blacklist feature.
@@ -33,9 +46,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/343
-
-
-## Past
 
 **4.3.1**
 

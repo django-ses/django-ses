@@ -190,6 +190,23 @@ complaint to a blacklist in order to avoid sending more emails and triggering
 more complaints. ``django-ses`` provides a builtin blacklist that does this.
 Check ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
+Message sent
+------------
+
+Use this event to know when an email was sent. Keep in mind that the
+``extra_headers`` field of the message will contain the ``message_id`` that AWS
+SES assigned to the email, which menas you could use this event to store emails
+and cross-reference them later if/when you receive a bounce/complaint. For
+example::
+
+    from django_ses.signals import message_sent
+    from django.dispatch import receiver
+
+
+    @receiver(message_sent)
+    def sent_handler(sender, message,  *args, **kwargs):
+        ...
+
 Send
 ----
 Using signal 'send_received' for manager send email. For example::

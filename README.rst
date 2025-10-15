@@ -170,7 +170,7 @@ Using signal 'bounce_received' for manager bounce email. For example::
 
 The most common use case for irrecoverable bounces (status ``5xx``) is to add the
 email(s) that caused the bounce to a blacklist in order to avoid sending more
-emails and triggering more bounces. ``django-ses`` provides a builtin blacklist
+emails and triggering more bounces. ``django-ses`` provides a built-in blacklist
 that does this. Check ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Complaint
@@ -187,7 +187,7 @@ Using signal 'complaint_received' for manager complaint email. For example::
 
 The most common use case for complaints is to add the email(s) that caused the
 complaint to a blacklist in order to avoid sending more emails and triggering
-more complaints. ``django-ses`` provides a builtin blacklist that does this.
+more complaints. ``django-ses`` provides a built-in blacklist that does this.
 Check ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Message sent
@@ -496,10 +496,10 @@ To manage the blacklist (add, remote, list), run:
 
     python manage.py blacklist
 
-Django Builtin-in Error Emails
+Django Built-in Error Emails
 ==============================
 
-If you'd like Django's `Builtin Email Error Reporting`_ to function properly
+If you'd like Django's `Built-in Email Error Reporting`_ to function properly
 (actually send working emails), you'll have to explicitly set the
 ``SERVER_EMAIL`` setting to one of your SES-verified addresses. Otherwise, your
 error emails will all fail and you'll be blissfully unaware of a problem.
@@ -509,7 +509,7 @@ to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
 has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py
 
 .. _Boto: http://boto.cloudhackers.com/
-.. _Builtin Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
+.. _Built-in Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
 
 
 Receiving emails

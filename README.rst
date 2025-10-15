@@ -56,7 +56,7 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
   whitelist/blacklist services.
 * You want to improve delivery rate and inbox cosmetics by DKIM signing
   your messages using SES's Easy DKIM feature.
-* Django-SES is a truely drop-in replacement for the default mail backend.
+* Django-SES is a truly drop-in replacement for the default mail backend.
   Your code should require no changes.
 
 Why SES instead of IMAP/POP?
@@ -66,7 +66,7 @@ Configuring, maintaining, and dealing with some complicated edge cases can be
 time-consuming. REceiving emails with Django-SES might be attractive to you if:
 
 * You don't want to maintain mail servers.
-* You want programatic access to received emails.
+* You want programmatic access to received emails.
 * You want to react to received emails as soon as they are received.
 
 Getting going
@@ -195,7 +195,7 @@ Message sent
 
 Use this event to know when an email was sent. Keep in mind that the
 ``extra_headers`` field of the message will contain the ``message_id`` that AWS
-SES assigned to the email, which menas you could use this event to store emails
+SES assigned to the email, which means you could use this event to store emails
 and cross-reference them later if/when you receive a bounce/complaint. For
 example::
 

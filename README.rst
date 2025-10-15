@@ -56,17 +56,17 @@ time-consuming. Sending emails with Django-SES might be attractive to you if:
   whitelist/blacklist services.
 * You want to improve delivery rate and inbox cosmetics by DKIM signing
   your messages using SES's Easy DKIM feature.
-* Django-SES is a truely drop-in replacement for the default mail backend.
+* Django-SES is a truly drop-in replacement for the default mail backend.
   Your code should require no changes.
 
 Why SES instead of IMAP/POP?
 ============================
 
 Configuring, maintaining, and dealing with some complicated edge cases can be
-time-consuming. REceiving emails with Django-SES might be attractive to you if:
+time-consuming. Receiving emails with Django-SES might be attractive to you if:
 
 * You don't want to maintain mail servers.
-* You want programatic access to received emails.
+* You want programmatic access to received emails.
 * You want to react to received emails as soon as they are received.
 
 Getting going
@@ -126,7 +126,7 @@ To set this up, install `django-ses` with the `events` extra::
 
     pip install django-ses[events]
 
-Then add a event url handler in your `urls.py`::
+Then add a event URL handler in your `urls.py`::
 
     from django.urls import re_path
     from django_ses.views import SESEventWebhookView
@@ -147,7 +147,7 @@ On AWS
 configuration set by setting ``AWS_SES_CONFIGURATION_SET``. Set the topic
 to what you created in 1.
 
-3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/event-webhook/)
+3. Add an https subscriber to the topic. (e.g., https://www.yourdomain.com/ses/event-webhook/)
 Do not check "Enable raw message delivery".
 
 
@@ -170,7 +170,7 @@ Using signal 'bounce_received' for manager bounce email. For example::
 
 The most common use case for irrecoverable bounces (status ``5xx``) is to add the
 email(s) that caused the bounce to a blacklist in order to avoid sending more
-emails and triggering more bounces. ``django-ses`` provides a builtin blacklist
+emails and triggering more bounces. ``django-ses`` provides a built-in blacklist
 that does this. Check ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Complaint
@@ -187,7 +187,7 @@ Using signal 'complaint_received' for manager complaint email. For example::
 
 The most common use case for complaints is to add the email(s) that caused the
 complaint to a blacklist in order to avoid sending more emails and triggering
-more complaints. ``django-ses`` provides a builtin blacklist that does this.
+more complaints. ``django-ses`` provides a built-in blacklist that does this.
 Check ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
 
 Message sent
@@ -195,7 +195,7 @@ Message sent
 
 Use this event to know when an email was sent. Keep in mind that the
 ``extra_headers`` field of the message will contain the ``message_id`` that AWS
-SES assigned to the email, which menas you could use this event to store emails
+SES assigned to the email, which means you could use this event to store emails
 and cross-reference them later if/when you receive a bounce/complaint. For
 example::
 
@@ -496,10 +496,10 @@ To manage the blacklist (add, remote, list), run:
 
     python manage.py blacklist
 
-Django Builtin-in Error Emails
+Django Built-in Error Emails
 ==============================
 
-If you'd like Django's `Builtin Email Error Reporting`_ to function properly
+If you'd like Django's `Built-in Email Error Reporting`_ to function properly
 (actually send working emails), you'll have to explicitly set the
 ``SERVER_EMAIL`` setting to one of your SES-verified addresses. Otherwise, your
 error emails will all fail and you'll be blissfully unaware of a problem.
@@ -509,7 +509,7 @@ to use in the `from_email` argument to `django.core.mail.send_email()`. Boto_
 has a `verify_email_address()` method: https://github.com/boto/boto/blob/master/boto/ses/connection.py
 
 .. _Boto: http://boto.cloudhackers.com/
-.. _Builtin Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
+.. _Built-in Email Error Reporting: https://docs.djangoproject.com/en/dev/howto/error-reporting/
 
 
 Receiving emails
@@ -539,7 +539,7 @@ including headers.
 Depending which method you selected in step 4 you should inherit either from the
 ``SnsHandler`` or the ``S3Handler`` class and create your own handler.
 You should then set the path of your handler in the ``AWS_SES_INBOUND_HANDLER``
-setting (eg. ``AWS_SES_INBOUND_HANDLER='my_app.service.MyReceiver'``).
+setting (e.g., ``AWS_SES_INBOUND_HANDLER='my_app.service.MyReceiver'``).
 
 Example
 
@@ -677,7 +677,7 @@ Full List of Settings
 
 ``AWS_SES_INBOUND_HANDLER``
   If you want to receive emails with Django-SES, set this to the path where your
-  handler is (eg ``my_app.service.MyReceiver``).
+  handler is (e.g., ``my_app.service.MyReceiver``).
 
 .. _pydkim: http://hewgill.com/pydkim/
 

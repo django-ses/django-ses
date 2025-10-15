@@ -147,7 +147,7 @@ On AWS
 configuration set by setting ``AWS_SES_CONFIGURATION_SET``. Set the topic
 to what you created in 1.
 
-3. Add an https subscriber to the topic. (eg. https://www.yourdomain.com/ses/event-webhook/)
+3. Add an https subscriber to the topic. (e.g., https://www.yourdomain.com/ses/event-webhook/)
 Do not check "Enable raw message delivery".
 
 
@@ -539,7 +539,7 @@ including headers.
 Depending which method you selected in step 4 you should inherit either from the
 ``SnsHandler`` or the ``S3Handler`` class and create your own handler.
 You should then set the path of your handler in the ``AWS_SES_INBOUND_HANDLER``
-setting (eg. ``AWS_SES_INBOUND_HANDLER='my_app.service.MyReceiver'``).
+setting (e.g., ``AWS_SES_INBOUND_HANDLER='my_app.service.MyReceiver'``).
 
 Example
 
@@ -677,7 +677,7 @@ Full List of Settings
 
 ``AWS_SES_INBOUND_HANDLER``
   If you want to receive emails with Django-SES, set this to the path where your
-  handler is (eg ``my_app.service.MyReceiver``).
+  handler is (e.g., ``my_app.service.MyReceiver``).
 
 .. _pydkim: http://hewgill.com/pydkim/
 

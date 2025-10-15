@@ -63,7 +63,7 @@ Why SES instead of IMAP/POP?
 ============================
 
 Configuring, maintaining, and dealing with some complicated edge cases can be
-time-consuming. REceiving emails with Django-SES might be attractive to you if:
+time-consuming. Receiving emails with Django-SES might be attractive to you if:
 
 * You don't want to maintain mail servers.
 * You want programmatic access to received emails.
@@ -126,7 +126,7 @@ To set this up, install `django-ses` with the `events` extra::
 
     pip install django-ses[events]
 
-Then add a event url handler in your `urls.py`::
+Then add a event URL handler in your `urls.py`::
 
     from django.urls import re_path
     from django_ses.views import SESEventWebhookView

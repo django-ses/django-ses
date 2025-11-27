@@ -7,10 +7,9 @@ except ImportError:
     import mock
 
 import django
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
-from django_ses import settings
 from django_ses import utils as ses_utils
 from django_ses.inbound import BaseHandler
 from django_ses.signals import (
@@ -98,13 +97,12 @@ class HandleBounceTestCase(TestCase):
 # avoid using transactions. Calls to atomic() will disconnect the signal
 # handlers, which is exactly what we're trying to test here.
 class HandleBounceTestCaseWithBL(TransactionTestCase):
+    @override_settings(AWS_SES_VERIFY_BOUNCE_SIGNATURES=False)
     def test_bounce_event_can_perform_blacklist(self):
         """
         Test if bounce events result in blacklisted emails (if the feature has
         been enabled)
         """
-
-        settings.VERIFY_BOUNCE_SIGNATURES = False
 
         mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
 
@@ -134,13 +132,12 @@ class HandleBounceTestCaseWithBL(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(mock_func.call_count, 1)
 
+    @override_settings(AWS_SES_VERIFY_BOUNCE_SIGNATURES=False)
     def test_complaint_event_can_perform_blacklist(self):
         """
         Test if complaint events result in blacklisted emails (if the feature
         has been enabled)
         """
-
-        settings.VERIFY_BOUNCE_SIGNATURES = False
 
         mail_obj, complaint_obj, notification = get_mock_complaint("eventType")
 
@@ -321,11 +318,11 @@ class HandleEventTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
+    @override_settings(AWS_SES_INBOUND_HANDLER="global.DummyClass")
     def test_handle_received_event(self):
         """
         Test handling a received event request.
         """
-        settings.AWS_SES_INBOUND_HANDLER = "global.DummyClass"
 
         req_mail_obj, req_content, req_receipt_obj, notification = get_mock_received_sns()
 

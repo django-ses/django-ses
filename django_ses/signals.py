@@ -1,7 +1,7 @@
 from django.db import NotSupportedError
 from django.dispatch import Signal
 
-from django_ses import settings
+from django_ses.conf import settings
 
 # The following fields are used from the 3 signals below: mail_obj, bounce_obj, raw_message
 message_sent = Signal()

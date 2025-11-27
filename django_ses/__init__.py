@@ -7,7 +7,8 @@ import boto3
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
 from django.core.mail.backends.base import BaseEmailBackend
 
-from django_ses import settings, signals
+from django_ses import signals
+from django_ses.conf import settings
 
 __version__ = importlib_metadata.version(__name__)
 __all__ = ('SESBackend',)

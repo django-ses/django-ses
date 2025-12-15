@@ -2,13 +2,12 @@
 
 import email
 
-from django.conf import settings as django_settings
 from django.core.mail import EmailMessage, send_mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils.encoding import smart_str
 
 import django_ses
-from django_ses import models, settings
+from django_ses import models
 
 # random key generated with `openssl genrsa 512`
 DKIM_PRIVATE_KEY = '''
@@ -97,10 +96,9 @@ class FakeSESBackend(django_ses.SESBackend):
         return FakeSESConnection
 
 
+@override_settings(EMAIL_BACKEND='tests.test_backend.FakeSESBackend')
 class SESBackendTest(TestCase):
     def setUp(self):
-        # TODO: Fix this -- this is going to cause side effects
-        django_settings.EMAIL_BACKEND = "tests.test_backend.FakeSESBackend"
         self.outbox = FakeSESConnection.outbox
 
     def tearDown(self):
@@ -119,9 +117,8 @@ class SESBackendTest(TestCase):
         rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
         self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
 
+    @override_settings(AWS_SES_CONFIGURATION_SET=None)
     def test_send_mail(self):
-        settings.AWS_SES_CONFIGURATION_SET = None
-
         from_addr = 'Albertus Magnus <albertus.magnus@example.com>'
 
         send_mail('subject', 'body', from_addr, ['to@example.com'])
@@ -133,9 +130,8 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
 
+    @override_settings(AWS_SES_USE_BLACKLIST=True)
     def test_send_mail_when_blacklisted(self):
-        settings.AWS_SES_USE_BLACKLIST = True
-
         len_queue = len(self.outbox)
         send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
         # It should have sent the email because 'xyz@bar.com' is not blacklisted
@@ -148,15 +144,17 @@ class SESBackendTest(TestCase):
         # It shouldn't have sent the email because 'xyz@bar.com' is blacklisted
         self.assertEqual(len_queue, len(self.outbox))
 
-        settings.AWS_SES_USE_BLACKLIST = False
         len_queue = len(self.outbox)
-        send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
+
+        with override_settings(AWS_SES_USE_BLACKLIST=False):
+            send_mail('Hello', 'world', 'foo@bar.com', ['xyz@bar.com'])
+
         # It should have sent the email because even if 'xyz@bar.com' is
         # blacklisted, AWS_SES_USE_BLACKLIST is set to False
         self.assertEqual(len_queue + 1, len(self.outbox))
 
+    @override_settings(AWS_SES_USE_BLACKLIST=True)
     def test_send_mail_to_cc_bcc_when_blacklisted(self):
-        settings.AWS_SES_USE_BLACKLIST = True
         models.BlacklistedEmail.objects.create(email='foo1@bar.com')
         models.BlacklistedEmail.objects.create(email='foo2@bar.com')
 
@@ -178,9 +176,8 @@ class SESBackendTest(TestCase):
         self.assertIn('foo3@bar.com', destinations)
         self.assertIn('foo4@bar.com', destinations)
 
+    @override_settings(AWS_SES_CONFIGURATION_SET=None)
     def test_send_mail_unicode_body(self):
-        settings.AWS_SES_CONFIGURATION_SET = None
-
         unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
         send_mail('Scandinavian', 'Sören & Björn', unicode_from_addr, ['to@example.com'])
@@ -192,8 +189,8 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'Sören & Björn')
 
+    @override_settings(AWS_SES_CONFIGURATION_SET='test-set')
     def test_configuration_set_send_mail(self):
-        settings.AWS_SES_CONFIGURATION_SET = 'test-set'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
@@ -205,8 +202,10 @@ class SESBackendTest(TestCase):
 
     def test_configuration_set_callable_send_mail(self):
         config_set_callable = SESConfigurationSetTester('my-config-set')
-        settings.AWS_SES_CONFIGURATION_SET = config_set_callable
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+
+        with override_settings(AWS_SES_CONFIGURATION_SET=config_set_callable):
+            send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         # ensure we got the correct configuration message payload
@@ -220,20 +219,21 @@ class SESBackendTest(TestCase):
         self.assertEqual(config_set_callable.dkim_domain, None)
         self.assertEqual(config_set_callable.dkim_key, None)
         self.assertEqual(config_set_callable.dkim_selector, 'ses')
-        self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
+        self.assertEqual(config_set_callable.dkim_headers, ['From', 'To', 'Cc', 'Subject'])
 
 
+@override_settings(
+    EMAIL_BACKEND='tests.test_backend.FakeSESBackend',
+    USE_SES_V2=True,
+    AWS_SES_FROM_ARN=None,
+    AWS_SES_SOURCE_ARN=None,
+)
 class SESV2BackendTest(TestCase):
     def setUp(self):
-        django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
-        settings.USE_SES_V2 = True
-        settings.AWS_SES_FROM_ARN = None
-        settings.AWS_SES_SOURCE_ARN = None
         self.outbox = FakeSESConnection.outbox
 
     def tearDown(self):
         # Empty outbox every time test finishes
-        settings.USE_SES_V2 = False
         FakeSESConnection.outbox = []
 
     def _rfc2047_helper(self, value_to_encode):
@@ -248,9 +248,8 @@ class SESV2BackendTest(TestCase):
         rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
         self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
 
+    @override_settings(AWS_SES_CONFIGURATION_SET=None)
     def test_send_mail(self):
-        settings.AWS_SES_CONFIGURATION_SET = None
-
         unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
         send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
@@ -262,8 +261,8 @@ class SESV2BackendTest(TestCase):
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body')
 
+    @override_settings(AWS_SES_CONFIGURATION_SET='test-set')
     def test_configuration_set_send_mail(self):
-        settings.AWS_SES_CONFIGURATION_SET = 'test-set'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
@@ -275,8 +274,8 @@ class SESV2BackendTest(TestCase):
 
     def test_configuration_set_callable_send_mail(self):
         config_set_callable = SESConfigurationSetTester('my-config-set')
-        settings.AWS_SES_CONFIGURATION_SET = config_set_callable
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        with override_settings(AWS_SES_CONFIGURATION_SET=config_set_callable):
+            send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
         # ensure we got the correct configuration message payload
@@ -290,10 +289,10 @@ class SESV2BackendTest(TestCase):
         self.assertEqual(config_set_callable.dkim_domain, None)
         self.assertEqual(config_set_callable.dkim_key, None)
         self.assertEqual(config_set_callable.dkim_selector, 'ses')
-        self.assertEqual(config_set_callable.dkim_headers, ('From', 'To', 'Cc', 'Subject'))
+        self.assertEqual(config_set_callable.dkim_headers, ['From', 'To', 'Cc', 'Subject'])
 
+    @override_settings(AWS_SES_CONFIGURATION_SET=None, DKIM_DOMAIN='example.com', DKIM_PRIVATE_KEY=DKIM_PRIVATE_KEY)
     def test_dkim_mail(self):
-        settings.AWS_SES_CONFIGURATION_SET = None
         # DKIM verification uses DNS to retrieve the public key when checking
         # the signature, so we need to replace the standard query response with
         # one that always returns the test key.
@@ -312,8 +311,6 @@ class SESV2BackendTest(TestCase):
 
         dns.resolver.query = dns_query
 
-        settings.DKIM_DOMAIN = 'example.com'
-        settings.DKIM_PRIVATE_KEY = DKIM_PRIVATE_KEY
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()['RawMessage']
         self.assertTrue(dkim.verify(message))
@@ -321,19 +318,18 @@ class SESV2BackendTest(TestCase):
         self.assertFalse(dkim.verify(
                             message.replace('from@example.com', 'from@spam.com')))
 
+    @override_settings(AWS_SES_RETURN_PATH=None, AWS_SES_FROM_EMAIL='from@example.com')
     def test_return_path(self):
         """Ensure that the 'Source' argument sent into send_raw_email uses FromEmailAddress.
         """
-        settings.AWS_SES_RETURN_PATH = None
-        settings.AWS_SES_FROM_EMAIL = 'from@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FromEmailAddress'], 'from@example.com')
 
+    @override_settings(AWS_SES_RETURN_PATH='reply@example.com')
     def test_feedback_forwarding(self):
         """
         Ensure that the notification address argument uses FeedbackForwardingEmailAddress.
         """
-        settings.AWS_SES_RETURN_PATH = 'reply@example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['FeedbackForwardingEmailAddress'], 'reply@example.com')
 
@@ -346,23 +342,25 @@ class SESV2BackendTest(TestCase):
         mail = self.outbox.pop()
         self.assertNotIn('FromEmailAddressIdentityArn', mail)
 
+    @override_settings(AWS_SES_SOURCE_ARN='arn:aws:ses:eu-central-1:111111111111:identity/example.com')
     def test_source_arn_is_set(self):
         """
         Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
         """
-        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         mail = self.outbox.pop()
         self.assertEqual(mail['FromEmailAddressIdentityArn'],
                          'arn:aws:ses:eu-central-1:111111111111:identity/example.com')
 
+    @override_settings(
+        AWS_SES_SOURCE_ARN='arn:aws:ses:eu-central-1:111111111111:identity/example.com',
+        AWS_SES_FROM_ARN='arn:aws:ses:eu-central-1:222222222222:identity/example.com',
+        AWS_SES_RETURN_PATH_ARN='arn:aws:ses:eu-central-1:333333333333:identity/example.com',
+    )
     def test_from_arn_takes_precedence_when_source_arn_is_set(self):
         """
         Ensure that the helpers for Identity Owner for SES Sending Authorization are set correctly.
         """
-        settings.AWS_SES_SOURCE_ARN = 'arn:aws:ses:eu-central-1:111111111111:identity/example.com'
-        settings.AWS_SES_FROM_ARN = 'arn:aws:ses:eu-central-1:222222222222:identity/example.com'
-        settings.AWS_SES_RETURN_PATH_ARN = 'arn:aws:ses:eu-central-1:333333333333:identity/example.com'
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         mail = self.outbox.pop()
         self.assertEqual(mail['FromEmailAddressIdentityArn'],
@@ -386,15 +384,13 @@ class SESBackendTestInitialize(TestCase):
             (None, "1.0", 1.0),
             (None, None, None),
         ):
-            settings.AWS_SES_AUTO_THROTTLE = throttle_setting
-            backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
-            self.assertEqual(backend._throttle, expected_throttle_val)
+            with override_settings(AWS_SES_AUTO_THROTTLE=throttle_setting):
+                backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
+                self.assertEqual(backend._throttle, expected_throttle_val)
 
-
+@override_settings(EMAIL_BACKEND='tests.test_backend.FakeSESBackend')
 class SESBackendTestReturn(TestCase):
     def setUp(self):
-        # TODO: Fix this -- this is going to cause side effects
-        django_settings.EMAIL_BACKEND = 'tests.test_backend.FakeSESBackend'
         django_ses.SESConnection = FakeSESConnection
         self.outbox = FakeSESConnection.outbox
 
@@ -402,14 +398,17 @@ class SESBackendTestReturn(TestCase):
         # Empty outbox everytime test finishes
         FakeSESConnection.outbox = []
 
+    @override_settings(AWS_SES_FROM_EMAIL='my_default_from@example.com')
     def test_from_email(self):
-        settings.AWS_SES_FROM_EMAIL = "my_default_from@example.com"
         send_mail('subject', 'body', 'ignored_from@example.com', ['to@example.com'])
         self.assertEqual(self.outbox.pop()['Source'], 'my_default_from@example.com')
 
+    @override_settings(
+        USE_SES_V2=True,
+        AWS_SES_RETURN_PATH='return@example.com',
+        AWS_SES_FROM_EMAIL='my_default_from@example.com',
+    )
     def test_return_path(self):
-        settings.USE_SES_V2 = True
-        settings.AWS_SES_RETURN_PATH = "return@example.com"
         send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
 

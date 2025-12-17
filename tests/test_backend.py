@@ -234,6 +234,11 @@ class SESV2BackendTest(TestCase):
     def tearDown(self):
         # Empty outbox every time test finishes
         settings.USE_SES_V2 = False
+        settings.AWS_SES_SOURCE_ARN = None
+        settings.AWS_SES_FROM_ARN = None
+        settings.AWS_SES_FROM_EMAIL = None
+        settings.AWS_SES_RETURN_PATH_ARN = None
+        settings.AWS_SES_CONFIGURATION_SET = None
         FakeSESConnection.outbox = []
 
     def _rfc2047_helper(self, value_to_encode):

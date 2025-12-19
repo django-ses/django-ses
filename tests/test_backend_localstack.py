@@ -23,13 +23,20 @@ from email.message import Message
 from unittest import SkipTest
 
 import requests
-from django.conf import settings as django_settings
 from django.core.mail import send_mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
-from django_ses import settings
+LOCALSTACK_ENDPOINT = os.environ.get("LOCALSTACK_ENDPOINT", "http://localhost:4566")
 
 
+@override_settings(
+    EMAIL_BACKEND="django_ses.SESBackend",
+    AWS_SES_REGION_ENDPOINT_URL=LOCALSTACK_ENDPOINT,
+    AWS_SES_ACCESS_KEY_ID="test",
+    AWS_SES_SECRET_ACCESS_KEY="test",
+    AWS_SES_REGION_NAME="eu-central-1",
+    USE_SES_V2=False,  # LocalStack does not support v2 yet
+)
 class LocalStackIntegrationTest(TestCase):
     """
     Integration tests using LocalStack for AWS SES.
@@ -41,14 +48,10 @@ class LocalStackIntegrationTest(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        cls.localstack_endpoint = os.environ.get("LOCALSTACK_ENDPOINT", "http://localhost:4566")
-        cls.aws_region = "eu-central-1"
-        cls.aws_access_key = "test"
-        cls.aws_secret_key = "test"
 
         # Validate LocalStack is accessible before running tests
         try:
-            response = requests.get(f"{cls.localstack_endpoint}/_localstack/health", timeout=1)
+            response = requests.get(f"{LOCALSTACK_ENDPOINT}/_localstack/health", timeout=1)
             response.raise_for_status()
 
             # Verify SES service is available
@@ -58,36 +61,16 @@ class LocalStackIntegrationTest(TestCase):
                 raise SkipTest("SES service not available in LocalStack")
 
         except requests.RequestException as e:
-            raise SkipTest(f"LocalStack not accessible at {cls.localstack_endpoint}: {e}")
-
-    def setUp(self) -> None:
-        """Configure Django settings to use LocalStack."""
-        django_settings.EMAIL_BACKEND = "django_ses.SESBackend"
-
-        # configure django-ses settings
-        settings.ACCESS_KEY = self.aws_access_key
-        settings.SECRET_KEY = self.aws_secret_key
-        settings.AWS_SES_REGION_NAME = self.aws_region
-        settings.AWS_SES_REGION_ENDPOINT_URL = self.localstack_endpoint
-        settings.USE_SES_V2 = False  # LocalStack does not support v2 yet
+            raise SkipTest(f"LocalStack not accessible at {LOCALSTACK_ENDPOINT}: {e}")
 
     def tearDown(self) -> None:
-        """Clean up settings after each test."""
-        settings.ACCESS_KEY = None
-        settings.SECRET_KEY = None
-        settings.AWS_SES_REGION_NAME = None
-        settings.AWS_SES_REGION_ENDPOINT_URL = None
-        settings.USE_SES_V2 = False
-
+        """Clean up the local stack after each test"""
         # Delete all emails from LocalStack
         try:
-            requests.delete(f"{self.localstack_endpoint}/_aws/ses")
+            requests.delete(f"{LOCALSTACK_ENDPOINT}/_aws/ses")
         except Exception:
             # Ignore errors during cleanup
             pass
-
-        # Restore the fake backend
-        django_settings.EMAIL_BACKEND = "tests.test_backend.FakeSESBackend"
 
     def _get_sent_messages(self, email_address: str | None = None) -> list[dict]:
         """
@@ -108,7 +91,7 @@ class LocalStackIntegrationTest(TestCase):
             params["email"] = email_address
 
         for _ in range(max_attempts):
-            response = requests.get(f"{self.localstack_endpoint}/_aws/ses", params=params)
+            response = requests.get(f"{LOCALSTACK_ENDPOINT}/_aws/ses", params=params)
 
             if response.status_code == 200:
                 messages = response.json().get("messages", [])

@@ -23,6 +23,22 @@ Fixes:
 
 ## Current
 
+**4.5.0**
+
+Updates how settings are declared to allow @override_settings to work.
+Also adds typing for settings and removes hackiness from tests.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/358
+  - https://github.com/django-ses/django-ses/pull/360
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/359
+
+
+## Past
+
 **4.4.0**
 
 Add a signal for message sent.
@@ -33,8 +49,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/346
-
-## Past
 
 **4.3.2**
 

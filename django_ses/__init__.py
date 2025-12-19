@@ -1,10 +1,13 @@
 import importlib.metadata as importlib_metadata
 import logging
 from datetime import datetime, timedelta
+from email import policy
 from time import sleep
 
 import boto3
+import django
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
+from django.core.mail import EmailMessage
 from django.core.mail.backends.base import BaseEmailBackend
 
 from django_ses import signals
@@ -46,6 +49,38 @@ def cast_nonzero_to_float(val):
     if not val:
         return None
     return float(val)
+
+
+if django.VERSION >= (6, 0):
+    def get_message_bytes(message: EmailMessage) -> bytes:
+        """
+        Serialize email message to bytes with proper line endings.
+
+        Django 6.0+ requires policy.SMTP for RFC-compliant CRLF line endings.
+        Earlier versions use the linesep parameter for the same purpose.
+
+        Args:
+            message: Django EmailMessage instance
+
+        Returns:
+            bytes: Serialized email message with appropriate line endings
+        """
+        return message.message().as_bytes(policy=policy.SMTP)
+else:
+    def get_message_bytes(message: EmailMessage) -> bytes:
+        """
+        Serialize email message to bytes with proper line endings.
+
+        Django 6.0+ requires policy.SMTP for RFC-compliant CRLF line endings.
+        Earlier versions use the linesep parameter for the same purpose.
+
+        Args:
+            message: Django EmailMessage instance
+
+        Returns:
+            bytes: Serialized email message with appropriate line endings
+        """
+        return message.message().as_bytes(linesep="\r\n")
 
 
 class SESBackend(BaseEmailBackend):
@@ -272,7 +307,7 @@ class SESBackend(BaseEmailBackend):
             },
             Content={
                 'Raw': {
-                    'Data': dkim_sign(message.message().as_bytes(linesep="\r\n"),
+                    'Data': dkim_sign(get_message_bytes(message),
                                       dkim_key=self.dkim_key,
                                       dkim_domain=self.dkim_domain,
                                       dkim_selector=self.dkim_selector,
@@ -295,7 +330,7 @@ class SESBackend(BaseEmailBackend):
         params = dict(
             Source=source or message.from_email,
             Destinations=message.recipients(),
-            RawMessage={'Data': dkim_sign(message.message().as_bytes(linesep="\r\n"),
+            RawMessage={'Data': dkim_sign(get_message_bytes(message),
                                           dkim_key=self.dkim_key,
                                           dkim_domain=self.dkim_domain,
                                           dkim_selector=self.dkim_selector,

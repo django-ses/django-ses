@@ -773,8 +773,7 @@ To create a release:
     :target: https://pypi.org/project/django-ses/
 .. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
-.. |python| image:: https://img.shields.io/badge/python-3.8|3.9|3.10|3.11|3.12-blue.svg
+.. |python| image:: https://img.shields.io/badge/python-3.8|3.9|3.10|3.11|3.12|3.13|3.14-blue.svg
     :target: https://pypi.org/project/django-ses/
 .. |django| image:: https://img.shields.io/badge/django-4.2%7C%205.0+-blue.svg
     :target: https://www.djangoproject.com/
-

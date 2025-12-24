@@ -1,0 +1,31 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: django-ses-localstack
+    ports:
+      - "4566:4566" # LocalStack gateway
+    environment:
+      SERVICES: ses
+      DEBUG: 1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    configs:
+      - source: init_aws_sh
+        target: /etc/localstack/init/ready.d/init-aws.sh
+        uid: "0"
+        gid: "0"
+        mode: 0555
+
+configs:
+  init_aws_sh:
+    content: |
+      #!/bin/bash
+
+      set -euo pipefail
+
+      echo "[init-aws.sh] Adding ses identities..."
+
+      # Add identity to ses to allow sending emails
+      awslocal ses verify-domain-identity --domain "example.com" --region "eu-central-1"
+
+      echo "[init-aws.sh] Done."

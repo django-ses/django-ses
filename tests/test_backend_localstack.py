@@ -56,7 +56,6 @@ class LocalStackIntegrationTest(TestCase):
 
             # Verify SES service is available
             health_data = response.json()
-            print(health_data)
             if health_data.get("services", {}).get("ses") != "running":
                 raise SkipTest("SES service not available in LocalStack")
 

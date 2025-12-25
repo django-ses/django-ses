@@ -31,6 +31,31 @@ from tests.mocks import (
 )
 
 
+def patch_signal_receiver(signal, mock_func):
+    """
+    Patch a Django signal receiver with a mock function.
+
+    Handles differences in receiver structure across Django versions:
+    - Django <5: (lookup_key, weakref)
+    - Django 5.x: (lookup_key, weakref, is_async)
+    - Django >=6: (lookup_key, weakref, sender_weakref, is_async)
+
+    Args:
+        signal: The Django signal to patch
+        mock_func: The mock function to use as replacement
+    """
+    receiver = signal.receivers[0]
+
+    if django.VERSION[0] < 5:
+        patched_receiver = (receiver[0], weakref.ref(mock_func))
+    elif django.VERSION[0] < 6:
+        patched_receiver = (receiver[0], weakref.ref(mock_func), False)
+    else:
+        patched_receiver = (receiver[0], weakref.ref(mock_func), None, False)
+
+    signal.receivers[0] = patched_receiver
+
+
 class HandleBounceTestCase(TestCase):
     """
     Test the bounce web hook handler.
@@ -112,21 +137,7 @@ class HandleBounceTestCaseWithBL(TransactionTestCase):
         # The only way is to patch the actual .receivers prop at "this" exact
         # moment.
         mock_func = mock.MagicMock()
-        receiver = bounce_received.receivers[0]
-
-        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
-        # ones as well. This caused the receivers structure to change:
-        #
-        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
-        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
-        #
-        # We must account for that difference and prepare a tuple that will
-        # match the expected signature.
-        if django.VERSION[0] < 5:
-            receiver = (receiver[0], weakref.ref(mock_func))
-        else:
-            receiver = (receiver[0], weakref.ref(mock_func), False)
-        bounce_received.receivers[0] = receiver
+        patch_signal_receiver(bounce_received, mock_func)
         response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
                                     content_type="application/json")
         self.assertEqual(response.status_code, 200)
@@ -147,22 +158,8 @@ class HandleBounceTestCaseWithBL(TransactionTestCase):
         # The only way is to patch the actual .receivers prop at "this" exact
         # moment.
         mock_func = mock.MagicMock()
-        receiver = complaint_received.receivers[0]
+        patch_signal_receiver(complaint_received, mock_func)
 
-        # Django<5 had only synchronous receivers, but >=5 can have asynchronous
-        # ones as well. This caused the receivers structure to change:
-        #
-        # 4.2.16: https://github.com/django/django/blob/4.2.16/django/dispatch/dispatcher.py#L253
-        # 5.0: https://github.com/django/django/blob/5.0/django/dispatch/dispatcher.py#L431
-        #
-        # We must account for that difference and prepare a tuple that will
-        # match the expected signature.
-        if django.VERSION[0] < 5:
-            receiver = (receiver[0], weakref.ref(mock_func))
-        else:
-            receiver = (receiver[0], weakref.ref(mock_func), False)
-
-        complaint_received.receivers[0] = receiver
         response = self.client.post(reverse("django_ses_bounce"), json.dumps(notification),
                                     content_type="application/json")
         self.assertEqual(response.status_code, 200)

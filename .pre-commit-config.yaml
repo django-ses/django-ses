@@ -15,4 +15,4 @@ repos:
       - id: django-upgrade
         args: [--target-version, "3.2"]
         language_version: python3.12
-        stages: [ push ]
+        stages: [ pre-push ]

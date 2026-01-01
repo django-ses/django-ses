@@ -26,6 +26,23 @@ jobs:
   build:
     name: Python ${{ matrix.python-version }}, django ${{ matrix.django-version }}
     runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: ses
+          DEBUG: 1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+        ports:
+          - 4566:4566
+        options: >-
+          --health-cmd "awslocal ses list-identities || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
@@ -50,13 +67,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: setup python
+      - name: Initialize LocalStack SES
+        run: |
+          # Wait for LocalStack to be fully ready
+          for i in {1..30}; do
+            if docker exec ${{ job.services.localstack.id }} awslocal ses list-identities --region eu-central-1; then
+              break
+            fi
+            echo "Waiting for LocalStack... ($i/30)"
+            sleep 2
+          done
+
+          # Run initialization commands
+          docker exec ${{ job.services.localstack.id }} awslocal ses verify-domain-identity --domain "example.com" --region "eu-central-1"
+      - name: Setup python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: pip install tox
-      - name: Run Tests
+      - name: Run tests
         env:
           TOXENV: django${{ matrix.django-version }}
+          LOCALSTACK_ENDPOINT: http://localstack:4566
         run: tox

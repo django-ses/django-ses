@@ -115,7 +115,7 @@ class SESBackendTest(TestCase):
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         self.assertTrue('X-SES-CONFIGURATION-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
-        self.assertEqual(mail['from'], self._rfc2047_helper(from_addr))
+        self.assertEqual(decode_email_header(mail['from']), from_addr)
         self.assertEqual(mail['to'], 'to@example.com')
         self.assertEqual(mail.get_payload(), 'body\r\n')
 

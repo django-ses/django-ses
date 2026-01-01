@@ -26,6 +26,8 @@ import requests
 from django.core.mail import send_mail
 from django.test import TestCase, override_settings
 
+from tests.helper import decode_email_header
+
 LOCALSTACK_ENDPOINT = os.environ.get("LOCALSTACK_ENDPOINT", "http://localhost:4566")
 
 
@@ -106,14 +108,6 @@ class LocalStackIntegrationTest(TestCase):
         )
         return []
 
-    def _decode_header(self, header: str) -> str:
-        return " ".join(
-            (
-                part[0].decode(part[1] or "utf-8").strip() if isinstance(part[0], bytes) else part[0].strip()
-                for part in email.header.decode_header(header)
-            )
-        )
-
     def _verify_sent_email(
         self,
         from_email: str,
@@ -142,9 +136,9 @@ class LocalStackIntegrationTest(TestCase):
         parsed_email: Message = email.message_from_string(raw_data)
 
         # Verify email headers and content
-        self.assertEqual(self._decode_header(parsed_email["Subject"]), expected_subject)
-        self.assertEqual(self._decode_header(parsed_email["From"]), from_email)
-        self.assertEqual(self._decode_header(parsed_email["To"]), expected_to)
+        self.assertEqual(decode_email_header(parsed_email["Subject"]), expected_subject)
+        self.assertEqual(decode_email_header(parsed_email["From"]), from_email)
+        self.assertEqual(decode_email_header(parsed_email["To"]), expected_to)
 
         email_body = parsed_email.get_payload()
         self.assertEqual(email_body.strip(), expected_body)

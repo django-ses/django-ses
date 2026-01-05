@@ -23,6 +23,21 @@ Fixes:
 
 ## Current
 
+**4.6.0**
+
+Add Django 6 and python 3.13/3.14 support.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/365
+  - https://github.com/django-ses/django-ses/pull/364
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/issues/362
+
+
+## Past
+
 **4.5.0**
 
 Updates how settings are declared to allow @override_settings to work.
@@ -35,9 +50,6 @@ Pulls:
 Issues:
 
   - https://github.com/django-ses/django-ses/issues/359
-
-
-## Past
 
 **4.4.0**
 

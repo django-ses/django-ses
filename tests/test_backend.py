@@ -8,6 +8,7 @@ from django.utils.encoding import smart_str
 
 import django_ses
 from django_ses import models
+from tests.helper import decode_email_header
 
 # random key generated with `openssl genrsa 512`
 DKIM_PRIVATE_KEY = '''
@@ -105,30 +106,18 @@ class SESBackendTest(TestCase):
         # Empty outbox every time test finishes
         FakeSESConnection.outbox = []
 
-    def _rfc2047_helper(self, value_to_encode):
-        # references: https://docs.python.org/3/library/email.header.html, https://tools.ietf.org/html/rfc2047.html
-        name, addr = email.utils.parseaddr(value_to_encode)
-        name = email.header.Header(name).encode()
-        return email.utils.formataddr((name, addr))
-
-    def test_rfc2047_helper(self):
-        # Ensures that the underlying email.header library code is encoding as expected, using known values
-        unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
-        rfc2047_encoded_from_addr = '=?utf-8?b?VW5pY29kZSBOYW1lIMOzw7PDs8Ozw7PDsw==?= <from@example.com>'
-        self.assertEqual(self._rfc2047_helper(unicode_from_addr), rfc2047_encoded_from_addr)
-
     @override_settings(AWS_SES_CONFIGURATION_SET=None)
     def test_send_mail(self):
         from_addr = 'Albertus Magnus <albertus.magnus@example.com>'
 
-        send_mail('subject', 'body', from_addr, ['to@example.com'])
+        send_mail('subject', 'body\n', from_addr, ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         self.assertTrue('X-SES-CONFIGURATION-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
-        self.assertEqual(mail['from'], self._rfc2047_helper(from_addr))
+        self.assertEqual(decode_email_header(mail['from']), from_addr)
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
 
     @override_settings(AWS_SES_USE_BLACKLIST=True)
     def test_send_mail_when_blacklisted(self):
@@ -180,31 +169,31 @@ class SESBackendTest(TestCase):
     def test_send_mail_unicode_body(self):
         unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
-        send_mail('Scandinavian', 'Sören & Björn', unicode_from_addr, ['to@example.com'])
+        send_mail('Scandinavian', 'Sören & Björn\n', unicode_from_addr, ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         self.assertTrue('X-SES-CONFIGURATION-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'Scandinavian')
-        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
+        self.assertEqual(decode_email_header(mail['from']), unicode_from_addr)
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'Sören & Björn')
+        self.assertEqual(mail.get_payload(), 'Sören & Björn\r\n')
 
     @override_settings(AWS_SES_CONFIGURATION_SET='test-set')
     def test_configuration_set_send_mail(self):
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        send_mail('subject', 'body\n', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
         self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'test-set')
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
 
     def test_configuration_set_callable_send_mail(self):
         config_set_callable = SESConfigurationSetTester('my-config-set')
 
         with override_settings(AWS_SES_CONFIGURATION_SET=config_set_callable):
-            send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+            send_mail('subject', 'body\n', 'from@example.com', ['to@example.com'])
 
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['RawMessage']['Data']))
@@ -213,7 +202,7 @@ class SESBackendTest(TestCase):
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
         # ensure we passed in the proper arguments to our callable
         self.assertEqual(config_set_callable.message.subject, 'subject')
         self.assertEqual(config_set_callable.dkim_domain, None)
@@ -252,30 +241,30 @@ class SESV2BackendTest(TestCase):
     def test_send_mail(self):
         unicode_from_addr = 'Unicode Name óóóóóó <from@example.com>'
 
-        send_mail('subject', 'body', unicode_from_addr, ['to@example.com'])
+        send_mail('subject', 'body\n', unicode_from_addr, ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
         self.assertTrue('X-SES-CONFIGURATION-SET' not in mail.keys())
         self.assertEqual(mail['subject'], 'subject')
-        self.assertEqual(mail['from'], self._rfc2047_helper(unicode_from_addr))
+        self.assertEqual(decode_email_header(mail['from']), unicode_from_addr)
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
 
     @override_settings(AWS_SES_CONFIGURATION_SET='test-set')
     def test_configuration_set_send_mail(self):
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        send_mail('subject', 'body\n', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
         self.assertEqual(mail['X-SES-CONFIGURATION-SET'], 'test-set')
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
 
     def test_configuration_set_callable_send_mail(self):
         config_set_callable = SESConfigurationSetTester('my-config-set')
         with override_settings(AWS_SES_CONFIGURATION_SET=config_set_callable):
-            send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+            send_mail('subject', 'body\n', 'from@example.com', ['to@example.com'])
         message = self.outbox.pop()
         mail = email.message_from_string(smart_str(message['Content']['Raw']['Data']))
         # ensure we got the correct configuration message payload
@@ -283,7 +272,7 @@ class SESV2BackendTest(TestCase):
         self.assertEqual(mail['subject'], 'subject')
         self.assertEqual(mail['from'], 'from@example.com')
         self.assertEqual(mail['to'], 'to@example.com')
-        self.assertEqual(mail.get_payload(), 'body')
+        self.assertEqual(mail.get_payload(), 'body\r\n')
         # ensure we passed in the proper arguments to our callable
         self.assertEqual(config_set_callable.message.subject, 'subject')
         self.assertEqual(config_set_callable.dkim_domain, None)

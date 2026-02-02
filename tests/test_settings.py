@@ -43,3 +43,12 @@ class SettingsImportTest(TestCase):
     def test_ses_region_to_endpoint_set_given(self):
         self.assertEqual(settings.AWS_SES_REGION_NAME, 'eu-west-1')
         self.assertEqual(settings.AWS_SES_REGION_ENDPOINT, 'email.eu-west-1.amazonaws.com')
+
+    @override_settings(AWS_SES_GLOBAL_ENDPOINT_ID='test123.g3h')
+    def test_global_endpoint_id_given(self):
+        """Test that global endpoint ID is set when AWS_SES_GLOBAL_ENDPOINT_ID is provided"""
+        self.assertEqual(settings.AWS_SES_GLOBAL_ENDPOINT_ID, 'test123.g3h')
+
+    def test_global_endpoint_id_default(self):
+        """Test that global endpoint ID defaults to None"""
+        self.assertIsNone(settings.AWS_SES_GLOBAL_ENDPOINT_ID)

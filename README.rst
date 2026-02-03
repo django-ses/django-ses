@@ -97,6 +97,10 @@ Add the following to your settings.py::
     # If you want to use the SESv2 client
     USE_SES_V2 = True
 
+    # If you want to use SES Global Endpoint (Multi-Region Endpoint) for high availability
+    AWS_SES_GLOBAL_ENDPOINT_ID = 'abcdef12.g3h'  # Your global endpoint ID
+    USE_SES_V2 = True  # Required for global endpoints
+
 Alternatively, instead of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, you
 can include the following two settings values. This is useful in situations
 where you would like to use a separate access key to send emails via SES than
@@ -300,6 +304,91 @@ where
   be DKIM signed (see DKIM, below for explanation)
 
 .. _SES Event Publishing: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-using-event-publishing.html
+
+
+SES Global Endpoint (Multi-Region Endpoint)
+============================================
+
+AWS SES Global Endpoints (also known as Multi-Region Endpoints or MREPs) offer
+multi-region high availability and automatic failover. When you use a global
+endpoint, AWS automatically distributes your email sending traffic between two
+AWS regions and handles failover if one region experiences issues.
+
+Benefits
+--------
+
+* **High Availability**: Automatic failover between two AWS regions
+* **Improved Resilience**: Reduced impact from regional outages
+* **Traffic Distribution**: Automatic load balancing between primary and secondary regions
+
+Prerequisites
+-------------
+
+To use global endpoints, you must:
+
+1. **Use SES API v2**: Set ``USE_SES_V2 = True`` (global endpoints require v2)
+2. **Create a Multi-Region Endpoint**: Create via AWS Console or CLI
+3. **Configure both regions**: Verify identities and configure settings in both primary and secondary regions
+4. **Obtain the Endpoint ID**: Get the endpoint ID (e.g., ``abcdef12.g3h``) from the AWS Console or CLI
+
+Creating a Global Endpoint
+---------------------------
+
+**Via AWS Console:**
+
+1. Navigate to SES Console → **Global Endpoints**
+2. Click **Create global endpoint**
+3. Enter a name and select secondary region
+4. Click **Create global endpoint**
+5. Copy the **Endpoint ID** from the details page
+
+**Via AWS CLI:**
+
+.. code-block:: bash
+
+    aws sesv2 create-multi-region-endpoint \
+      --primary-region us-west-2 \
+      --secondary-region us-east-1 \
+      --endpoint-name MyGlobalEndpoint
+
+    # Get the endpoint ID
+    aws sesv2 get-multi-region-endpoint \
+      --endpoint-name MyGlobalEndpoint \
+      --region us-west-2
+
+Usage
+-----
+
+To enable the SES global endpoint in django-ses, add these settings::
+
+    USE_SES_V2 = True  # Required
+    AWS_SES_GLOBAL_ENDPOINT_ID = 'abcdef12.g3h'  # Your endpoint ID
+
+When ``AWS_SES_GLOBAL_ENDPOINT_ID`` is set, django-ses will include the
+``EndpointId`` parameter in all ``send_email`` API calls.
+
+Recommendations
+---------------
+
+AWS recommends using global endpoints with Configuration Sets for better
+tracking and management::
+
+    USE_SES_V2 = True
+    AWS_SES_GLOBAL_ENDPOINT_ID = 'abcdef12.g3h'
+    AWS_SES_CONFIGURATION_SET = 'my-configuration-set'
+
+**Important:** Ensure that configuration sets, verified identities, and
+sending limits are configured in both primary and secondary regions.
+
+Monitoring
+----------
+
+Monitor your global endpoint metrics in the AWS Console under
+**Global Endpoints → [Your Endpoint] → Cross-region metrics**.
+
+For more information, see the `AWS SES documentation on global endpoints`_.
+
+.. _AWS SES documentation on global endpoints: https://docs.aws.amazon.com/ses/latest/dg/global-endpoints.html
 
 
 DKIM
@@ -605,6 +694,13 @@ Full List of Settings
   Optional. If you want to use client v2, you'll need to add `USE_SES_V2=True`.
   Some settings will need this flag enabled.
   See https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#id87
+
+``AWS_SES_GLOBAL_ENDPOINT_ID``
+  Optional. The ID of your AWS SES Global Endpoint (Multi-Region Endpoint).
+  Example: ``'abcdef12.g3h'``. When set, django-ses will include the
+  ``EndpointId`` parameter in SES API calls for multi-region high availability
+  and automatic failover. **Requires USE_SES_V2=True** (SES API v2 only).
+  Default is ``None``. See the Global Endpoints section for setup instructions.
 
 ``AWS_SES_FROM_EMAIL``
   Optional. The email address to be used as the "From" address for the email. The address that you specify has to be verified.

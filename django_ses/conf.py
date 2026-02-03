@@ -100,6 +100,10 @@ class SesSettings:
         return getattr(django_settings, 'USE_SES_V2', False)
 
     @property
+    def AWS_SES_GLOBAL_ENDPOINT_ID(self) -> Optional[str]:
+        return getattr(django_settings, 'AWS_SES_GLOBAL_ENDPOINT_ID', None)
+
+    @property
     def AWS_SES_FROM_EMAIL(self) -> Optional[str]:
         return getattr(django_settings, 'AWS_SES_FROM_EMAIL', None)
 

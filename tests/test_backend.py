@@ -403,3 +403,79 @@ class SESBackendTestReturn(TestCase):
 
         self.assertEqual(message['FromEmailAddress'], 'my_default_from@example.com')
         self.assertEqual(message['FeedbackForwardingEmailAddress'], 'return@example.com')
+
+
+@override_settings(
+    EMAIL_BACKEND='tests.test_backend.FakeSESBackend',
+    AWS_SES_GLOBAL_ENDPOINT_ID='test123.g3h',
+    USE_SES_V2=True,
+)
+class GlobalEndpointBackendTest(TestCase):
+    """Test SESBackend with global endpoint ID"""
+
+    def setUp(self):
+        FakeSESConnection.outbox = []
+
+    def test_backend_initialization_with_global_endpoint_id(self):
+        """Test that backend initializes with global endpoint ID"""
+        from django_ses import SESBackend
+        backend = SESBackend()
+        self.assertEqual(backend._global_endpoint_id, 'test123.g3h')
+        self.assertTrue(backend._use_ses_v2)
+
+    def test_send_mail_includes_endpoint_id(self):
+        """Test that send_email includes EndpointId parameter"""
+        result = send_mail(
+            'Subject',
+            'Body',
+            'from@example.com',
+            ['to@example.com']
+        )
+        self.assertEqual(result, 1)
+        self.assertEqual(len(FakeSESConnection.outbox), 1)
+
+        # Verify EndpointId is included in the parameters
+        params = FakeSESConnection.outbox[0]
+        self.assertIn('EndpointId', params)
+        self.assertEqual(params['EndpointId'], 'test123.g3h')
+
+
+@override_settings(
+    EMAIL_BACKEND='tests.test_backend.FakeSESBackend',
+    AWS_SES_GLOBAL_ENDPOINT_ID='test123.g3h',
+    USE_SES_V2=False,  # Intentionally wrong
+)
+class GlobalEndpointValidationTest(TestCase):
+    """Test validation of global endpoint configuration"""
+
+    def test_settings_global_endpoint_requires_v2(self):
+        """Test that global endpoint ID in settings also requires USE_SES_V2=True"""
+        from django_ses import SESBackend
+        with self.assertRaises(ValueError) as cm:
+            SESBackend()
+        self.assertIn('USE_SES_V2=True', str(cm.exception))
+
+
+@override_settings(
+    EMAIL_BACKEND='tests.test_backend.FakeSESBackend',
+    USE_SES_V2=True,
+)
+class GlobalEndpointDefaultTest(TestCase):
+    """Test SESBackend without global endpoint ID (default behavior)"""
+
+    def setUp(self):
+        FakeSESConnection.outbox = []
+
+    def test_send_mail_without_endpoint_id(self):
+        """Test that send_email works normally without global endpoint ID"""
+        result = send_mail(
+            'Subject',
+            'Body',
+            'from@example.com',
+            ['to@example.com']
+        )
+        self.assertEqual(result, 1)
+
+        # Verify EndpointId is NOT included when not configured
+        params = FakeSESConnection.outbox[0]
+        self.assertNotIn('EndpointId', params)

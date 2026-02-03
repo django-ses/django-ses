@@ -92,7 +92,7 @@ class SESBackend(BaseEmailBackend):
                  aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
                  dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
                  ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
-                 use_ses_v2=False,
+                 use_ses_v2=False, aws_global_endpoint_id=None,
         **kwargs
     ):
 
@@ -116,6 +116,15 @@ class SESBackend(BaseEmailBackend):
         self.ses_return_path_arn = ses_return_path_arn or settings.AWS_SES_RETURN_PATH_ARN
 
         self._use_ses_v2 = use_ses_v2 or settings.USE_SES_V2
+
+        self._global_endpoint_id = aws_global_endpoint_id or settings.AWS_SES_GLOBAL_ENDPOINT_ID
+
+        # Validate that global endpoint ID requires SES v2
+        if self._global_endpoint_id and not self._use_ses_v2:
+            raise ValueError(
+                "AWS_SES_GLOBAL_ENDPOINT_ID requires USE_SES_V2=True. "
+                "Global endpoints (Multi-Region Endpoints) are only supported by SES API v2."
+            )
 
         self.connection = None
 
@@ -319,6 +328,10 @@ class SESBackend(BaseEmailBackend):
             params['FromEmailAddressIdentityArn'] = self.ses_from_arn or self.ses_source_arn
         if email_feedback is not None:
             params['FeedbackForwardingEmailAddress'] = email_feedback
+
+        # Add global endpoint ID if configured
+        if self._global_endpoint_id:
+            params['EndpointId'] = self._global_endpoint_id
 
         return params
 

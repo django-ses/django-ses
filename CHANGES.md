@@ -23,6 +23,20 @@ Fixes:
 
 ## Current
 
+**4.7.0**
+
+Add Global Endpoint (Multi-Region) support
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/367
+
+Issues:
+
+  - N/A
+
+
+## Past
+
 **4.6.0**
 
 Add Django 6 and python 3.13/3.14 support.

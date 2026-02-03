@@ -40,9 +40,9 @@ include = ["example", "tests"]
 "Changelog" = "https://github.com/django-ses/django-ses/blob/main/CHANGES.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 boto3 = ">=1.0.0"
-django = ">=3.2"
+django = ">=4.2"
 importlib-metadata = {version = ">=1", python = "<3.8"}
 backports-zoneinfo = {version = ">=0.2.1", python = "<3.9"}
 cryptography = {version = ">=36.0.2", optional = true}
@@ -53,8 +53,8 @@ bounce =  ["requests", "cryptography"]
 events = ["requests", "cryptography"]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.3.7"
-tox = "^3.24.5"
+ruff = "*"
+tox = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -452,7 +452,7 @@ class GlobalEndpointValidationTest(TestCase):
         """Test that global endpoint ID in settings also requires USE_SES_V2=True"""
         from django_ses import SESBackend
         with self.assertRaises(ValueError) as cm:
-            backend = SESBackend()
+            SESBackend()
         self.assertIn('USE_SES_V2=True', str(cm.exception))
 
 

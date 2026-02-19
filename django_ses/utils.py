@@ -319,7 +319,7 @@ def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
     return [
         br.get("emailAddress")
         for br in bounced_recipients
-        if ("status" in br and br.get("status").startswith("5")) or bounce_obj.get("bounceType") == "Permanent"
+        if br.get("status", "").startswith("5") or ("status" not in br and bounce_obj.get("bounceType") == "Permanent")
     ]
 
 

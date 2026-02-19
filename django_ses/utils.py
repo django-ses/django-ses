@@ -315,9 +315,12 @@ def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
     """Extracts permanent bounced email addresses only as a list of strings.
     https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#bounce-object
     """
-    if bounce_obj.get("bounceType") == "Permanent":
-        return [br.get("emailAddress") for br in bounce_obj.get("bouncedRecipients", list())]
-    return []
+    bounced_recipients = bounce_obj.get("bouncedRecipients", list())
+    return [
+        br.get("emailAddress")
+        for br in bounced_recipients
+        if ("status" in br and br.get("status").startswith("5")) or bounce_obj.get("bounceType") == "Permanent"
+    ]
 
 
 def get_emails_from_complaint_obj(complaint_obj: dict) -> list:

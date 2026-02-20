@@ -23,6 +23,24 @@ Fixes:
 
 ## Current
 
+**4.7.2**
+
+Handle bounce with bounceType when status is missing
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/369
+
+Issues:
+
+  - https://github.com/django-ses/django-ses/pull/368
+
+## Past
+
+
+**4.7.1**
+
+Re-add Django 3.2 support
+
 **4.7.0**
 
 Add Global Endpoint (Multi-Region) support
@@ -33,9 +51,6 @@ Pulls:
 Issues:
 
   - N/A
-
-
-## Past
 
 **4.6.0**
 

@@ -72,7 +72,7 @@ class SignalsTestCase(TestCase):
         with override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True):
             signals.bounce_handler(None, mail_obj, bounce_obj, notification)
 
-        # ... it should insert the email in the blacklist
+        # ... it should not insert the email in the blacklist
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 0)
 

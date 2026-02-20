@@ -260,6 +260,58 @@ def get_mock_bounce(type_specifier):
     notification = get_mock_notification(message)
     return mail, bounce, notification
 
+def get_mock_bounce_no_status(type_specifier):
+    mail = get_mock_email()
+    bounce = {
+        "bounceType": "Permanent",
+        "bounceSubType": "General",
+        "bouncedRecipients": [
+            {
+                "emailAddress": "recipient1@example.com",
+            },
+            {
+                "emailAddress": "recipient2@example.com",
+            }
+        ],
+        "reportingMTA": "example.com",
+        "timestamp": "2012-05-25T14:59:38.605-07:00",
+        "feedbackId": "000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
+    }
+
+    message = {
+        type_specifier: "Bounce",
+        "mail": mail,
+        "bounce": bounce,
+    }
+    notification = get_mock_notification(message)
+    return mail, bounce, notification
+
+def get_mock_bounce_no_status_transient(type_specifier):
+    mail = get_mock_email()
+    bounce = {
+        "bounceType": "Transient",
+        "bounceSubType": "General",
+        "bouncedRecipients": [
+            {
+                "emailAddress": "recipient1@example.com",
+            },
+            {
+                "emailAddress": "recipient2@example.com",
+            }
+        ],
+        "reportingMTA": "example.com",
+        "timestamp": "2012-05-25T14:59:38.605-07:00",
+        "feedbackId": "000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
+    }
+
+    message = {
+        type_specifier: "Bounce",
+        "mail": mail,
+        "bounce": bounce,
+    }
+    notification = get_mock_notification(message)
+    return mail, bounce, notification
+
 def get_mock_complaint(type_specifier):
     mail = get_mock_email()
     complaint = {

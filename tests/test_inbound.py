@@ -50,7 +50,8 @@ class InbounceSnsTestCase(TestCase):
 
             self.assertEqual(
                 cm.output[-1],
-                "ERROR:django_ses.inbound:Received action type (S3) or encoding (None) can't be handled by this handler",
+                "ERROR:django_ses.inbound:Received action type (S3) or encoding (None) "
+                "can't be handled by this handler",
             )
 
 

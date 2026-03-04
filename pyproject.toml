@@ -43,7 +43,6 @@ include = ["example", "tests"]
 python = ">=3.8"
 boto3 = ">=1.0.0"
 django = ">=3.2"
-importlib-metadata = {version = ">=1", python = "<3.8"}
 backports-zoneinfo = {version = ">=0.2.1", python = "<3.9"}
 cryptography = {version = ">=36.0.2", optional = true}
 requests = {version = ">=2.32.1", optional = true}
@@ -88,5 +87,5 @@ line-length = 120
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.12
-target-version = "py312"
+# Assume Python 3.14
+target-version = "py314"

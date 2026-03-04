@@ -150,7 +150,7 @@ class EventMessageVerifier(object):
             response.raise_for_status()
         except RequestException as exc:
             logger.warning(
-                "Network error downloading certificate from " "%s: %s",
+                "Network error downloading certificate from %s: %s",
                 cert_url,
                 exc,
             )
@@ -222,10 +222,7 @@ class EventMessageVerifier(object):
                 "TopicArn",
                 "Type",
             ]
-        elif (
-            msg_type == "SubscriptionConfirmation"
-            or msg_type == "UnsubscribeConfirmation"
-        ):
+        elif msg_type == "SubscriptionConfirmation" or msg_type == "UnsubscribeConfirmation":
             fields_to_sign = [
                 "Message",
                 "MessageId",

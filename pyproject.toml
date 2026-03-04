@@ -52,14 +52,24 @@ bounce =  ["requests", "cryptography"]
 events = ["requests", "cryptography"]
 
 [tool.poetry.group.dev.dependencies]
+pre-commit = "*"
 ruff = "*"
 tox = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+# Same as Black.
+line-length = 120
+
+# Assume Python 3.14
+target-version = "py314"
 
 [tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
 select = [
     "E",       # pycodestyle errors
     "W",       # pycodestyle warnings
@@ -81,11 +91,6 @@ fixable = [
 ]
 unfixable = []
 
-# Same as Black.
-line-length = 120
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-# Assume Python 3.14
-target-version = "py314"

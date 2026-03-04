@@ -4,17 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_ses', '0001_initial'),
+        ("django_ses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BlacklistedEmail',
+            name="BlacklistedEmail",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email', models.EmailField(max_length=255, unique=True)),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("email", models.EmailField(max_length=255, unique=True)),
             ],
         ),
     ]

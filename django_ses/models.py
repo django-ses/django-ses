@@ -9,8 +9,8 @@ class SESStat(models.Model):
     rejects = models.PositiveIntegerField()
 
     class Meta:
-        verbose_name = 'SES Stat'
-        ordering = ['-date']
+        verbose_name = "SES Stat"
+        ordering = ["-date"]
 
     def __str__(self):
         return self.date.strftime("%Y-%m-%d")

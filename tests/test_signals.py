@@ -14,6 +14,7 @@ class SignalsTestCase(TestCase):
     """
     Test the signals handlers.
     """
+
     def test_bounce_handler(self):
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 0)
@@ -113,16 +114,16 @@ class SignalsTestCase(TestCase):
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 1)
 
-    @override_settings(EMAIL_BACKEND='tests.test_backend.FakeSESBackend')
+    @override_settings(EMAIL_BACKEND="tests.test_backend.FakeSESBackend")
     def test_message_sent_handler(self):
         def _handler(sender, message, **kwargs):
             _handler.call_count += 1
-            self.assertEqual(message.subject, 'subject')
-            self.assertEqual(message.body, 'body')
-            self.assertEqual(message.extra_headers['message_id'], 'fake_message_id')
+            self.assertEqual(message.subject, "subject")
+            self.assertEqual(message.body, "body")
+            self.assertEqual(message.extra_headers["message_id"], "fake_message_id")
 
         _handler.call_count = 0
         signals.message_sent.connect(_handler)
 
-        send_mail('subject', 'body', 'from@example.com', ['to@example.com'])
+        send_mail("subject", "body", "from@example.com", ["to@example.com"])
         self.assertEqual(_handler.call_count, 1)

@@ -6,26 +6,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='SESStat',
+            name="SESStat",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(db_index=True, unique=True)),
-                ('delivery_attempts', models.PositiveIntegerField()),
-                ('bounces', models.PositiveIntegerField()),
-                ('complaints', models.PositiveIntegerField()),
-                ('rejects', models.PositiveIntegerField()),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("date", models.DateField(db_index=True, unique=True)),
+                ("delivery_attempts", models.PositiveIntegerField()),
+                ("bounces", models.PositiveIntegerField()),
+                ("complaints", models.PositiveIntegerField()),
+                ("rejects", models.PositiveIntegerField()),
             ],
             options={
-                'verbose_name': 'SES Stat',
-                'ordering': ['-date'],
+                "verbose_name": "SES Stat",
+                "ordering": ["-date"],
             },
         ),
     ]

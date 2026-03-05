@@ -43,7 +43,6 @@ include = ["example", "tests"]
 python = ">=3.8"
 boto3 = ">=1.0.0"
 django = ">=3.2"
-importlib-metadata = {version = ">=1", python = "<3.8"}
 backports-zoneinfo = {version = ">=0.2.1", python = "<3.9"}
 cryptography = {version = ">=36.0.2", optional = true}
 requests = {version = ">=2.32.1", optional = true}
@@ -53,14 +52,24 @@ bounce =  ["requests", "cryptography"]
 events = ["requests", "cryptography"]
 
 [tool.poetry.group.dev.dependencies]
+pre-commit = "*"
 ruff = "*"
 tox = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+# Same as Black.
+line-length = 120
+
+# Assume Python 3.14
+target-version = "py314"
 
 [tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
 select = [
     "E",       # pycodestyle errors
     "W",       # pycodestyle warnings
@@ -82,11 +91,6 @@ fixable = [
 ]
 unfixable = []
 
-# Same as Black.
-line-length = 120
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-# Assume Python 3.12
-target-version = "py312"

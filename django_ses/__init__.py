@@ -14,7 +14,7 @@ from django_ses import signals
 from django_ses.conf import settings
 
 __version__ = importlib_metadata.version(__name__)
-__all__ = ('SESBackend',)
+__all__ = ("SESBackend",)
 
 # These would be nice to make class-level variables, but the backend is
 # re-created for each outgoing email/batch.
@@ -24,7 +24,7 @@ __all__ = ('SESBackend',)
 cached_rate_limits = {}
 recent_send_times = []
 
-logger = logging.getLogger('django_ses')
+logger = logging.getLogger("django_ses")
 
 
 def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None):
@@ -35,11 +35,7 @@ def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim
         pass
     else:
         if dkim_domain and dkim_key:
-            sig = dkim.sign(message,
-                            dkim_selector,
-                            dkim_domain,
-                            dkim_key,
-                            include_headers=dkim_headers)
+            sig = dkim.sign(message, dkim_selector, dkim_domain, dkim_key, include_headers=dkim_headers)
             message = sig + message
     return message
 
@@ -52,6 +48,7 @@ def cast_nonzero_to_float(val):
 
 
 if django.VERSION >= (6, 0):
+
     def get_message_bytes(message: EmailMessage) -> bytes:
         """
         Serialize email message to bytes with proper line endings.
@@ -67,6 +64,7 @@ if django.VERSION >= (6, 0):
         """
         return message.message().as_bytes(policy=policy.SMTP)
 else:
+
     def get_message_bytes(message: EmailMessage) -> bytes:
         """
         Serialize email message to bytes with proper line endings.
@@ -84,16 +82,29 @@ else:
 
 
 class SESBackend(BaseEmailBackend):
-    """A Django Email backend that uses Amazon's Simple Email Service.
-    """
+    """A Django Email backend that uses Amazon's Simple Email Service."""
 
-    def __init__(self, fail_silently=False,aws_session_profile=None, aws_access_key=None,
-                 aws_secret_key=None, aws_session_token=None, aws_region_name=None,
-                 aws_region_endpoint=None, aws_auto_throttle=None, aws_config=None,
-                 dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None,
-                 ses_source_arn=None, ses_from_arn=None, ses_return_path_arn=None,
-                 use_ses_v2=False, aws_global_endpoint_id=None,
-        **kwargs
+    def __init__(
+        self,
+        fail_silently=False,
+        aws_session_profile=None,
+        aws_access_key=None,
+        aws_secret_key=None,
+        aws_session_token=None,
+        aws_region_name=None,
+        aws_region_endpoint=None,
+        aws_auto_throttle=None,
+        aws_config=None,
+        dkim_domain=None,
+        dkim_key=None,
+        dkim_selector=None,
+        dkim_headers=None,
+        ses_source_arn=None,
+        ses_from_arn=None,
+        ses_return_path_arn=None,
+        use_ses_v2=False,
+        aws_global_endpoint_id=None,
+        **kwargs,
     ):
 
         super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
@@ -158,8 +169,7 @@ class SESBackend(BaseEmailBackend):
                 raise
 
     def close(self):
-        """Close any open HTTP connections to the API server.
-        """
+        """Close any open HTTP connections to the API server."""
         self.connection = None
 
     def send_messages(self, email_messages):
@@ -180,12 +190,13 @@ class SESBackend(BaseEmailBackend):
         for message in email_messages:
             if settings.AWS_SES_USE_BLACKLIST:
                 from django_ses import utils
+
                 message.to = utils.filter_blacklisted_recipients(message.to)
                 message.cc = utils.filter_blacklisted_recipients(message.cc)
                 message.bcc = utils.filter_blacklisted_recipients(message.bcc)
 
                 if len(message.to) + len(message.cc) + len(message.bcc) == 0:
-                    logger.debug('Refusing to send email. All recipients were filtered by the blacklist')
+                    logger.debug("Refusing to send email. All recipients were filtered by the blacklist")
                     continue
 
             # SES Configuration sets. If the AWS_SES_CONFIGURATION_SET setting
@@ -195,20 +206,17 @@ class SESBackend(BaseEmailBackend):
             # If settings.AWS_SES_CONFIGURATION_SET is a callable, pass it the
             # message object and dkim settings and expect it to return a string
             # containing the SES Configuration Set name.
-            if (settings.AWS_SES_CONFIGURATION_SET
-                    and 'X-SES-CONFIGURATION-SET' not in message.extra_headers):
+            if settings.AWS_SES_CONFIGURATION_SET and "X-SES-CONFIGURATION-SET" not in message.extra_headers:
                 if callable(settings.AWS_SES_CONFIGURATION_SET):
-                    message.extra_headers[
-                        'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET(
-                            message,
-                            dkim_domain=self.dkim_domain,
-                            dkim_key=self.dkim_key,
-                            dkim_selector=self.dkim_selector,
-                            dkim_headers=self.dkim_headers
-                        )
+                    message.extra_headers["X-SES-CONFIGURATION-SET"] = settings.AWS_SES_CONFIGURATION_SET(
+                        message,
+                        dkim_domain=self.dkim_domain,
+                        dkim_key=self.dkim_key,
+                        dkim_selector=self.dkim_selector,
+                        dkim_headers=self.dkim_headers,
+                    )
                 else:
-                    message.extra_headers[
-                        'X-SES-CONFIGURATION-SET'] = settings.AWS_SES_CONFIGURATION_SET
+                    message.extra_headers["X-SES-CONFIGURATION-SET"] = settings.AWS_SES_CONFIGURATION_SET
 
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a
@@ -221,37 +229,41 @@ class SESBackend(BaseEmailBackend):
             kwargs = self._get_send_email_parameters(message, source, email_feedback)
 
             try:
-                response = (self.connection.send_email(**kwargs)
-                            if self._use_ses_v2
-                            else self.connection.send_raw_email(**kwargs))
-                message.extra_headers['status'] = 200
-                message.extra_headers['message_id'] = response['MessageId']
-                message.extra_headers['request_id'] = response['ResponseMetadata']['RequestId']
+                response = (
+                    self.connection.send_email(**kwargs)
+                    if self._use_ses_v2
+                    else self.connection.send_raw_email(**kwargs)
+                )
+                message.extra_headers["status"] = 200
+                message.extra_headers["message_id"] = response["MessageId"]
+                message.extra_headers["request_id"] = response["ResponseMetadata"]["RequestId"]
                 num_sent += 1
-                if 'X-SES-CONFIGURATION-SET' in message.extra_headers:
+                if "X-SES-CONFIGURATION-SET" in message.extra_headers:
                     logger.debug(
                         "send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}' "
                         "ses-configuration-set='{}'".format(
                             message.from_email,
                             ", ".join(message.recipients()),
-                            message.extra_headers['message_id'],
-                            message.extra_headers['request_id'],
-                            message.extra_headers['X-SES-CONFIGURATION-SET']
-                        ))
+                            message.extra_headers["message_id"],
+                            message.extra_headers["request_id"],
+                            message.extra_headers["X-SES-CONFIGURATION-SET"],
+                        )
+                    )
                 else:
-                    logger.debug("send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
-                        message.from_email,
-                        ", ".join(message.recipients()),
-                        message.extra_headers['message_id'],
-                        message.extra_headers['request_id']
-                    ))
+                    logger.debug(
+                        "send_messages.sent from='{}' recipients='{}' message_id='{}' request_id='{}'".format(
+                            message.from_email,
+                            ", ".join(message.recipients()),
+                            message.extra_headers["message_id"],
+                            message.extra_headers["request_id"],
+                        )
+                    )
 
                 signals.message_sent.send(sender=SESBackend, message=message)
 
             except ResponseError as err:
                 # Store failure information so to post process it if required
-                error_keys = ['status', 'reason', 'body', 'request_id',
-                              'error_code', 'error_message']
+                error_keys = ["status", "reason", "body", "request_id", "error_code", "error_message"]
                 for key in error_keys:
                     message.extra_headers[key] = getattr(err, key, None)
                 if not self.fail_silently:
@@ -291,8 +303,7 @@ class SESBackend(BaseEmailBackend):
         if len(new_send_times) > rate_limit * window * self._throttle:
             # Sleep the remainder of the window period.
             delta = now - new_send_times[0]
-            total_seconds = (delta.microseconds + (delta.seconds +
-                                                   delta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+            total_seconds = (delta.microseconds + (delta.seconds + delta.days * 24 * 3600) * 10**6) / 10**6
             delay = window - total_seconds
             if delay > 0:
                 sleep(delay)
@@ -300,9 +311,11 @@ class SESBackend(BaseEmailBackend):
         # end of throttling
 
     def _get_send_email_parameters(self, message, source, email_feedack):
-        return (self._get_v2_parameters(message, source, email_feedack)
-                if self._use_ses_v2
-                else self._get_v1_parameters(message, source))
+        return (
+            self._get_v2_parameters(message, source, email_feedack)
+            if self._use_ses_v2
+            else self._get_v1_parameters(message, source)
+        )
 
     def _get_v2_parameters(self, message, source, email_feedback):
         """V2-Style raw payload for `send_email`.
@@ -311,27 +324,27 @@ class SESBackend(BaseEmailBackend):
         """
         params = dict(
             FromEmailAddress=source or message.from_email,
-            Destination={
-                'ToAddresses': message.recipients()
-            },
+            Destination={"ToAddresses": message.recipients()},
             Content={
-                'Raw': {
-                    'Data': dkim_sign(get_message_bytes(message),
-                                      dkim_key=self.dkim_key,
-                                      dkim_domain=self.dkim_domain,
-                                      dkim_selector=self.dkim_selector,
-                                      dkim_headers=self.dkim_headers)
+                "Raw": {
+                    "Data": dkim_sign(
+                        get_message_bytes(message),
+                        dkim_key=self.dkim_key,
+                        dkim_domain=self.dkim_domain,
+                        dkim_selector=self.dkim_selector,
+                        dkim_headers=self.dkim_headers,
+                    )
                 }
-            }
+            },
         )
         if self.ses_from_arn or self.ses_source_arn:
-            params['FromEmailAddressIdentityArn'] = self.ses_from_arn or self.ses_source_arn
+            params["FromEmailAddressIdentityArn"] = self.ses_from_arn or self.ses_source_arn
         if email_feedback is not None:
-            params['FeedbackForwardingEmailAddress'] = email_feedback
+            params["FeedbackForwardingEmailAddress"] = email_feedback
 
         # Add global endpoint ID if configured
         if self._global_endpoint_id:
-            params['EndpointId'] = self._global_endpoint_id
+            params["EndpointId"] = self._global_endpoint_id
 
         return params
 
@@ -343,18 +356,22 @@ class SESBackend(BaseEmailBackend):
         params = dict(
             Source=source or message.from_email,
             Destinations=message.recipients(),
-            RawMessage={'Data': dkim_sign(get_message_bytes(message),
-                                          dkim_key=self.dkim_key,
-                                          dkim_domain=self.dkim_domain,
-                                          dkim_selector=self.dkim_selector,
-                                          dkim_headers=self.dkim_headers)}
+            RawMessage={
+                "Data": dkim_sign(
+                    get_message_bytes(message),
+                    dkim_key=self.dkim_key,
+                    dkim_domain=self.dkim_domain,
+                    dkim_selector=self.dkim_selector,
+                    dkim_headers=self.dkim_headers,
+                )
+            },
         )
         if self.ses_source_arn:
-            params['SourceArn'] = self.ses_source_arn
+            params["SourceArn"] = self.ses_source_arn
         if self.ses_from_arn:
-            params['FromArn'] = self.ses_from_arn
+            params["FromArn"] = self.ses_from_arn
         if self.ses_return_path_arn:
-            params['ReturnPathArn'] = self.ses_return_path_arn
+            params["ReturnPathArn"] = self.ses_return_path_arn
         return params
 
     def get_rate_limit(self):
@@ -363,8 +380,7 @@ class SESBackend(BaseEmailBackend):
 
         new_conn_created = self.open()
         if not self.connection:
-            raise Exception(
-                "No connection is available to check current SES rate limit.")
+            raise Exception("No connection is available to check current SES rate limit.")
         try:
             return self._get_v2_send_quota() if self._use_ses_v2 else self._get_v1_send_quota()
         finally:
@@ -377,15 +393,15 @@ class SESBackend(BaseEmailBackend):
         https://boto3.amazonaws.com/v1/documentation/api/1.26.31/reference/services/sesv2.html#SESV2.Client.get_account
         """
         account_dict = self.connection.get_account()
-        quota_dict = account_dict['SendQuota']
-        max_per_second = quota_dict['MaxSendRate']
+        quota_dict = account_dict["SendQuota"]
+        max_per_second = quota_dict["MaxSendRate"]
         ret = float(max_per_second)
         cached_rate_limits[self._access_key_id] = ret
         return ret
 
     def _get_v1_send_quota(self):
         quota_dict = self.connection.get_send_quota()
-        max_per_second = quota_dict['MaxSendRate']
+        max_per_second = quota_dict["MaxSendRate"]
         ret = float(max_per_second)
         cached_rate_limits[self._access_key_id] = ret
         return ret

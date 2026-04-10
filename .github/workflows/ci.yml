@@ -29,7 +29,10 @@ jobs:
 
     services:
       localstack:
-        image: localstack/localstack:latest
+        # Pin a release image so CI does not break when :latest changes. The image
+        # ships its own HTTP healthcheck; avoid awslocal-based checks — newer
+        # LocalStack can lazy-load SES so SES CLI probes fail during startup.
+        image: localstack/localstack:3.8
         env:
           SERVICES: ses
           DEBUG: 1
@@ -37,16 +40,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: test
         ports:
           - 4566:4566
-        options: >-
-          --health-cmd "awslocal ses list-identities || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     strategy:
       matrix:
         python-version: ["3.14", "3.13", "3.12", "3.11", "3.10", "3.9", "3.8"]
-        django-version: [32, 42, 52, 60]
+        # 60 first: default / newest tested combo where Python allows (Django 6 needs 3.12+).
+        django-version: [60, 52, 42, 32]
         exclude:
           - python-version: "3.13"
             django-version: 32

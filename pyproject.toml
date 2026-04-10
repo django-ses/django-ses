@@ -42,7 +42,7 @@ include = ["example", "tests"]
 [tool.poetry.dependencies]
 python = ">=3.8"
 boto3 = ">=1.0.0"
-# Intended majors: >=3.2,<4 | >=4,<5 | >=5,<6 | >=6,<7 (use >=4,<5 for Django 4.x, not >=4,<4).
+# Intended majors: >=3.2,<4 | >=4,<5 | >=5,<6 | >=6,<7
 # Poetry needs disjoint python markers; each row is one Python band and a union of
 # those major ranges where CI runs that combo.
 django = [

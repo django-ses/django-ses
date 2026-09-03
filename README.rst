@@ -894,5 +894,5 @@ To create a release:
     :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
 .. |python| image:: https://img.shields.io/badge/python-3.8|3.9|3.10|3.11|3.12|3.13|3.14-blue.svg
     :target: https://pypi.org/project/django-ses/
-.. |django| image:: https://img.shields.io/badge/django-3.2%7C%205.0+-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-3.2%20%7C%204.2%20%7C%205.2%20%7C%206.0%20%7C%206.1-blue.svg
     :target: https://www.djangoproject.com/

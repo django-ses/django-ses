@@ -10,7 +10,7 @@ Pulls and Issues:
  - None
 
 Features:
-- None
+- Add support for Django 6.1, including use as a `MAILERS` backend.
 
 Changes:
 - None
@@ -19,7 +19,10 @@ Deprecations:
  - None
 
 Fixes:
-- None
+- `SESBackend` no longer forwards `fail_silently` to `BaseEmailBackend.__init__()`.
+  Django 6.1 removed that argument: forwarding it raised `InvalidMailer` when the
+  backend was instantiated from a `MAILERS` alias, and emitted a
+  `RemovedInDjango70Warning` otherwise.
 
 ## Current
 

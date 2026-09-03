@@ -112,6 +112,29 @@ you would to upload files via S3::
 Now, when you use ``django.core.mail.send_mail``, Simple Email Service will
 send the messages by default.
 
+On Django 6.1+ you can instead use the ``MAILERS`` setting, which replaces
+``EMAIL_BACKEND`` in Django 7.0::
+
+    MAILERS = {
+        "default": {"BACKEND": "django_ses.SESBackend"},
+    }
+
+The ``AWS_*`` settings above are still read, so nothing else needs to change.
+Any ``SESBackend`` constructor argument may also be given per-mailer under
+``OPTIONS``::
+
+    MAILERS = {
+        "default": {
+            "BACKEND": "django_ses.SESBackend",
+            "OPTIONS": {"aws_region_name": "us-west-2"},
+        },
+    }
+
+Note that ``OPTIONS`` values are passed to ``SESBackend`` verbatim. In
+particular, ``aws_region_endpoint`` must include the scheme
+(``https://email.us-west-2.amazonaws.com``), whereas the
+``AWS_SES_REGION_ENDPOINT`` setting does not.
+
 Since SES imposes a rate limit and will reject emails after the limit has been
 reached, django-ses will attempt to conform to the rate limit by querying the
 API for your current limit and then sending no more than that number of

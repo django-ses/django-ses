@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import email
+import unittest
+import warnings
 
+import django
 from django.core.mail import EmailMessage, send_mail
 from django.test import TestCase, override_settings
 from django.utils.encoding import smart_str
@@ -471,3 +474,46 @@ class GlobalEndpointDefaultTest(TestCase):
         # Verify EndpointId is NOT included when not configured
         params = FakeSESConnection.outbox[0]
         self.assertNotIn("EndpointId", params)
+
+
+@unittest.skipIf(django.VERSION < (6, 1), "MAILERS was added in Django 6.1")
+class MailersTest(TestCase):
+    """SESBackend must work as a Django 6.1+ MAILERS entry.
+
+    Django 6.1 dropped ``fail_silently`` from ``BaseEmailBackend.__init__()``.
+    A backend that still forwards it raises ``InvalidMailer`` when instantiated
+    from a ``MAILERS`` alias.
+    """
+
+    @override_settings(MAILERS={"default": {"BACKEND": "django_ses.SESBackend"}})
+    def test_instantiates_as_default_mailer(self):
+        from django.core.mail import mailers
+
+        backend = mailers["default"]
+        self.assertIsInstance(backend, django_ses.SESBackend)
+        self.assertEqual(backend.alias, "default")
+        self.assertFalse(backend.fail_silently)
+
+    @override_settings(
+        MAILERS={
+            "default": {
+                "BACKEND": "django_ses.SESBackend",
+                "OPTIONS": {"fail_silently": True, "aws_region_name": "eu-central-1"},
+            }
+        }
+    )
+    def test_options_are_applied(self):
+        from django.core.mail import mailers
+
+        backend = mailers["default"]
+        self.assertTrue(backend.fail_silently)
+        self.assertEqual(backend._region_name, "eu-central-1")
+
+    def test_no_deprecation_warning_from_legacy_settings(self):
+        from django.utils.deprecation import RemovedInDjango70Warning
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            django_ses.SESBackend()
+
+        self.assertEqual([w for w in caught if issubclass(w.category, RemovedInDjango70Warning)], [])

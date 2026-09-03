@@ -107,7 +107,13 @@ class SESBackend(BaseEmailBackend):
         **kwargs,
     ):
 
-        super(SESBackend, self).__init__(fail_silently=fail_silently, **kwargs)
+        # Django 6.1+ removed ``fail_silently`` from ``BaseEmailBackend.__init__()``;
+        # a subclass that supports it must set the attribute itself. Forwarding it to
+        # ``super()`` raises ``InvalidMailer`` when instantiated from a ``MAILERS``
+        # alias, and warns ``RemovedInDjango70Warning`` otherwise. Setting it directly
+        # works on every supported Django version.
+        super(SESBackend, self).__init__(**kwargs)
+        self.fail_silently = fail_silently
         self._session_profile = aws_session_profile or settings.AWS_SESSION_PROFILE
         self._access_key_id = aws_access_key or settings.ACCESS_KEY
         self._access_key = aws_secret_key or settings.SECRET_KEY

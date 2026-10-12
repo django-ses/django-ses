@@ -122,6 +122,19 @@ class HandleBounceTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(_handler.call_count, 1)
 
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:SomeOtherTopic"])
+    def test_handle_bounce_rejects_untrusted_topic(self):
+        """The deprecated bounce webhook also enforces the topic allowlist."""
+        _, _, notification = get_mock_bounce("eventType")
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("django_ses_bounce"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, "Untrusted topic.".encode())
+
 
 # We're using a TransactionTestCase instead of a TestCase because we want to
 # avoid using transactions. Calls to atomic() will disconnect the signal
@@ -384,3 +397,125 @@ class HandleEventTestCase(TestCase):
             )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, "Signature verification failed.".encode())
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_trusted_topic_is_processed(self):
+        """
+        A notification from an allowlisted topic is processed as before.
+        """
+        _, _, notification = get_mock_click()
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:SomeOtherTopic"])
+    def test_untrusted_topic_is_rejected(self):
+        """
+        A validly signed notification from a topic that isn't allowlisted must
+        still be rejected: a valid signature only proves AWS sent it, not that
+        it came from a topic this application owns or subscribed to.
+        """
+        _, _, notification = get_mock_click()
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, "Untrusted topic.".encode())
+
+    def test_no_allowlist_preserves_existing_behaviour(self):
+        """
+        With AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS unset (the default), any topic
+        is still accepted, matching behaviour prior to this check existing.
+        """
+        _, _, notification = get_mock_click()
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_untrusted_subscription_confirmation_is_not_confirmed(self):
+        """
+        A SubscriptionConfirmation for an untrusted topic must be rejected
+        before django-ses ever fetches the SubscribeURL, since visiting that
+        URL is what actually attaches the attacker's topic to this endpoint.
+        """
+        notification = {
+            "Type": "SubscriptionConfirmation",
+            "MessageId": "165545c9-2a5c-472c-8df2-7ff2be2b3b1b",
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:AttackerTopic",
+            "SubscribeURL": "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&...",
+            "Timestamp": "2012-05-02T00:54:06.655Z",
+            "SignatureVersion": "1",
+            "Signature": "",
+            "SigningCertURL": "",
+        }
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 400)
+        urlopen.assert_not_called()
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_trusted_subscription_confirmation_is_confirmed(self):
+        """A SubscriptionConfirmation for an allowlisted topic still confirms."""
+        notification = {
+            "Type": "SubscriptionConfirmation",
+            "MessageId": "165545c9-2a5c-472c-8df2-7ff2be2b3b1b",
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "SubscribeURL": "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=abc",
+            "Timestamp": "2012-05-02T00:54:06.655Z",
+            "SignatureVersion": "1",
+            "Signature": "",
+            "SigningCertURL": "",
+        }
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
+            verify.return_value = True
+            urlopen.return_value.read.return_value = b"ok"
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 200)
+        urlopen.assert_called_once()
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_untrusted_subscribe_url_is_not_fetched(self):
+        """SubscribeURL must be an https SNS host even for a trusted topic."""
+        notification = {
+            "Type": "SubscriptionConfirmation",
+            "MessageId": "165545c9-2a5c-472c-8df2-7ff2be2b3b1b",
+            "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
+            "SubscribeURL": "file:///etc/passwd",
+            "Timestamp": "2012-05-02T00:54:06.655Z",
+            "SignatureVersion": "1",
+            "Signature": "",
+            "SigningCertURL": "",
+        }
+
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
+            verify.return_value = True
+            response = self.client.post(
+                reverse("event_webhook"), json.dumps(notification), content_type="application/json"
+            )
+        self.assertEqual(response.status_code, 200)
+        urlopen.assert_not_called()

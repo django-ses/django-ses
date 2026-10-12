@@ -43,3 +43,14 @@ class SettingsImportTest(TestCase):
     def test_ses_region_to_endpoint_set_given(self):
         self.assertEqual(settings.AWS_SES_REGION_NAME, "eu-west-1")
         self.assertEqual(settings.AWS_SES_REGION_ENDPOINT, "email.eu-west-1.amazonaws.com")
+
+    def test_trusted_topic_arns_default_empty(self):
+        self.assertEqual(settings.EVENT_TRUSTED_TOPIC_ARNS, [])
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_trusted_topic_arns_list(self):
+        self.assertEqual(settings.EVENT_TRUSTED_TOPIC_ARNS, ["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS="arn:aws:sns:us-east-1:123456789012:MyTopic")
+    def test_trusted_topic_arns_string_is_wrapped(self):
+        self.assertEqual(settings.EVENT_TRUSTED_TOPIC_ARNS, ["arn:aws:sns:us-east-1:123456789012:MyTopic"])

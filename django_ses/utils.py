@@ -20,6 +20,7 @@ _CERT_CACHE = {}
 SES_REGEX_CERT_URL = re.compile(
     r"(?i)^https://sns\.[a-z0-9\-]+\.amazonaws\.com(\.cn)?/SimpleNotificationService\-[a-z0-9]+\.pem$"
 )
+SES_REGEX_SNS_ENDPOINT_HOST = re.compile(r"(?i)^sns\.[a-z0-9\-]+\.amazonaws\.com(\.cn)?$")
 
 
 def clear_cert_cache():
@@ -272,6 +273,35 @@ def verify_event_message(notification):
     return verifier.is_verified()
 
 
+def verify_event_topic(notification):
+    """
+    Return True if the notification's TopicArn is trusted.
+
+    An empty AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS preserves historical behaviour
+    of accepting any topic.
+    """
+    trusted_arns = settings.EVENT_TRUSTED_TOPIC_ARNS
+    if not trusted_arns:
+        return True
+    return notification.get("TopicArn") in trusted_arns
+
+
+def is_trusted_sns_subscribe_url(url):
+    """
+    Return True if url is an https SNS service endpoint.
+
+    SubscribeURL is fetched to confirm a subscription. urlopen() accepts
+    file:// and other schemes, so constrain the fetch to SNS HTTPS hosts.
+    """
+    if not url or not isinstance(url, str):
+        return False
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        return False
+    host = (parsed.hostname or "").rstrip(".")
+    return bool(SES_REGEX_SNS_ENDPOINT_HOST.match(host))
+
+
 def verify_bounce_message(msg):
     """
     Verify an SES/SNS bounce(event) notification message.
@@ -284,6 +314,16 @@ def verify_bounce_message(msg):
 
 
 def confirm_sns_subscription(notification):
+    if not verify_event_topic(notification):
+        logger.warning(
+            "Rejected subscription confirmation from untrusted topic: %s",
+            notification.get("TopicArn"),
+            extra={
+                "notification": notification,
+            },
+        )
+        return
+
     logger.info(
         "Received subscription confirmation: TopicArn: %s",
         notification.get("TopicArn"),
@@ -294,6 +334,16 @@ def confirm_sns_subscription(notification):
 
     # Get the subscribe url and hit the url to confirm the subscription.
     subscribe_url = notification.get("SubscribeURL")
+    if not is_trusted_sns_subscribe_url(subscribe_url):
+        logger.warning(
+            'Untrusted SubscribeURL: "%s"',
+            subscribe_url,
+            extra={
+                "notification": notification,
+            },
+        )
+        return
+
     try:
         urlopen(subscribe_url).read()
     except URLError as e:

@@ -256,6 +256,18 @@ def handle_bounce(request):
         )
         return HttpResponse()
 
+    if not utils.verify_event_topic(notification):
+        # A valid SNS signature proves the message came from some AWS topic,
+        # not that it came from a topic this application actually uses.
+        logger.warning(
+            "Rejected notification from untrusted topic: %s",
+            notification.get("TopicArn"),
+            extra={
+                "notification": notification,
+            },
+        )
+        return HttpResponseBadRequest("Untrusted topic.")
+
     if notification.get("Type") in ("SubscriptionConfirmation", "UnsubscribeConfirmation"):
         # Process the (un)subscription confirmation.
 
@@ -269,18 +281,27 @@ def handle_bounce(request):
 
         # Get the subscribe url and hit the url to confirm the subscription.
         subscribe_url = notification.get("SubscribeURL")
-        try:
-            urlopen(subscribe_url).read()
-        except URLError as e:
-            # Some kind of error occurred when confirming the request.
-            logger.error(
-                'Could not confirm subscription: "%s"',
-                e,
+        if not utils.is_trusted_sns_subscribe_url(subscribe_url):
+            logger.warning(
+                'Untrusted SubscribeURL: "%s"',
+                subscribe_url,
                 extra={
                     "notification": notification,
                 },
-                exc_info=True,
             )
+        else:
+            try:
+                urlopen(subscribe_url).read()
+            except URLError as e:
+                # Some kind of error occurred when confirming the request.
+                logger.error(
+                    'Could not confirm subscription: "%s"',
+                    e,
+                    extra={
+                        "notification": notification,
+                    },
+                    exc_info=True,
+                )
     elif notification.get("Type") == "Notification":
         try:
             message = json.loads(notification["Message"])
@@ -418,6 +439,10 @@ class SESEventWebhookView(View):
     be disabled by setting AWS_SES_VERIFY_EVENT_SIGNATURES to False.
     However, this is not recommended.
     See: http://docs.amazonwebservices.com/sns/latest/gsg/SendMessageToHttp.verify.signature.html
+
+    A valid SNS signature only proves a message came from *an* AWS SNS topic.
+    Set AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS to the topic ARN(s) this application
+    actually uses so notifications from other topics are rejected.
     """
 
     def post(self, request, *args, **kwargs):
@@ -442,6 +467,16 @@ class SESEventWebhookView(View):
                 },
             )
             return HttpResponseBadRequest("Signature verification failed.")
+
+        if not self.verify_event_topic(notification):
+            logger.warning(
+                "Rejected notification from untrusted topic: %s",
+                notification.get("TopicArn"),
+                extra={
+                    "notification": notification,
+                },
+            )
+            return HttpResponseBadRequest("Untrusted topic.")
 
         if notification.get("Type") == "SubscriptionConfirmation":
             self.handle_subscription_confirmation(notification)
@@ -487,6 +522,9 @@ class SESEventWebhookView(View):
 
     def verify_event_message(self, notification):
         return utils.verify_event_message(notification)
+
+    def verify_event_topic(self, notification):
+        return utils.verify_event_topic(notification)
 
     def handle_unknown_notification_type(self, notification):
         logger.info(

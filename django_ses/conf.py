@@ -121,6 +121,21 @@ class SesSettings:
 
     VERIFY_BOUNCE_SIGNATURES = VERIFY_EVENT_SIGNATURES
 
+    # SNS topic ARNs this webhook will accept notifications and subscription
+    # confirmations from. A valid SNS signature only proves a message came
+    # from *some* AWS SNS topic, not from the one this application actually
+    # subscribed -- anyone with an AWS account can create their own topic,
+    # subscribe this endpoint's URL to it, and have django-ses auto-confirm
+    # and then process notifications published to it. Leaving this empty
+    # preserves the historical behaviour of accepting any topic, which is
+    # not safe for a publicly reachable webhook.
+    @property
+    def EVENT_TRUSTED_TOPIC_ARNS(self) -> List[str]:
+        value = getattr(django_settings, "AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS", [])
+        if isinstance(value, str):
+            return [value] if value else []
+        return list(value)
+
     # Domains that are trusted when retrieving the certificate used to sign event messages.
     @property
     def EVENT_CERT_DOMAINS(self) -> List[str]:

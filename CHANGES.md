@@ -19,7 +19,17 @@ Deprecations:
  - None
 
 Fixes:
-- None
+- Security: the SES event webhook now rejects notifications and subscription
+  confirmations from SNS topics not listed in the new
+  `AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS` setting. Previously, signature
+  verification alone gated the webhook, which proves a message came from
+  some AWS SNS topic but not from the operator's own topic; anyone with an
+  AWS account could POST a genuinely AWS-signed notification from their own
+  topic and have their content processed, including bounce/complaint events
+  used to populate the blacklist. The new setting defaults to an empty list,
+  which preserves existing behaviour, so operators should set it to their
+  real topic ARN(s). `SubscribeURL` fetches during subscription confirmation
+  are also restricted to https SNS service hosts.
 
 ## Current
 

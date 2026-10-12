@@ -241,9 +241,7 @@ class BounceMessageVerifierTest(TestCase):
 class TrustedSnsSubscribeUrlTest(TestCase):
     def test_https_sns_host_is_trusted(self):
         self.assertTrue(
-            is_trusted_sns_subscribe_url(
-                "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=abc"
-            )
+            is_trusted_sns_subscribe_url("https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=abc")
         )
 
     def test_china_region_is_trusted(self):
@@ -257,17 +255,13 @@ class TrustedSnsSubscribeUrlTest(TestCase):
         self.assertFalse(is_trusted_sns_subscribe_url("file:///etc/passwd"))
 
     def test_http_scheme_is_rejected(self):
-        self.assertFalse(
-            is_trusted_sns_subscribe_url("http://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription")
-        )
+        self.assertFalse(is_trusted_sns_subscribe_url("http://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription"))
 
     def test_non_sns_host_is_rejected(self):
         self.assertFalse(is_trusted_sns_subscribe_url("https://example.com/?Action=ConfirmSubscription"))
 
     def test_lookalike_host_is_rejected(self):
-        self.assertFalse(
-            is_trusted_sns_subscribe_url("https://sns.us-east-1.amazonaws.com.evil.example/path")
-        )
+        self.assertFalse(is_trusted_sns_subscribe_url("https://sns.us-east-1.amazonaws.com.evil.example/path"))
 
 
 class VerifyEventTopicTest(DjangoTestCase):

@@ -23,6 +23,19 @@ Fixes:
 
 ## Current
 
+**4.8.2**
+
+Keep the test suite compatible with Python 3.8 and 3.9. Parenthesized
+`with` statements, introduced by formatting for Python 3.14, are a syntax
+error on those versions, so `tests.test_views` failed to import. Ruff's
+target version is now 3.8, matching the oldest Python in the CI matrix.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/380
+
+## Past
+
+
 **4.8.1**
 
 Security: the SES event webhook now rejects notifications and subscription
@@ -36,9 +49,6 @@ used to populate the blacklist. The new setting defaults to an empty list,
 which preserves existing behaviour, so operators should set it to their
 real topic ARN(s). `SubscribeURL` fetches during subscription confirmation
 are also restricted to https SNS service hosts.
-
-## Past
-
 
 **4.8.0**
 

@@ -461,10 +461,9 @@ class HandleEventTestCase(TestCase):
             "SigningCertURL": "",
         }
 
-        with (
-            mock.patch.object(ses_utils, "verify_event_message") as verify,
-            mock.patch("django_ses.utils.urlopen") as urlopen,
-        ):
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
             verify.return_value = True
             response = self.client.post(
                 reverse("event_webhook"), json.dumps(notification), content_type="application/json"
@@ -486,10 +485,9 @@ class HandleEventTestCase(TestCase):
             "SigningCertURL": "",
         }
 
-        with (
-            mock.patch.object(ses_utils, "verify_event_message") as verify,
-            mock.patch("django_ses.utils.urlopen") as urlopen,
-        ):
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
             verify.return_value = True
             urlopen.return_value.read.return_value = b"ok"
             response = self.client.post(
@@ -512,10 +510,9 @@ class HandleEventTestCase(TestCase):
             "SigningCertURL": "",
         }
 
-        with (
-            mock.patch.object(ses_utils, "verify_event_message") as verify,
-            mock.patch("django_ses.utils.urlopen") as urlopen,
-        ):
+        with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
+            "django_ses.utils.urlopen"
+        ) as urlopen:
             verify.return_value = True
             response = self.client.post(
                 reverse("event_webhook"), json.dumps(notification), content_type="application/json"

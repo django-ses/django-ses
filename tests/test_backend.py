@@ -3,6 +3,7 @@
 import email
 import unittest
 import warnings
+from unittest import mock
 
 import django
 from botocore.exceptions import ClientError
@@ -48,6 +49,24 @@ class SESConfigurationSetTester(object):
         self.dkim_selector = dkim_selector
         self.dkim_headers = dkim_headers
         return self.configuration_set
+
+
+class SESTenantTester(object):
+    def __init__(self, tenant):
+        self.message = None
+        self.dkim_domain = None
+        self.dkim_key = None
+        self.dkim_selector = None
+        self.dkim_headers = ()
+        self.tenant = tenant
+
+    def __call__(self, message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=()):
+        self.message = message
+        self.dkim_domain = dkim_domain
+        self.dkim_key = dkim_key
+        self.dkim_selector = dkim_selector
+        self.dkim_headers = dkim_headers
+        return self.tenant
 
 
 class FakeSESConnection:
@@ -257,6 +276,9 @@ class SESBackendTest(TestCase):
 class SESV2BackendTest(TestCase):
     def setUp(self):
         self.outbox = FakeSESConnection.outbox
+        patcher = mock.patch("django_ses._botocore_version", return_value=(1, 40, 0))
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def tearDown(self):
         # Empty outbox every time test finishes
@@ -316,6 +338,63 @@ class SESV2BackendTest(TestCase):
         self.assertEqual(config_set_callable.dkim_key, None)
         self.assertEqual(config_set_callable.dkim_selector, "ses")
         self.assertEqual(config_set_callable.dkim_headers, ["From", "To", "Cc", "Subject"])
+
+    @override_settings(AWS_SES_TENANT="test-tenant")
+    def test_tenant_send_mail(self):
+        send_mail("subject", "body\n", "from@example.com", ["to@example.com"])
+        self.assertEqual(self.outbox.pop()["TenantName"], "test-tenant")
+
+    def test_tenant_callable_send_mail(self):
+        tenant_callable = SESTenantTester("message-tenant")
+        with override_settings(AWS_SES_TENANT=tenant_callable):
+            send_mail("subject", "body\n", "from@example.com", ["to@example.com"])
+
+        self.assertEqual(self.outbox.pop()["TenantName"], "message-tenant")
+        self.assertEqual(tenant_callable.message.subject, "subject")
+        self.assertEqual(tenant_callable.dkim_domain, None)
+        self.assertEqual(tenant_callable.dkim_key, None)
+        self.assertEqual(tenant_callable.dkim_selector, "ses")
+        self.assertEqual(tenant_callable.dkim_headers, ["From", "To", "Cc", "Subject"])
+
+    def test_tenant_is_not_set_by_default(self):
+        send_mail("subject", "body\n", "from@example.com", ["to@example.com"])
+        self.assertNotIn("TenantName", self.outbox.pop())
+
+    def test_tenant_callable_returning_falsy_omits_tenant_name(self):
+        for value in (None, ""):
+            with self.subTest(value=value), override_settings(AWS_SES_TENANT=SESTenantTester(value)):
+                send_mail("subject", "body\n", "from@example.com", ["to@example.com"])
+                self.assertNotIn("TenantName", self.outbox.pop())
+
+    def test_tenant_header_sets_tenant_name(self):
+        message = EmailMessage(
+            "subject", "body", "from@example.com", ["to@example.com"], headers={"X-SES-TENANT": "header-tenant"}
+        )
+        message.send()
+        sent = self.outbox.pop()
+        self.assertEqual(sent["TenantName"], "header-tenant")
+        mail = email.message_from_string(smart_str(sent["Content"]["Raw"]["Data"]))
+        self.assertEqual(mail["X-SES-TENANT"], "header-tenant")
+
+    def test_tenant_header_overrides_setting(self):
+        for setting in ("setting-tenant", SESTenantTester("callable-tenant")):
+            with self.subTest(setting=setting), override_settings(AWS_SES_TENANT=setting):
+                EmailMessage(
+                    "subject", "body", "from@example.com", ["to@example.com"], headers={"X-SES-TENANT": "header-tenant"}
+                ).send()
+                self.assertEqual(self.outbox.pop()["TenantName"], "header-tenant")
+                if callable(setting):
+                    self.assertIsNone(setting.message)
+
+    def test_tenant_header_without_botocore_support_is_left_in_message(self):
+        with mock.patch("django_ses._botocore_version", return_value=(1, 39, 0)):
+            EmailMessage(
+                "subject", "body", "from@example.com", ["to@example.com"], headers={"X-SES-TENANT": "header-tenant"}
+            ).send()
+        sent = self.outbox.pop()
+        self.assertNotIn("TenantName", sent)
+        mail = email.message_from_string(smart_str(sent["Content"]["Raw"]["Data"]))
+        self.assertEqual(mail["X-SES-TENANT"], "header-tenant")
 
     @override_settings(AWS_SES_CONFIGURATION_SET=None, DKIM_DOMAIN="example.com", DKIM_PRIVATE_KEY=DKIM_PRIVATE_KEY)
     def test_dkim_mail(self):
@@ -410,6 +489,39 @@ class SESBackendTestInitialize(TestCase):
             with override_settings(AWS_SES_AUTO_THROTTLE=throttle_setting):
                 backend = django_ses.SESBackend(aws_auto_throttle=throttle_param)
                 self.assertEqual(backend._throttle, expected_throttle_val)
+
+    @override_settings(AWS_SES_TENANT="test-tenant", USE_SES_V2=False)
+    def test_tenant_requires_ses_v2(self):
+        with self.assertRaisesMessage(ValueError, "AWS_SES_TENANT requires USE_SES_V2=True"):
+            django_ses.SESBackend()
+
+    def test_tenant_callable_requires_ses_v2(self):
+        with override_settings(AWS_SES_TENANT=SESTenantTester("test-tenant"), USE_SES_V2=False):
+            with self.assertRaisesMessage(ValueError, "AWS_SES_TENANT requires USE_SES_V2=True"):
+                django_ses.SESBackend()
+
+    @override_settings(USE_SES_V2=True)
+    def test_tenant_requires_botocore_1_40(self):
+        for tenant in ("test-tenant", SESTenantTester("test-tenant")):
+            with self.subTest(tenant=tenant), override_settings(AWS_SES_TENANT=tenant):
+                with mock.patch("django_ses._botocore_version", return_value=(1, 39, 9)):
+                    with self.assertRaisesMessage(ValueError, "botocore 1.40.0 or newer"):
+                        django_ses.SESBackend()
+
+    @override_settings(AWS_SES_TENANT="test-tenant", USE_SES_V2=True)
+    def test_tenant_allowed_on_botocore_1_40(self):
+        with mock.patch("django_ses._botocore_version", return_value=(1, 40, 0)):
+            django_ses.SESBackend()
+
+    @override_settings(AWS_SES_TENANT=None, USE_SES_V2=True)
+    def test_old_botocore_allowed_without_tenant(self):
+        with mock.patch("django_ses._botocore_version", return_value=(1, 20, 0)):
+            django_ses.SESBackend()
+
+    def test_botocore_version_parsing(self):
+        for version, expected in (("1.40.0", (1, 40, 0)), ("1.9.253", (1, 9, 253)), ("1.40.0rc1", (1, 40, 0))):
+            with mock.patch("botocore.__version__", version):
+                self.assertEqual(django_ses._botocore_version(), expected)
 
 
 @override_settings(EMAIL_BACKEND="tests.test_backend.FakeSESBackend")

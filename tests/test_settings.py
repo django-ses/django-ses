@@ -32,6 +32,13 @@ class SettingsImportTest(TestCase):
     def test_ses_configuration_set_given(self):
         self.assertEqual(settings.AWS_SES_CONFIGURATION_SET, "<<config_set>>")
 
+    @override_settings(AWS_SES_TENANT="<<tenant>>")
+    def test_ses_tenant_given(self):
+        self.assertEqual(settings.AWS_SES_TENANT, "<<tenant>>")
+
+    def test_ses_tenant_default(self):
+        self.assertIsNone(settings.AWS_SES_TENANT)
+
     def test_ses_region_to_endpoint_default_given(self):
         self.assertEqual(settings.AWS_SES_REGION_NAME, "us-east-1")
         self.assertEqual(

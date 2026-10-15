@@ -340,8 +340,13 @@ set ``AWS_SES_TENANT`` to the tenant name::
     AWS_SES_TENANT = 'my-tenant-name'
 
 The verified identity and Configuration Set used for the message must be
-associated with the tenant in Amazon SES. Tenant sending requires boto3 and
-botocore 1.40.0 or newer.
+associated with the tenant in Amazon SES.
+
+Tenant sending requires boto3 and botocore 1.40.0 or newer, which in turn
+require Python 3.9 or newer; it is not available on Python 3.8. When
+``AWS_SES_TENANT`` is set, ``SESBackend`` raises ``ValueError`` on creation if
+botocore is older than 1.40.0. Installs that do not set ``AWS_SES_TENANT`` are
+unaffected.
 
 To select a tenant per message, set ``AWS_SES_TENANT`` to a callable. The
 callable receives the same arguments as the
@@ -355,8 +360,22 @@ callable receives the same arguments as the
 
     AWS_SES_TENANT = ses_tenant
 
-Tenant selection uses the SES v2 ``TenantName`` API parameter. Configuring
-``AWS_SES_TENANT`` without ``USE_SES_V2 = True`` raises ``ValueError``.
+If the callable returns ``None`` or an empty string, the message is sent
+without a tenant.
+
+To choose the tenant for a single message, set the ``X-SES-TENANT`` header on
+it, the same way you would set ``X-SES-CONFIGURATION-SET``::
+
+    EmailMessage(..., headers={'X-SES-TENANT': 'my-tenant-name'}).send()
+
+The header takes precedence over ``AWS_SES_TENANT`` (a callable is not called
+for that message) and stays in the raw message. With ``USE_SES_V2 = True`` and
+botocore 1.40.0 or newer, its value is also sent as ``TenantName``; otherwise
+only the header is submitted.
+
+Tenant selection from the setting uses the SES v2 ``TenantName`` API parameter.
+Configuring ``AWS_SES_TENANT`` without ``USE_SES_V2 = True`` raises
+``ValueError``.
 
 For more information, see the `AWS SES tenant management documentation`_.
 
@@ -777,8 +796,9 @@ Full List of Settings
 ``AWS_SES_TENANT``
   Optional. The name of the Amazon SES tenant through which to send. Set this
   to a string to use one tenant for all messages, or a callable to select a
-  tenant per message. Requires ``USE_SES_V2 = True`` and boto3/botocore 1.40.0
-  or newer. Default is ``None``.
+  tenant per message (return ``None`` to skip the tenant). A message's
+  ``X-SES-TENANT`` header overrides it. Requires ``USE_SES_V2 = True`` and
+  boto3/botocore 1.40.0 or newer (Python 3.9+). Default is ``None``.
 
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:

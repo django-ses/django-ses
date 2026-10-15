@@ -1,10 +1,12 @@
 import importlib.metadata as importlib_metadata
 import logging
+import re
 from datetime import datetime, timedelta
 from email import policy
 from time import sleep
 
 import boto3
+import botocore
 import django
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
 from django.core.mail import EmailMessage
@@ -25,6 +27,24 @@ cached_rate_limits = {}
 recent_send_times = []
 
 logger = logging.getLogger("django_ses")
+
+# SES v2 SendEmail accepts TenantName starting with botocore 1.40.0 (Python 3.9+).
+TENANT_MIN_BOTOCORE_VERSION = (1, 40, 0)
+
+
+def _botocore_version():
+    """Return the installed botocore version as a tuple of ints, e.g. (1, 40, 0)."""
+    parts = []
+    for part in botocore.__version__.split("."):
+        digits = re.match(r"\d+", part)
+        if not digits:
+            break
+        parts.append(int(digits.group()))
+    return tuple(parts)
+
+
+def botocore_supports_tenants():
+    return _botocore_version() >= TENANT_MIN_BOTOCORE_VERSION
 
 
 def dkim_sign(message, dkim_domain=None, dkim_key=None, dkim_selector=None, dkim_headers=None):
@@ -144,6 +164,12 @@ class SESBackend(BaseEmailBackend):
             )
         if settings.AWS_SES_TENANT and not self._use_ses_v2:
             raise ValueError("AWS_SES_TENANT requires USE_SES_V2=True. Tenant sending is only supported by SES API v2.")
+        if settings.AWS_SES_TENANT and not botocore_supports_tenants():
+            raise ValueError(
+                "AWS_SES_TENANT requires boto3 and botocore 1.40.0 or newer (Python 3.9+); found botocore {}.".format(
+                    botocore.__version__
+                )
+            )
 
         self.connection = None
 
@@ -226,15 +252,25 @@ class SESBackend(BaseEmailBackend):
                 else:
                     message.extra_headers["X-SES-CONFIGURATION-SET"] = settings.AWS_SES_CONFIGURATION_SET
 
-            tenant_name = settings.AWS_SES_TENANT
-            if callable(tenant_name):
-                tenant_name = tenant_name(
+            # SES tenants. An X-SES-TENANT header on the message overrides
+            # settings.AWS_SES_TENANT, which may be a callable returning the
+            # tenant name (None or "" sends without a tenant). A header-only
+            # tenant is passed as TenantName only when the SES v2 client
+            # supports it; otherwise the header is left in the raw message.
+            tenant_name = None
+            if "X-SES-TENANT" in message.extra_headers:
+                if self._use_ses_v2 and botocore_supports_tenants():
+                    tenant_name = message.extra_headers["X-SES-TENANT"]
+            elif callable(settings.AWS_SES_TENANT):
+                tenant_name = settings.AWS_SES_TENANT(
                     message,
                     dkim_domain=self.dkim_domain,
                     dkim_key=self.dkim_key,
                     dkim_selector=self.dkim_selector,
                     dkim_headers=self.dkim_headers,
                 )
+            else:
+                tenant_name = settings.AWS_SES_TENANT
 
             # Automatic throttling. Assumes that this is the only SES client
             # currently operating. The AWS_SES_AUTO_THROTTLE setting is a

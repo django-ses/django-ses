@@ -62,7 +62,7 @@ class Command(BaseCommand):
             )
 
             # If statistic is not new, modify data if values are different
-            if not created and stat.delivery_attempts != v["delivery_attempts"]:
+            if not created and any(getattr(stat, field) != value for field, value in v.items()):
                 stat.delivery_attempts = v["delivery_attempts"]
                 stat.bounces = v["bounces"]
                 stat.complaints = v["complaints"]

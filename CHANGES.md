@@ -10,7 +10,11 @@ Pulls and Issues:
  - None
 
 Features:
-- None
+- Add support for sending email through an Amazon SES tenant with the
+  `AWS_SES_TENANT` setting (string or per-message callable) or an
+  `X-SES-TENANT` message header. Requires SES v2 and boto3/botocore 1.40.0+
+  (Python 3.9+); `SESBackend` raises `ValueError` if `AWS_SES_TENANT` is set
+  with an older botocore.
 
 Changes:
 - None

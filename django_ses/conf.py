@@ -68,6 +68,10 @@ class SesSettings:
         return getattr(django_settings, "AWS_SES_CONFIGURATION_SET", None)
 
     @property
+    def AWS_SES_TENANT(self) -> Optional[str]:
+        return getattr(django_settings, "AWS_SES_TENANT", None)
+
+    @property
     def DKIM_DOMAIN(self) -> Optional[str]:
         return getattr(django_settings, "DKIM_DOMAIN", None)
 

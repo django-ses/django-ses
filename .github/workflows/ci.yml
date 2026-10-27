@@ -8,7 +8,8 @@ on:
 
 jobs:
   linting:
-    runs-on: ubuntu-latest
+    # Pin 24.04: ubuntu-latest is 26.04, which has no python3.12 for django-upgrade.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +26,8 @@ jobs:
 
   build:
     name: Python ${{ matrix.python-version }}, django ${{ matrix.django-version }}
-    runs-on: ubuntu-latest
+    # Pin 24.04: setup-python publishes no Python 3.8 or 3.9 builds for Ubuntu 26.04.
+    runs-on: ubuntu-24.04
 
     services:
       localstack:

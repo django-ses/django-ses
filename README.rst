@@ -581,7 +581,9 @@ To generate and view SES sending statistics reports, include, update
 
 ... and ``urls.py``::
 
-    urlpatterns += (url(r'^admin/django-ses/', include('django_ses.urls')),)
+    from django.urls import include, path
+
+    urlpatterns += [path('admin/django-ses/', include('django_ses.urls'))]
 
 *Optional enhancements to stats:*
 
@@ -730,7 +732,7 @@ package, you can reimplement the ``parse_email`` method:
 .. code-block:: python
 
    import mailparser
-   from django_ses.inbound import
+   from django_ses.inbound import SnsHandler
 
    class MyReceiver(SnsHandler):
        def parse_email(self, content):

@@ -27,6 +27,33 @@ Fixes:
 
 ## Current
 
+**4.8.2**
+
+Keep the test suite compatible with Python 3.8 and 3.9. Parenthesized
+`with` statements, introduced by formatting for Python 3.14, are a syntax
+error on those versions, so `tests.test_views` failed to import. Ruff's
+target version is now 3.8, matching the oldest Python in the CI matrix.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/380
+
+## Past
+
+
+**4.8.1**
+
+Security: the SES event webhook now rejects notifications and subscription
+confirmations from SNS topics not listed in the new
+`AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS` setting. Previously, signature
+verification alone gated the webhook, which proves a message came from
+some AWS SNS topic but not from the operator's own topic; anyone with an
+AWS account could POST a genuinely AWS-signed notification from their own
+topic and have their content processed, including bounce/complaint events
+used to populate the blacklist. The new setting defaults to an empty list,
+which preserves existing behaviour, so operators should set it to their
+real topic ARN(s). `SubscribeURL` fetches during subscription confirmation
+are also restricted to https SNS service hosts.
+
 **4.8.0**
 
 Add support for Django 6.1, including use as a `MAILERS` backend.
@@ -41,9 +68,6 @@ Pulls:
   - https://github.com/django-ses/django-ses/pull/374
   - https://github.com/django-ses/django-ses/pull/372
   - https://github.com/django-ses/django-ses/pull/375
-
-## Past
-
 
 **4.7.2**
 

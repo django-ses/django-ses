@@ -166,6 +166,11 @@ Then add a event URL handler in your `urls.py`::
 SESEventWebhookView handles bounce, complaint, send, delivery, open and click events.
 It is also capable of auto confirming subscriptions, it handles `SubscriptionConfirmation` notification.
 
+Set ``AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS`` to the SNS topic ARN(s) you actually
+publish SES events to. A valid SNS signature only proves a message came from
+*an* AWS topic, not from *your* topic. Without this setting, anyone with an
+AWS account can POST a signed notification from their own topic to your webhook.
+
 On AWS
 -------
 1. Add an SNS topic.
@@ -829,6 +834,16 @@ Full List of Settings
 
 ``EVENT_CERT_DOMAINS``, ``BOUNCE_CERT_DOMAINS``
   Optional. Default is 'amazonaws.com' and 'amazon.com'.
+
+``AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS``
+  Optional, but strongly recommended. Default is an empty list, which accepts
+  notifications and subscription confirmations from any SNS topic. A valid
+  SNS signature only proves a message came from *an* AWS SNS topic, not that
+  it came from *your* topic -- anyone with an AWS account can create their
+  own topic, have AWS sign a notification, and POST that message to your
+  webhook. Set this to a list of the topic ARN(s) you actually publish SES
+  events to (e.g. ``["arn:aws:sns:us-east-1:123456789012:ses-events"]``) to
+  reject anything else.
 
 ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered an

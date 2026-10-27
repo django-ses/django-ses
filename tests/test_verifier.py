@@ -15,7 +15,15 @@ except ImportError:
 
 from unittest import TestCase, skipIf
 
-from django_ses.utils import BounceMessageVerifier, clear_cert_cache
+from django.test import TestCase as DjangoTestCase
+from django.test import override_settings
+
+from django_ses.utils import (
+    BounceMessageVerifier,
+    clear_cert_cache,
+    is_trusted_sns_subscribe_url,
+    verify_event_topic,
+)
 
 
 class BounceMessageVerifierTest(TestCase):
@@ -228,3 +236,39 @@ class BounceMessageVerifierTest(TestCase):
         )
         self.assertEqual(actual_result, correct_result)
         self.assertTrue(isinstance(actual_result, bytes))
+
+
+class TrustedSnsSubscribeUrlTest(TestCase):
+    def test_https_sns_host_is_trusted(self):
+        self.assertTrue(
+            is_trusted_sns_subscribe_url("https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=abc")
+        )
+
+    def test_china_region_is_trusted(self):
+        self.assertTrue(
+            is_trusted_sns_subscribe_url(
+                "https://sns.cn-north-1.amazonaws.com.cn/?Action=ConfirmSubscription&Token=abc"
+            )
+        )
+
+    def test_file_scheme_is_rejected(self):
+        self.assertFalse(is_trusted_sns_subscribe_url("file:///etc/passwd"))
+
+    def test_http_scheme_is_rejected(self):
+        self.assertFalse(is_trusted_sns_subscribe_url("http://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription"))
+
+    def test_non_sns_host_is_rejected(self):
+        self.assertFalse(is_trusted_sns_subscribe_url("https://example.com/?Action=ConfirmSubscription"))
+
+    def test_lookalike_host_is_rejected(self):
+        self.assertFalse(is_trusted_sns_subscribe_url("https://sns.us-east-1.amazonaws.com.evil.example/path"))
+
+
+class VerifyEventTopicTest(DjangoTestCase):
+    def test_empty_allowlist_accepts_any_topic(self):
+        self.assertTrue(verify_event_topic({"TopicArn": "arn:aws:sns:us-east-1:1:attacker"}))
+
+    @override_settings(AWS_SNS_EVENT_TRUSTED_TOPIC_ARNS=["arn:aws:sns:us-east-1:123456789012:MyTopic"])
+    def test_allowlist_rejects_other_topics(self):
+        self.assertFalse(verify_event_topic({"TopicArn": "arn:aws:sns:us-east-1:1:attacker"}))
+        self.assertTrue(verify_event_topic({"TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic"}))

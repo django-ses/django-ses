@@ -8,6 +8,7 @@ from time import sleep
 import boto3
 import botocore
 import django
+from botocore.exceptions import ClientError
 from botocore.vendored.requests.packages.urllib3.exceptions import ResponseError
 from django.core.mail import EmailMessage
 from django.core.mail.backends.base import BaseEmailBackend
@@ -315,7 +316,7 @@ class SESBackend(BaseEmailBackend):
 
                 signals.message_sent.send(sender=SESBackend, message=message)
 
-            except ResponseError as err:
+            except (ResponseError, ClientError) as err:
                 # Store failure information so to post process it if required
                 error_keys = ["status", "reason", "body", "request_id", "error_code", "error_message"]
                 for key in error_keys:

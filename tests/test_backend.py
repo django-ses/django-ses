@@ -6,6 +6,7 @@ import warnings
 from unittest import mock
 
 import django
+from botocore.exceptions import ClientError
 from django.core.mail import EmailMessage, send_mail
 from django.test import TestCase, override_settings
 from django.utils.encoding import smart_str
@@ -119,6 +120,37 @@ class FakeSESBackend(django_ses.SESBackend):
 
     def create_session(self) -> FakeSESConnection:
         return FakeSESConnection
+
+
+class ClientErrorSESConnection(FakeSESConnection):
+    """Raises the ClientError boto3 raises when SES rejects a send."""
+
+    def send_raw_email(self, **kwargs):
+        raise ClientError(
+            {
+                "Error": {
+                    "Code": "MessageRejected",
+                    "Message": "Email address is not verified.",
+                }
+            },
+            "SendRawEmail",
+        )
+
+    def send_email(self, **kwargs):
+        raise ClientError(
+            {
+                "Error": {
+                    "Code": "MessageRejected",
+                    "Message": "Email address is not verified.",
+                }
+            },
+            "SendEmail",
+        )
+
+
+class ClientErrorSESBackend(FakeSESBackend):
+    def create_session(self):
+        return ClientErrorSESConnection
 
 
 @override_settings(EMAIL_BACKEND="tests.test_backend.FakeSESBackend")
@@ -586,6 +618,30 @@ class GlobalEndpointDefaultTest(TestCase):
         # Verify EndpointId is NOT included when not configured
         params = FakeSESConnection.outbox[0]
         self.assertNotIn("EndpointId", params)
+
+
+@override_settings(
+    EMAIL_BACKEND="tests.test_backend.ClientErrorSESBackend",
+    AWS_SES_AUTO_THROTTLE=None,
+)
+class FailSilentlyClientErrorTest(TestCase):
+    """boto3 raises ClientError; fail_silently must swallow it. See #196."""
+
+    def _message(self):
+        return EmailMessage(
+            subject="subject",
+            body="body",
+            from_email="from@example.com",
+            to=["to@example.com"],
+        )
+
+    def test_send_fail_silently_swallows_client_error(self):
+        result = self._message().send(fail_silently=True)
+        self.assertEqual(result, 0)
+
+    def test_send_raises_client_error_by_default(self):
+        with self.assertRaises(ClientError):
+            self._message().send()
 
 
 @unittest.skipIf(django.VERSION < (6, 1), "MAILERS was added in Django 6.1")

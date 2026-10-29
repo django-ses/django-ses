@@ -10,11 +10,7 @@ Pulls and Issues:
  - None
 
 Features:
-- Add support for sending email through an Amazon SES tenant with the
-  `AWS_SES_TENANT` setting (string or per-message callable) or an
-  `X-SES-TENANT` message header. Requires SES v2 and boto3/botocore 1.40.0+
-  (Python 3.9+); `SESBackend` raises `ValueError` if `AWS_SES_TENANT` is set
-  with an older botocore.
+- None
 
 Changes:
 - None
@@ -27,6 +23,36 @@ Fixes:
 
 ## Current
 
+**4.9.0**
+
+Add support for sending email through an Amazon SES tenant with the
+`AWS_SES_TENANT` setting (string or per-message callable) or an
+`X-SES-TENANT` message header. Requires SES v2 and boto3/botocore 1.40.0+
+(Python 3.9+); `SESBackend` raises `ValueError` if `AWS_SES_TENANT` is set
+with an older botocore.
+
+`send_messages()` now treats boto3 `ClientError` as a send failure when
+`fail_silently` is true. Previously only urllib3 `ResponseError` was
+caught, so `EmailMessage.send(fail_silently=True)` still raised when SES
+rejected the message.
+
+`get_ses_statistics` refreshes a stored daily row when any of the four
+aggregate counters changes. Previously an existing row was updated only
+when delivery attempts changed, so bounces, complaints, and rejects could
+stay stale.
+
+README examples for a custom inbound email parser and the statistics URL
+configuration now use valid imports.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/379
+  - https://github.com/django-ses/django-ses/pull/381
+  - https://github.com/django-ses/django-ses/pull/384
+  - https://github.com/django-ses/django-ses/pull/385
+
+## Past
+
+
 **4.8.2**
 
 Keep the test suite compatible with Python 3.8 and 3.9. Parenthesized
@@ -36,9 +62,6 @@ target version is now 3.8, matching the oldest Python in the CI matrix.
 
 Pulls:
   - https://github.com/django-ses/django-ses/pull/380
-
-## Past
-
 
 **4.8.1**
 

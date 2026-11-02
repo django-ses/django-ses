@@ -360,14 +360,16 @@ def confirm_sns_subscription(notification):
 
 def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
     """Extracts permanent bounced email addresses only as a list of strings.
-    https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#bounce-object
+
+    SES decides whether a bounce is permanent, in ``bounceType``. A ``Transient`` bounce, such as a full mailbox or
+    a message that is too large, often carries a ``5.x.x`` status, so the status alone does not make it permanent.
+    In a ``Permanent`` bounce, a recipient whose status is not ``5.x.x`` (such as ``4.0.0``, delayed) is left out.
+    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#bounce-types
     """
+    if bounce_obj.get("bounceType") != "Permanent":
+        return []
     bounced_recipients = bounce_obj.get("bouncedRecipients", list())
-    return [
-        br.get("emailAddress")
-        for br in bounced_recipients
-        if br.get("status", "").startswith("5") or ("status" not in br and bounce_obj.get("bounceType") == "Permanent")
-    ]
+    return [br.get("emailAddress") for br in bounced_recipients if br.get("status", "5").startswith("5")]
 
 
 def get_emails_from_complaint_obj(complaint_obj: dict) -> list:

@@ -6,6 +6,7 @@ from tests.mocks import (
     get_mock_bounce,
     get_mock_bounce_no_status,
     get_mock_bounce_no_status_transient,
+    get_mock_bounce_transient_with_status,
     get_mock_complaint,
 )
 
@@ -76,6 +77,26 @@ class SignalsTestCase(TestCase):
         # ... it should not insert the email in the blacklist
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 0)
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_transient_with_5xx_status(self):
+        # SES reports a full mailbox as a Transient bounce with a 5.2.2 status:
+        # the address can receive email again, so it must not be blacklisted.
+        mail_obj, bounce_obj, notification = get_mock_bounce_transient_with_status("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        self.assertEqual(models.BlacklistedEmail.objects.count(), 0)
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_undetermined_with_5xx_status(self):
+        mail_obj, bounce_obj, notification = get_mock_bounce_transient_with_status(
+            "eventType", bounce_type="Undetermined", bounce_sub_type="Undetermined"
+        )
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        self.assertEqual(models.BlacklistedEmail.objects.count(), 0)
 
     def test_complaint_handler(self):
         count = models.BlacklistedEmail.objects.all().count()

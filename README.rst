@@ -200,7 +200,7 @@ Using signal 'bounce_received' for manager bounce email. For example::
         print("This is bounce email object")
         print(mail_obj)
 
-The most common use case for irrecoverable bounces (status ``5xx``) is to add the
+The most common use case for permanent bounces (``bounceType`` ``Permanent``) is to add the
 email(s) that caused the bounce to a blacklist in order to avoid sending more
 emails and triggering more bounces. ``django-ses`` provides a built-in blacklist
 that does this. Check ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST`` and ``AWS_SES_USE_BLACKLIST``.
@@ -848,9 +848,12 @@ Full List of Settings
   reject anything else.
 
 ``AWS_SES_ADD_BOUNCE_TO_BLACKLIST``
-  If set to ``True`` (default ``False``) email addresses that triggered an
-  irrecoverable bounce (status in the ``5xx`` range) will be added to the
-  blacklist. Note that emails will be stored in lowercase.
+  If set to ``True`` (default ``False``) email addresses that triggered a
+  permanent bounce will be added to the blacklist: a bounce whose ``bounceType``
+  is ``Permanent``, for each recipient whose status is in the ``5xx`` range or
+  missing. A ``Transient`` or ``Undetermined`` bounce, such as a full mailbox,
+  adds no address, even with a ``5xx`` status. Note that emails will be stored
+  in lowercase.
 
 ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered a complaint

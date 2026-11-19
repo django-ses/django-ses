@@ -19,12 +19,24 @@ Deprecations:
  - None
 
 Fixes:
-- `AWS_SES_ADD_BOUNCE_TO_BLACKLIST` blacklists an address only for a bounce whose `bounceType` is `Permanent`.
-  Before, any recipient with a `5.x.x` status was blacklisted, also in a `Transient` bounce such as a full mailbox
-  (`MailboxFull`, `5.2.2`) or a message that is too large (`MessageTooLarge`, `5.3.4`), so an address that can
-  receive email again was blocked for good when `AWS_SES_USE_BLACKLIST` is on.
+- None
 
 ## Current
+
+**4.9.1**
+
+`AWS_SES_ADD_BOUNCE_TO_BLACKLIST` blacklists an address only for a bounce whose
+`bounceType` is `Permanent`. Before, any recipient with a `5.x.x` status was
+blacklisted, also in a `Transient` bounce such as a full mailbox
+(`MailboxFull`, `5.2.2`) or a message that is too large (`MessageTooLarge`,
+`5.3.4`), so an address that can receive email again was blocked for good when
+`AWS_SES_USE_BLACKLIST` is on.
+
+Pulls:
+  - https://github.com/django-ses/django-ses/pull/389
+
+## Past
+
 
 **4.9.0**
 
@@ -52,9 +64,6 @@ Pulls:
   - https://github.com/django-ses/django-ses/pull/381
   - https://github.com/django-ses/django-ses/pull/384
   - https://github.com/django-ses/django-ses/pull/385
-
-## Past
-
 
 **4.8.2**
 

@@ -358,8 +358,8 @@ def confirm_sns_subscription(notification):
         )
 
 
-def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
-    """Extracts permanent bounced email addresses only as a list of strings.
+def get_permanent_bounced_recipients_from_bounce_obj(bounce_obj: dict) -> list:
+    """Extracts the permanently bounced recipients as a list of SES ``bouncedRecipients`` dicts.
 
     SES decides whether a bounce is permanent, in ``bounceType``. A ``Transient`` bounce, such as a full mailbox or
     a message that is too large, often carries a ``5.x.x`` status, so the status alone does not make it permanent.
@@ -369,7 +369,15 @@ def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
     if bounce_obj.get("bounceType") != "Permanent":
         return []
     bounced_recipients = bounce_obj.get("bouncedRecipients", list())
-    return [br.get("emailAddress") for br in bounced_recipients if br.get("status", "5").startswith("5")]
+    return [br for br in bounced_recipients if br.get("status", "5").startswith("5")]
+
+
+def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
+    """Extracts permanent bounced email addresses only as a list of strings.
+
+    See ``get_permanent_bounced_recipients_from_bounce_obj`` for which recipients count as permanently bounced.
+    """
+    return [br.get("emailAddress") for br in get_permanent_bounced_recipients_from_bounce_obj(bounce_obj)]
 
 
 def get_emails_from_complaint_obj(complaint_obj: dict) -> list:
@@ -377,6 +385,48 @@ def get_emails_from_complaint_obj(complaint_obj: dict) -> list:
     https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#complaint-object
     """
     return [cr.get("emailAddress") for cr in complaint_obj.get("complainedRecipients", list())]
+
+
+def _format_reason(event, fields):
+    """Builds a readable reason: the event name, then one ``label: value`` line per field SES sent."""
+    lines = [event]
+    lines.extend(f"{label}: {value}" for label, value in fields if value)
+    return "\n".join(lines)
+
+
+def get_bounce_reason(bounce_obj: dict, bounced_recipient: dict) -> str:
+    """Describes why a recipient bounced, from a bounce object and one of its ``bouncedRecipients``.
+    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#bounce-object
+    """
+    return _format_reason(
+        "Bounce",
+        [
+            ("Bounce type", bounce_obj.get("bounceType")),
+            ("Bounce sub-type", bounce_obj.get("bounceSubType")),
+            ("Status", bounced_recipient.get("status")),
+            ("Action", bounced_recipient.get("action")),
+            ("Diagnostic code", bounced_recipient.get("diagnosticCode")),
+            ("Reporting MTA", bounce_obj.get("reportingMTA")),
+            ("Timestamp", bounce_obj.get("timestamp")),
+            ("Feedback ID", bounce_obj.get("feedbackId")),
+        ],
+    )
+
+
+def get_complaint_reason(complaint_obj: dict) -> str:
+    """Describes a complaint, from a complaint object.
+    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#complaint-object
+    """
+    return _format_reason(
+        "Complaint",
+        [
+            ("Complaint feedback type", complaint_obj.get("complaintFeedbackType")),
+            ("Complaint sub-type", complaint_obj.get("complaintSubType")),
+            ("User agent", complaint_obj.get("userAgent")),
+            ("Timestamp", complaint_obj.get("timestamp")),
+            ("Feedback ID", complaint_obj.get("feedbackId")),
+        ],
+    )
 
 
 def filter_blacklisted_recipients(addresses):

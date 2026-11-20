@@ -18,6 +18,8 @@ class SESStat(models.Model):
 
 class BlacklistedEmail(models.Model):
     email = models.EmailField(max_length=255, unique=True)
+    # Why the address was blacklisted, such as the bounce or complaint details SES sent.
+    reason = models.TextField(blank=True, default="")
 
     def __str__(self):
         return self.email

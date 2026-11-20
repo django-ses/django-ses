@@ -88,6 +88,13 @@ class BlacklistCommandRTest(TestCase):
 
         blacklisted = BlacklistedEmail.objects.get(email="foo@bar.com")
         self.assertEqual(blacklisted.email, "foo@bar.com")
+        self.assertEqual(blacklisted.reason, "")
+
+    def test_add_command_with_reason(self):
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails")
+
+        blacklisted = BlacklistedEmail.objects.get(email="foo@bar.com")
+        self.assertEqual(blacklisted.reason, "Asked to stop receiving emails")
 
     def test_delete_command(self):
         BlacklistedEmail.objects.create(email="foo@bar.com")

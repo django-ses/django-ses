@@ -10,6 +10,13 @@ from django_ses import models
 def _add_options(target):
     return (
         target("-a", "--add", dest="email_to_add", default=False, help="Adds an email to your blacklist"),
+        target(
+            "-r",
+            "--reason",
+            dest="reason",
+            default="",
+            help="Why the email is blacklisted. Used with --add.",
+        ),
         target("-d", "--delete", dest="email_to_delete", default=False, help="Removes an email from your blacklist"),
         target(
             "-l",
@@ -42,6 +49,7 @@ class Command(BaseCommand):
         *args,
         verbosity=0,
         email_to_add="",
+        reason="",
         email_to_delete="",
         list_emails="",
         search_email="",
@@ -52,7 +60,7 @@ class Command(BaseCommand):
         if email_to_add:
             if verbosity != "0":
                 self.stdout.write(f"Adding email: {email_to_add}")
-            models.BlacklistedEmail.objects.get_or_create(email=email_to_add.lower())
+            models.BlacklistedEmail.objects.get_or_create(email=email_to_add.lower(), defaults={"reason": reason})
         elif email_to_delete:
             if verbosity != "0":
                 self.stdout.write(f"Removing email {email_to_delete}")

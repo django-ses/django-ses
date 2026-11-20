@@ -135,6 +135,67 @@ class SignalsTestCase(TestCase):
         count = models.BlacklistedEmail.objects.all().count()
         self.assertEqual(count, 1)
 
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_stores_reason(self):
+        mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        blacklisted = models.BlacklistedEmail.objects.get()
+        self.assertEqual(blacklisted.email, "recipient1@example.com")
+        self.assertEqual(
+            blacklisted.reason,
+            "Bounce\n"
+            "Bounce type: Permanent\n"
+            "Bounce sub-type: General\n"
+            "Status: 5.0.0\n"
+            "Action: failed\n"
+            "Diagnostic code: smtp; 550 user unknown\n"
+            "Reporting MTA: example.com\n"
+            "Timestamp: 2012-05-25T14:59:38.605-07:00\n"
+            "Feedback ID: 000001378603176d-5a4b5ad9-6f30-4198-a8c3-b1eb0c270a1d-000000",
+        )
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_stores_reason_for_many_recipients(self):
+        mail_obj, bounce_obj, notification = get_mock_bounce_no_status("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        reasons = dict(models.BlacklistedEmail.objects.values_list("email", "reason"))
+        self.assertEqual(set(reasons), {"recipient1@example.com", "recipient2@example.com"})
+        for reason in reasons.values():
+            self.assertTrue(reason.startswith("Bounce\nBounce type: Permanent\nBounce sub-type: General\n"))
+            # These recipients have no status, action or diagnostic code, so those lines are left out.
+            self.assertNotIn("Status:", reason)
+            self.assertNotIn("Diagnostic code:", reason)
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_keeps_existing_reason(self):
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com", reason="Added by hand")
+        mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        self.assertEqual(models.BlacklistedEmail.objects.get().reason, "Added by hand")
+
+    @override_settings(AWS_SES_ADD_COMPLAINT_TO_BLACKLIST=True)
+    def test_complaint_handler_stores_reason(self):
+        mail_obj, complaint_obj, notification = get_mock_complaint("eventType")
+
+        signals.complaint_handler(None, mail_obj, complaint_obj, notification)
+
+        blacklisted = models.BlacklistedEmail.objects.get()
+        self.assertEqual(blacklisted.email, "recipient1@example.com")
+        self.assertEqual(
+            blacklisted.reason,
+            "Complaint\n"
+            "Complaint feedback type: abuse\n"
+            "User agent: ExampleCorp Feedback Loop (V0.01)\n"
+            "Timestamp: 2012-05-25T14:59:38.623Z\n"
+            "Feedback ID: 000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000",
+        )
+
     @override_settings(EMAIL_BACKEND="tests.test_backend.FakeSESBackend")
     def test_message_sent_handler(self):
         def _handler(sender, message, **kwargs):

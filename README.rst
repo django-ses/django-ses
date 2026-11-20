@@ -668,6 +668,14 @@ To manage the blacklist (add, remote, list), run:
 
     python manage.py blacklist
 
+Each blacklisted email has a ``reason`` field that says why it was added. For a
+bounce or a complaint, it holds the details SES sent. When adding an email by
+hand, pass the reason with ``--reason``:
+
+    python manage.py blacklist --add foo@example.com --reason "Asked to stop receiving emails"
+
+An email that is already blacklisted keeps its first reason.
+
 Django Built-in Error Emails
 ==============================
 
@@ -853,11 +861,16 @@ Full List of Settings
   is ``Permanent``, for each recipient whose status is in the ``5xx`` range or
   missing. A ``Transient`` or ``Undetermined`` bounce, such as a full mailbox,
   adds no address, even with a ``5xx`` status. Note that emails will be stored
-  in lowercase.
+  in lowercase. The bounce details SES sent (bounce type and sub-type, status,
+  action, diagnostic code, reporting MTA, timestamp and feedback ID) are stored
+  in the ``reason`` field of ``BlacklistedEmail``.
 
 ``AWS_SES_ADD_COMPLAINT_TO_BLACKLIST``
   If set to ``True`` (default ``False``) email addresses that triggered a complaint
   will be added to the blacklist. Note that emails will be stored in lowercase.
+  The complaint details SES sent (feedback type, sub-type, user agent,
+  timestamp and feedback ID) are stored in the ``reason`` field of
+  ``BlacklistedEmail``.
 
 ``AWS_SES_USE_BLACKLIST``
   If set to ``True`` (default ``False``), calls to the ``send_mail()`` method will

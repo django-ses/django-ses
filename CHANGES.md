@@ -13,13 +13,15 @@ Features:
 - None
 
 Changes:
-- None
+- Drop support for Python 3.8 and 3.9; require Python 3.10 or newer.
+- Remove the ``backports.zoneinfo`` dependency (stdlib ``zoneinfo`` only).
 
 Deprecations:
  - None
 
 Fixes:
-- None
+- Refresh ``poetry.lock`` so Dependabot security alerts on locked transitive
+  dependencies can clear under the new Python floor.
 
 ## Current
 

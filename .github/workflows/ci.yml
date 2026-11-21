@@ -32,8 +32,7 @@ jobs:
 
   build:
     name: Python ${{ matrix.python-version }}, django ${{ matrix.django-version }}
-    # setup-python publishes no 3.8 or 3.9 builds for Ubuntu 26.04 (ubuntu-latest).
-    runs-on: ${{ (matrix.python-version == '3.8' || matrix.python-version == '3.9') && 'ubuntu-24.04' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
 
     services:
       localstack:
@@ -51,7 +50,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10", "3.9", "3.8"]
+        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
         # 61 first: default / newest tested combo where Python allows (Django 6 needs 3.12+).
         django-version: [61, 60, 52, 42, 32]
         exclude:
@@ -59,22 +58,10 @@ jobs:
             django-version: 32
           - python-version: "3.14"
             django-version: 32
-          - python-version: "3.8"
-            django-version: 52
-          - python-version: "3.9"
-            django-version: 52
-          - python-version: "3.8"
-            django-version: 60
-          - python-version: "3.9"
-            django-version: 60
           - python-version: "3.10"
             django-version: 60
           - python-version: "3.11"
             django-version: 60
-          - python-version: "3.8"
-            django-version: 61
-          - python-version: "3.9"
-            django-version: 61
           - python-version: "3.10"
             django-version: 61
           - python-version: "3.11"

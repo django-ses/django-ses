@@ -29,7 +29,7 @@ recent_send_times = []
 
 logger = logging.getLogger("django_ses")
 
-# SES v2 SendEmail accepts TenantName starting with botocore 1.40.0 (Python 3.9+).
+# SES v2 SendEmail accepts TenantName starting with botocore 1.40.0.
 TENANT_MIN_BOTOCORE_VERSION = (1, 40, 0)
 
 
@@ -167,7 +167,7 @@ class SESBackend(BaseEmailBackend):
             raise ValueError("AWS_SES_TENANT requires USE_SES_V2=True. Tenant sending is only supported by SES API v2.")
         if settings.AWS_SES_TENANT and not botocore_supports_tenants():
             raise ValueError(
-                "AWS_SES_TENANT requires boto3 and botocore 1.40.0 or newer (Python 3.9+); found botocore {}.".format(
+                "AWS_SES_TENANT requires boto3 and botocore 1.40.0 or newer; found botocore {}.".format(
                     botocore.__version__
                 )
             )

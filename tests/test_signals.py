@@ -174,6 +174,36 @@ class SignalsTestCase(TestCase):
             self.assertNotIn("Diagnostic code:", reason)
 
     @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_stores_reason_per_recipient(self):
+        # Two permanently bounced recipients with their own status and diagnostic code go through bulk_create,
+        # and each must keep its own details.
+        mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
+        bounce_obj["bouncedRecipients"] = [
+            {
+                "emailAddress": "recipient1@example.com",
+                "status": "5.1.1",
+                "action": "failed",
+                "diagnosticCode": "smtp; 550 5.1.1 user unknown",
+            },
+            {
+                "emailAddress": "recipient2@example.com",
+                "status": "5.2.1",
+                "action": "failed",
+                "diagnosticCode": "smtp; 550 5.2.1 mailbox disabled",
+            },
+        ]
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        reasons = dict(models.BlacklistedEmail.objects.values_list("email", "reason"))
+        self.assertIn("Status: 5.1.1\n", reasons["recipient1@example.com"])
+        self.assertIn("Diagnostic code: smtp; 550 5.1.1 user unknown\n", reasons["recipient1@example.com"])
+        self.assertNotIn("5.2.1", reasons["recipient1@example.com"])
+        self.assertIn("Status: 5.2.1\n", reasons["recipient2@example.com"])
+        self.assertIn("Diagnostic code: smtp; 550 5.2.1 mailbox disabled\n", reasons["recipient2@example.com"])
+        self.assertNotIn("5.1.1", reasons["recipient2@example.com"])
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
     def test_bounce_handler_keeps_existing_reason(self):
         models.BlacklistedEmail.objects.create(email="recipient1@example.com", reason="Added by hand")
         mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
@@ -228,6 +258,15 @@ class SignalsTestCase(TestCase):
         signals.complaint_handler(None, mail_obj, complaint_obj, notification)
 
         self.assertTrue(models.BlacklistedEmail.objects.get().reason.startswith("Complaint\n"))
+
+    @override_settings(AWS_SES_ADD_COMPLAINT_TO_BLACKLIST=True)
+    def test_complaint_handler_keeps_existing_reason(self):
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com", reason="Added by hand")
+        mail_obj, complaint_obj, notification = get_mock_complaint("eventType")
+
+        signals.complaint_handler(None, mail_obj, complaint_obj, notification)
+
+        self.assertEqual(models.BlacklistedEmail.objects.get().reason, "Added by hand")
 
     @override_settings(AWS_SES_ADD_COMPLAINT_TO_BLACKLIST=True)
     def test_complaint_handler_stores_reason(self):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.core.paginator import Paginator
 
 from django_ses import models
@@ -58,6 +58,10 @@ class Command(BaseCommand):
         limit=1000,
         **options,
     ):
+        if reason and not email_to_add:
+            # Without --add the reason would be ignored, e.g. "-r someone@example.com" taken for "remove".
+            raise CommandError("-r/--reason can only be used with -a/--add")
+
         if email_to_add:
             obj, action = blacklist_email(email_to_add.lower(), reason)
             if verbosity != "0":

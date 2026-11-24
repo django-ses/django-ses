@@ -1,7 +1,7 @@
 import datetime
 from io import StringIO
 
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.test import TestCase
 
 from django_ses.management.commands import get_ses_statistics as mod_get_ses_statistics
@@ -122,6 +122,17 @@ class BlacklistCommandRTest(TestCase):
 
         self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "")
         self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted\n")
+
+    def test_reason_without_add(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com")
+
+        # "-r" can be taken for "remove": the email becomes the reason, which nothing would use.
+        with self.assertRaisesMessage(CommandError, "-r/--reason can only be used with -a/--add"):
+            call_command("blacklist", "-r", "foo@bar.com")
+        with self.assertRaisesMessage(CommandError, "-r/--reason can only be used with -a/--add"):
+            call_command("blacklist", "--delete", "foo@bar.com", "--reason", "Asked to stop receiving emails")
+
+        self.assertEqual(list(BlacklistedEmail.objects.values_list("email", "reason")), [("foo@bar.com", "")])
 
     def test_add_command_output(self):
         out = StringIO()

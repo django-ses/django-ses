@@ -169,6 +169,26 @@ class BlacklistCommandRTest(TestCase):
         self.assertIn("foo2@bar.com", lines)
         self.assertIn("foo3@bar.com", lines)
 
+    def test_list_command_with_reasons(self):
+        BlacklistedEmail.objects.create(email="old@bar.com")
+        BlacklistedEmail.objects.create(email="foo@bar.com", reason="Bounce\nBounce type: Permanent\nStatus: 5.0.0")
+        BlacklistedEmail.objects.create(email="manual@bar.com", reason="Asked to stop receiving emails")
+
+        out = StringIO()
+        call_command("blacklist", "--list", stdout=out)
+
+        self.assertEqual(
+            out.getvalue(),
+            "Listing blacklisted emails:\n"
+            "old@bar.com\n"
+            "foo@bar.com\n"
+            "    Bounce\n"
+            "    Bounce type: Permanent\n"
+            "    Status: 5.0.0\n"
+            "manual@bar.com\n"
+            "    Asked to stop receiving emails\n",
+        )
+
     def test_list_command_pagination(self):
         for i in range(55):
             BlacklistedEmail.objects.create(email=f"foo{i}@bar.com")
@@ -215,6 +235,19 @@ class BlacklistCommandRTest(TestCase):
         self.assertEqual(len(lines), 2)
         self.assertIn("bbb@foo.com", lines)
         self.assertIn("bbb@bar.com", lines)
+
+    def test_search_command_with_reasons(self):
+        BlacklistedEmail.objects.create(email="aaa@foo.com", reason="Bounce\nBounce type: Permanent")
+        BlacklistedEmail.objects.create(email="aaa@bar.com")
+        BlacklistedEmail.objects.create(email="bbb@foo.com", reason="Complaint")
+
+        out = StringIO()
+        call_command("blacklist", "--search", "aaa", stdout=out)
+
+        self.assertEqual(
+            out.getvalue(),
+            "Searching blacklisted emails:\naaa@foo.com\n    Bounce\n    Bounce type: Permanent\naaa@bar.com\n",
+        )
 
     def test_search_command_pagination(self):
         for i in range(55):

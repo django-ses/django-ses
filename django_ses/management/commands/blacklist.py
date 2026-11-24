@@ -45,6 +45,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         _add_options(parser.add_argument)
 
+    def _write_blacklisted_email(self, obj):
+        """Writes the email, then its reason, if any, indented below it."""
+        self.stdout.write(obj.email)
+        for line in obj.reason.splitlines():
+            self.stdout.write(f"    {line}")
+
     def handle(
         self,
         *args,
@@ -88,7 +94,7 @@ class Command(BaseCommand):
                 objs = paginator.page(page).object_list
 
             for obj in objs:
-                self.stdout.write(obj.email)
+                self._write_blacklisted_email(obj)
         elif search_email:
             if verbosity != "0":
                 self.stdout.write("Searching blacklisted emails:")
@@ -99,4 +105,4 @@ class Command(BaseCommand):
                 objs = paginator.page(page).object_list
 
             for obj in objs:
-                self.stdout.write(obj.email)
+                self._write_blacklisted_email(obj)

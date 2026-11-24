@@ -1,4 +1,7 @@
+from unittest import mock
+
 from django.core.mail import send_mail
+from django.db import NotSupportedError
 from django.test import TestCase, override_settings
 
 from django_ses import models, signals
@@ -178,6 +181,53 @@ class SignalsTestCase(TestCase):
         signals.bounce_handler(None, mail_obj, bounce_obj, notification)
 
         self.assertEqual(models.BlacklistedEmail.objects.get().reason, "Added by hand")
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_fills_blank_reason(self):
+        # A row blacklisted before the reason field existed has a blank reason.
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com")
+        mail_obj, bounce_obj, notification = get_mock_bounce("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        blacklisted = models.BlacklistedEmail.objects.get()
+        self.assertTrue(blacklisted.reason.startswith("Bounce\nBounce type: Permanent\n"))
+        self.assertIn("Diagnostic code: smtp; 550 user unknown", blacklisted.reason)
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_fills_blank_reason_for_many_recipients(self):
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com")
+        models.BlacklistedEmail.objects.create(email="recipient2@example.com", reason="Added by hand")
+        mail_obj, bounce_obj, notification = get_mock_bounce_no_status("eventType")
+
+        signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        reasons = dict(models.BlacklistedEmail.objects.values_list("email", "reason"))
+        self.assertTrue(reasons["recipient1@example.com"].startswith("Bounce\nBounce type: Permanent\n"))
+        self.assertEqual(reasons["recipient2@example.com"], "Added by hand")
+
+    @override_settings(AWS_SES_ADD_BOUNCE_TO_BLACKLIST=True)
+    def test_bounce_handler_without_ignore_conflicts(self):
+        # Oracle doesn't support ignore_conflicts, so each email is blacklisted one by one.
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com")
+        models.BlacklistedEmail.objects.create(email="recipient2@example.com", reason="Added by hand")
+        mail_obj, bounce_obj, notification = get_mock_bounce_no_status("eventType")
+
+        with mock.patch("django.db.models.query.QuerySet.bulk_create", side_effect=NotSupportedError):
+            signals.bounce_handler(None, mail_obj, bounce_obj, notification)
+
+        reasons = dict(models.BlacklistedEmail.objects.values_list("email", "reason"))
+        self.assertTrue(reasons["recipient1@example.com"].startswith("Bounce\nBounce type: Permanent\n"))
+        self.assertEqual(reasons["recipient2@example.com"], "Added by hand")
+
+    @override_settings(AWS_SES_ADD_COMPLAINT_TO_BLACKLIST=True)
+    def test_complaint_handler_fills_blank_reason(self):
+        models.BlacklistedEmail.objects.create(email="recipient1@example.com")
+        mail_obj, complaint_obj, notification = get_mock_complaint("eventType")
+
+        signals.complaint_handler(None, mail_obj, complaint_obj, notification)
+
+        self.assertTrue(models.BlacklistedEmail.objects.get().reason.startswith("Complaint\n"))
 
     @override_settings(AWS_SES_ADD_COMPLAINT_TO_BLACKLIST=True)
     def test_complaint_handler_stores_reason(self):

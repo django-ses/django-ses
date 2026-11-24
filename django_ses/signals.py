@@ -13,10 +13,21 @@ open_received = Signal()
 click_received = Signal()
 
 
+def _blacklist_email(email, reason):
+    """Blacklists one email, and stores ``reason`` if the email is already blacklisted with a blank reason."""
+    from django_ses import models
+
+    obj, created = models.BlacklistedEmail.objects.get_or_create(email=email, defaults={"reason": reason})
+    if not created and not obj.reason:
+        # Filter on the blank reason too, so a reason stored in the meantime is not overwritten.
+        models.BlacklistedEmail.objects.filter(pk=obj.pk, reason="").update(reason=reason)
+
+
 def _blacklist_recipients(reasons):
     """Blacklists each email in ``reasons``, a dict that maps an email to why it is blacklisted.
 
-    An email that is already blacklisted keeps the reason it was first blacklisted for.
+    An email that is already blacklisted keeps its reason, unless that reason is blank (such as a row that
+    existed before the ``reason`` field was added): then it gets the new one.
     """
     from django_ses import models
 
@@ -29,10 +40,10 @@ def _blacklist_recipients(reasons):
     # blacklist it.
     if len(reasons) == 1:
         ((email, reason),) = reasons.items()
-        models.BlacklistedEmail.objects.get_or_create(email=email, defaults={"reason": reason})
+        _blacklist_email(email, reason)
         return
 
-    qs = models.BlacklistedEmail.objects.filter(email__in=reasons)
+    qs = models.BlacklistedEmail.objects.filter(email__in=reasons.keys())
     blacklisted_emails = set(qs.values_list("email", flat=True))
     unblacklisted_emails = [email for email in reasons if email not in blacklisted_emails]
 
@@ -46,7 +57,14 @@ def _blacklist_recipients(reasons):
         )
     except NotSupportedError:  # Oracle doesn't support "ignore_conflicts"
         for email, reason in reasons.items():
-            models.BlacklistedEmail.objects.get_or_create(email=email, defaults={"reason": reason})
+            _blacklist_email(email, reason)
+        return
+
+    # ignore_conflicts leaves existing rows unchanged, so give a reason to the rows of this batch that have none.
+    blank = list(models.BlacklistedEmail.objects.filter(email__in=reasons.keys(), reason=""))
+    for obj in blank:
+        obj.reason = reasons[obj.email]
+    models.BlacklistedEmail.objects.bulk_update(blank, ["reason"])
 
 
 def bounce_handler(sender, mail_obj, bounce_obj, raw_message, *args, **kwargs):

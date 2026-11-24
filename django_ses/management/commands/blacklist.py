@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
 
 from django_ses import models
+from django_ses.utils import blacklist_email
 
 
 def _add_options(target):
@@ -58,9 +59,16 @@ class Command(BaseCommand):
         **options,
     ):
         if email_to_add:
+            obj, action = blacklist_email(email_to_add.lower(), reason)
             if verbosity != "0":
-                self.stdout.write(f"Adding email: {email_to_add}")
-            models.BlacklistedEmail.objects.get_or_create(email=email_to_add.lower(), defaults={"reason": reason})
+                if action == "created":
+                    self.stdout.write(f"Adding email: {email_to_add}")
+                elif action == "reason_stored":
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted, storing its reason")
+                elif obj.reason:
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted with reason: {obj.reason}")
+                else:
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted")
         elif email_to_delete:
             if verbosity != "0":
                 self.stdout.write(f"Removing email {email_to_delete}")

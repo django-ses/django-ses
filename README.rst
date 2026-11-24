@@ -674,7 +674,9 @@ hand, pass the reason with ``--reason``:
 
     python manage.py blacklist --add foo@example.com --reason "Asked to stop receiving emails"
 
-An email that is already blacklisted keeps its first reason.
+An email that is already blacklisted keeps its reason. If its reason is blank
+(such as an email blacklisted before the ``reason`` field existed), the next
+bounce, complaint or ``--add --reason`` stores one.
 
 Django Built-in Error Emails
 ==============================

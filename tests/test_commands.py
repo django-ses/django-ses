@@ -96,6 +96,39 @@ class BlacklistCommandRTest(TestCase):
         blacklisted = BlacklistedEmail.objects.get(email="foo@bar.com")
         self.assertEqual(blacklisted.reason, "Asked to stop receiving emails")
 
+    def test_add_command_twice_stores_reason(self):
+        call_command("blacklist", "--add", "foo@bar.com", stdout=StringIO())
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "Asked to stop receiving emails")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted, storing its reason\n")
+
+    def test_add_command_keeps_existing_reason(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com", reason="Bounce")
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "Bounce")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted with reason: Bounce\n")
+
+    def test_add_command_already_blacklisted_without_reason(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com")
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted\n")
+
+    def test_add_command_output(self):
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", stdout=out)
+
+        self.assertEqual(out.getvalue(), "Adding email: foo@bar.com\n")
+
     def test_delete_command(self):
         BlacklistedEmail.objects.create(email="foo@bar.com")
         BlacklistedEmail.objects.create(email="foo2@bar.com")

@@ -10,6 +10,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="blacklistedemail",
             name="reason",
-            field=models.TextField(blank=True, default=""),
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Why the email was blacklisted, such as the bounce or complaint details SES sent.",
+            ),
         ),
     ]

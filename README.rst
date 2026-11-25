@@ -347,8 +347,7 @@ set ``AWS_SES_TENANT`` to the tenant name::
 The verified identity and Configuration Set used for the message must be
 associated with the tenant in Amazon SES.
 
-Tenant sending requires boto3 and botocore 1.40.0 or newer, which in turn
-require Python 3.9 or newer; it is not available on Python 3.8. When
+Tenant sending requires boto3 and botocore 1.40.0 or newer. When
 ``AWS_SES_TENANT`` is set, ``SESBackend`` raises ``ValueError`` on creation if
 botocore is older than 1.40.0. Installs that do not set ``AWS_SES_TENANT`` are
 unaffected.
@@ -815,7 +814,7 @@ Full List of Settings
   to a string to use one tenant for all messages, or a callable to select a
   tenant per message (return ``None`` to skip the tenant). A message's
   ``X-SES-TENANT`` header overrides it. Requires ``USE_SES_V2 = True`` and
-  boto3/botocore 1.40.0 or newer (Python 3.9+). Default is ``None``.
+  boto3/botocore 1.40.0 or newer. Default is ``None``.
 
 ``TIME_ZONE``
   Default Django setting, optionally set this. Details:
@@ -987,7 +986,7 @@ To create a release:
     :target: https://pypi.org/project/django-ses/
 .. |build| image:: https://github.com/django-ses/django-ses/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/django-ses/django-ses/actions/workflows/ci.yml
-.. |python| image:: https://img.shields.io/badge/python-3.8|3.9|3.10|3.11|3.12|3.13|3.14-blue.svg
+.. |python| image:: https://img.shields.io/badge/python-3.10|3.11|3.12|3.13|3.14-blue.svg
     :target: https://pypi.org/project/django-ses/
 .. |django| image:: https://img.shields.io/badge/django-3.2%20%7C%204.2%20%7C%205.2%20%7C%206.0%20%7C%206.1-blue.svg
     :target: https://www.djangoproject.com/

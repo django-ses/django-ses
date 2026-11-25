@@ -1,7 +1,7 @@
 import datetime
 from io import StringIO
 
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.test import TestCase
 
 from django_ses.management.commands import get_ses_statistics as mod_get_ses_statistics
@@ -88,6 +88,57 @@ class BlacklistCommandRTest(TestCase):
 
         blacklisted = BlacklistedEmail.objects.get(email="foo@bar.com")
         self.assertEqual(blacklisted.email, "foo@bar.com")
+        self.assertEqual(blacklisted.reason, "")
+
+    def test_add_command_with_reason(self):
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails")
+
+        blacklisted = BlacklistedEmail.objects.get(email="foo@bar.com")
+        self.assertEqual(blacklisted.reason, "Asked to stop receiving emails")
+
+    def test_add_command_twice_stores_reason(self):
+        call_command("blacklist", "--add", "foo@bar.com", stdout=StringIO())
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "Asked to stop receiving emails")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted, storing its reason\n")
+
+    def test_add_command_keeps_existing_reason(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com", reason="Bounce")
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", "--reason", "Asked to stop receiving emails", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "Bounce")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted with reason: Bounce\n")
+
+    def test_add_command_already_blacklisted_without_reason(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com")
+
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", stdout=out)
+
+        self.assertEqual(BlacklistedEmail.objects.get(email="foo@bar.com").reason, "")
+        self.assertEqual(out.getvalue(), "Email foo@bar.com is already blacklisted\n")
+
+    def test_reason_without_add(self):
+        BlacklistedEmail.objects.create(email="foo@bar.com")
+
+        # "-r" can be taken for "remove": the email becomes the reason, which nothing would use.
+        with self.assertRaisesMessage(CommandError, "-r/--reason can only be used with -a/--add"):
+            call_command("blacklist", "-r", "foo@bar.com")
+        with self.assertRaisesMessage(CommandError, "-r/--reason can only be used with -a/--add"):
+            call_command("blacklist", "--delete", "foo@bar.com", "--reason", "Asked to stop receiving emails")
+
+        self.assertEqual(list(BlacklistedEmail.objects.values_list("email", "reason")), [("foo@bar.com", "")])
+
+    def test_add_command_output(self):
+        out = StringIO()
+        call_command("blacklist", "--add", "foo@bar.com", stdout=out)
+
+        self.assertEqual(out.getvalue(), "Adding email: foo@bar.com\n")
 
     def test_delete_command(self):
         BlacklistedEmail.objects.create(email="foo@bar.com")
@@ -117,6 +168,26 @@ class BlacklistCommandRTest(TestCase):
         self.assertIn("foo@bar.com", lines)
         self.assertIn("foo2@bar.com", lines)
         self.assertIn("foo3@bar.com", lines)
+
+    def test_list_command_with_reasons(self):
+        BlacklistedEmail.objects.create(email="old@bar.com")
+        BlacklistedEmail.objects.create(email="foo@bar.com", reason="Bounce\nBounce type: Permanent\nStatus: 5.0.0")
+        BlacklistedEmail.objects.create(email="manual@bar.com", reason="Asked to stop receiving emails")
+
+        out = StringIO()
+        call_command("blacklist", "--list", stdout=out)
+
+        self.assertEqual(
+            out.getvalue(),
+            "Listing blacklisted emails:\n"
+            "old@bar.com\n"
+            "foo@bar.com\n"
+            "    Bounce\n"
+            "    Bounce type: Permanent\n"
+            "    Status: 5.0.0\n"
+            "manual@bar.com\n"
+            "    Asked to stop receiving emails\n",
+        )
 
     def test_list_command_pagination(self):
         for i in range(55):
@@ -164,6 +235,19 @@ class BlacklistCommandRTest(TestCase):
         self.assertEqual(len(lines), 2)
         self.assertIn("bbb@foo.com", lines)
         self.assertIn("bbb@bar.com", lines)
+
+    def test_search_command_with_reasons(self):
+        BlacklistedEmail.objects.create(email="aaa@foo.com", reason="Bounce\nBounce type: Permanent")
+        BlacklistedEmail.objects.create(email="aaa@bar.com")
+        BlacklistedEmail.objects.create(email="bbb@foo.com", reason="Complaint")
+
+        out = StringIO()
+        call_command("blacklist", "--search", "aaa", stdout=out)
+
+        self.assertEqual(
+            out.getvalue(),
+            "Searching blacklisted emails:\naaa@foo.com\n    Bounce\n    Bounce type: Permanent\naaa@bar.com\n",
+        )
 
     def test_search_command_pagination(self):
         for i in range(55):

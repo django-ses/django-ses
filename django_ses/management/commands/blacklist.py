@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.core.paginator import Paginator
 
 from django_ses import models
+from django_ses.utils import blacklist_email
 
 
 def _add_options(target):
     return (
         target("-a", "--add", dest="email_to_add", default=False, help="Adds an email to your blacklist"),
+        target(
+            "-r",
+            "--reason",
+            dest="reason",
+            default="",
+            help="Why the email is blacklisted. Used with --add.",
+        ),
         target("-d", "--delete", dest="email_to_delete", default=False, help="Removes an email from your blacklist"),
         target(
             "-l",
@@ -37,11 +45,18 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         _add_options(parser.add_argument)
 
+    def _write_blacklisted_email(self, obj):
+        """Writes the email, then its reason, if any, indented below it."""
+        self.stdout.write(obj.email)
+        for line in obj.reason.splitlines():
+            self.stdout.write(f"    {line}")
+
     def handle(
         self,
         *args,
         verbosity=0,
         email_to_add="",
+        reason="",
         email_to_delete="",
         list_emails="",
         search_email="",
@@ -49,10 +64,21 @@ class Command(BaseCommand):
         limit=1000,
         **options,
     ):
+        if reason and not email_to_add:
+            # Without --add the reason would be ignored, e.g. "-r someone@example.com" taken for "remove".
+            raise CommandError("-r/--reason can only be used with -a/--add")
+
         if email_to_add:
+            obj, action = blacklist_email(email_to_add.lower(), reason)
             if verbosity != "0":
-                self.stdout.write(f"Adding email: {email_to_add}")
-            models.BlacklistedEmail.objects.get_or_create(email=email_to_add.lower())
+                if action == "created":
+                    self.stdout.write(f"Adding email: {email_to_add}")
+                elif action == "reason_stored":
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted, storing its reason")
+                elif obj.reason:
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted with reason: {obj.reason}")
+                else:
+                    self.stdout.write(f"Email {email_to_add} is already blacklisted")
         elif email_to_delete:
             if verbosity != "0":
                 self.stdout.write(f"Removing email {email_to_delete}")
@@ -68,7 +94,7 @@ class Command(BaseCommand):
                 objs = paginator.page(page).object_list
 
             for obj in objs:
-                self.stdout.write(obj.email)
+                self._write_blacklisted_email(obj)
         elif search_email:
             if verbosity != "0":
                 self.stdout.write("Searching blacklisted emails:")
@@ -79,4 +105,4 @@ class Command(BaseCommand):
                 objs = paginator.page(page).object_list
 
             for obj in objs:
-                self.stdout.write(obj.email)
+                self._write_blacklisted_email(obj)

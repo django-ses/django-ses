@@ -10,7 +10,15 @@ Pulls and Issues:
  - None
 
 Features:
-- None
+- `BlacklistedEmail` has a new `reason` field that says why an address was
+  blacklisted. A bounce stores the bounce details SES sent for that recipient
+  (bounce type and sub-type, status, action, diagnostic code, reporting MTA,
+  timestamp and feedback ID), and a complaint stores the complaint details
+  (feedback type, sub-type, user agent, timestamp and feedback ID). The
+  `blacklist` command takes `--reason` with `--add`. An address that is already
+  blacklisted keeps its reason, unless it is blank: then the next bounce,
+  complaint or `--add --reason` stores one. Run `migrate` to add the column;
+  existing rows get a blank reason.
 
 Changes:
 - None

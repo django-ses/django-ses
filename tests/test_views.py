@@ -462,7 +462,7 @@ class HandleEventTestCase(TestCase):
         }
 
         with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
-            "django_ses.utils.urlopen"
+            "django_ses.utils.sns.urlopen"
         ) as urlopen:
             verify.return_value = True
             response = self.client.post(
@@ -486,7 +486,7 @@ class HandleEventTestCase(TestCase):
         }
 
         with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
-            "django_ses.utils.urlopen"
+            "django_ses.utils.sns.urlopen"
         ) as urlopen:
             verify.return_value = True
             urlopen.return_value.read.return_value = b"ok"
@@ -511,7 +511,7 @@ class HandleEventTestCase(TestCase):
         }
 
         with mock.patch.object(ses_utils, "verify_event_message") as verify, mock.patch(
-            "django_ses.utils.urlopen"
+            "django_ses.utils.sns.urlopen"
         ) as urlopen:
             verify.return_value = True
             response = self.client.post(

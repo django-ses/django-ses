@@ -21,7 +21,17 @@ Features:
   existing rows get a blank reason.
 
 Changes:
-- None
+- `django_ses.utils` is now a package, split into `django_ses.utils.sns` (SNS
+  message verification and subscriptions), `django_ses.utils.events` (reading
+  bounce and complaint events) and `django_ses.utils.blacklist`. Everything
+  public is still importable from `django_ses.utils`. Two things change:
+  - A test that patches something a function looks up in its own module must
+    patch the submodule now, e.g. `django_ses.utils.sns.urlopen` instead of
+    `django_ses.utils.urlopen`. Patching `django_ses.utils.verify_event_message`
+    still works, also for the deprecated `verify_bounce_message`.
+  - SNS messages are logged by the `django_ses.utils.sns` logger instead of
+    `django_ses.utils`. A logging config for `django_ses.utils` or `django_ses`
+    still receives them.
 
 Deprecations:
  - None

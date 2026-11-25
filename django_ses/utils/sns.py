@@ -1,15 +1,15 @@
+"""Verification of the SNS messages SES sends, and confirmation of SNS subscriptions."""
+
 import base64
 import logging
 import re
 import warnings
 from builtins import bytes
-from email.utils import parseaddr
 from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from django.core.exceptions import ImproperlyConfigured
-from django.db import NotSupportedError
 
 from django_ses import settings
 from django_ses.deprecation import RemovedInDjangoSES20Warning
@@ -311,7 +311,11 @@ def verify_bounce_message(msg):
         "utils.verify_bounce_message is deprecated. It is renamed to verify_event_message.",
         RemovedInDjangoSES20Warning,
     )
-    return verify_event_message(msg)
+    # Look verify_event_message up on django_ses.utils, not on this module, so patching
+    # django_ses.utils.verify_event_message (as code did before utils was split) still applies here.
+    from django_ses import utils
+
+    return utils.verify_event_message(msg)
 
 
 def confirm_sns_subscription(notification):
@@ -357,192 +361,3 @@ def confirm_sns_subscription(notification):
             },
             exc_info=True,
         )
-
-
-def get_permanent_bounced_recipients_from_bounce_obj(bounce_obj: dict) -> list:
-    """Extracts the permanently bounced recipients as a list of SES ``bouncedRecipients`` dicts.
-
-    SES decides whether a bounce is permanent, in ``bounceType``. A ``Transient`` bounce, such as a full mailbox or
-    a message that is too large, often carries a ``5.x.x`` status, so the status alone does not make it permanent.
-    In a ``Permanent`` bounce, a recipient whose status is not ``5.x.x`` (such as ``4.0.0``, delayed) is left out.
-    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#bounce-types
-    """
-    if bounce_obj.get("bounceType") != "Permanent":
-        return []
-    bounced_recipients = bounce_obj.get("bouncedRecipients", list())
-    return [br for br in bounced_recipients if br.get("status", "5").startswith("5")]
-
-
-def get_permanent_bounced_emails_from_bounce_obj(bounce_obj: dict) -> list:
-    """Extracts permanent bounced email addresses only as a list of strings.
-
-    See ``get_permanent_bounced_recipients_from_bounce_obj`` for which recipients count as permanently bounced.
-    """
-    return [br.get("emailAddress") for br in get_permanent_bounced_recipients_from_bounce_obj(bounce_obj)]
-
-
-def get_emails_from_complaint_obj(complaint_obj: dict) -> list:
-    """Extracts complaint email addresses from complaint_obj
-    https://docs.aws.amazon.com/ses/latest/DeveloperGuide/notification-contents.html#complaint-object
-    """
-    return [cr.get("emailAddress") for cr in complaint_obj.get("complainedRecipients", list())]
-
-
-# The start of a line of an SMTP reply: the reply code, "-" on every line but the last, then the enhanced status code
-# if the server sends one. https://www.rfc-editor.org/rfc/rfc5321#section-4.2.1
-_SMTP_REPLY_PREFIX = re.compile(r"(?P<code>[2-5]\d\d)[- ](?:(?P<enhanced>[2-5]\.\d{1,3}\.\d{1,3})(?: |$))?")
-
-
-def _join_smtp_reply(value):
-    """Joins a multiline SMTP reply into one line, writing the reply code only once.
-
-    ``smtp; 550-5.1.1 Foo\\n550 5.1.1 bar`` becomes ``smtp; 550 5.1.1 Foo bar``. The text before the code on the
-    first line (SES writes ``smtp; ``) is kept. If any line does not start with the same codes as the first one,
-    the value is returned unchanged, so no code is lost.
-    """
-    lines = [line.strip() for line in value.splitlines() if line.strip()]
-    if len(lines) < 2:
-        return value
-
-    first = _SMTP_REPLY_PREFIX.search(lines[0])
-    if not first:
-        return value
-    codes = (first["code"], first["enhanced"])
-
-    texts = [lines[0][first.end() :]]
-    for line in lines[1:]:
-        match = _SMTP_REPLY_PREFIX.match(line)
-        if not match or (match["code"], match["enhanced"]) != codes:
-            return value
-        texts.append(line[match.end() :])
-
-    head = lines[0][: first.start()] + " ".join(code for code in codes if code)
-    return " ".join([head, *texts])
-
-
-def _format_reason(event, fields):
-    """Builds a readable reason: the event name, then one ``label: value`` line per field SES sent.
-
-    Whitespace inside a value, newlines included, is collapsed to single spaces, so each field stays on its line.
-    """
-    lines = [event]
-    for label, value in fields:
-        value = " ".join(str(value).split()) if value else ""
-        if value:
-            lines.append(f"{label}: {value}")
-    return "\n".join(lines)
-
-
-def get_bounce_reason(bounce_obj: dict, bounced_recipient: dict) -> str:
-    """Describes why a recipient bounced, from a bounce object and one of its ``bouncedRecipients``.
-    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#bounce-object
-    """
-    diagnostic_code = bounced_recipient.get("diagnosticCode")
-    if isinstance(diagnostic_code, str):
-        diagnostic_code = _join_smtp_reply(diagnostic_code)
-
-    return _format_reason(
-        "Bounce",
-        [
-            ("Bounce type", bounce_obj.get("bounceType")),
-            ("Bounce sub-type", bounce_obj.get("bounceSubType")),
-            ("Status", bounced_recipient.get("status")),
-            ("Action", bounced_recipient.get("action")),
-            ("Diagnostic code", diagnostic_code),
-            ("Reporting MTA", bounce_obj.get("reportingMTA")),
-            ("Timestamp", bounce_obj.get("timestamp")),
-            ("Feedback ID", bounce_obj.get("feedbackId")),
-        ],
-    )
-
-
-def get_complaint_reason(complaint_obj: dict) -> str:
-    """Describes a complaint, from a complaint object.
-    https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html#complaint-object
-    """
-    return _format_reason(
-        "Complaint",
-        [
-            ("Complaint feedback type", complaint_obj.get("complaintFeedbackType")),
-            ("Complaint sub-type", complaint_obj.get("complaintSubType")),
-            ("User agent", complaint_obj.get("userAgent")),
-            ("Timestamp", complaint_obj.get("timestamp")),
-            ("Feedback ID", complaint_obj.get("feedbackId")),
-        ],
-    )
-
-
-def filter_blacklisted_recipients(addresses):
-    from django_ses import models
-
-    """Remove blacklisted emails from addresses"""
-    if isinstance(addresses, str):
-        addresses = [addresses]
-
-    emails = [parseaddr(recipient)[1].lower() for recipient in addresses]
-    qs = models.BlacklistedEmail.objects.filter(email__in=emails)
-    excluded_emails = set(qs.values_list("email", flat=True))
-    return [email for email in emails if email not in excluded_emails]
-
-
-def blacklist_email(email, reason):
-    """Blacklists one email, and stores ``reason`` if the email is already blacklisted with a blank reason.
-
-    Returns ``(obj, action)``, where ``action`` is ``"created"``, ``"reason_stored"`` or ``"unchanged"``.
-    """
-    from django_ses import models
-
-    obj, created = models.BlacklistedEmail.objects.get_or_create(email=email, defaults={"reason": reason})
-    if created:
-        return obj, "created"
-    if not obj.reason and reason:
-        # Filter on the blank reason too, so a reason stored in the meantime is not overwritten.
-        if models.BlacklistedEmail.objects.filter(pk=obj.pk, reason="").update(reason=reason):
-            obj.reason = reason
-            return obj, "reason_stored"
-        obj.refresh_from_db(fields=["reason"])
-    return obj, "unchanged"
-
-
-def blacklist_recipients(reasons):
-    """Blacklists each email in ``reasons``, a dict that maps an email to why it is blacklisted.
-
-    An email that is already blacklisted keeps its reason, unless that reason is blank (such as a row that
-    existed before the ``reason`` field was added): then it gets the new one.
-    """
-    from django_ses import models
-
-    reasons = {email.lower(): reason for email, reason in reasons.items() if email}
-    if len(reasons) == 0:
-        return
-
-    # If we received only 1 recipients, don't waste extra queries trying to find
-    # out if the recipient has already been blacklisted; just attempt to
-    # blacklist it.
-    if len(reasons) == 1:
-        ((email, reason),) = reasons.items()
-        blacklist_email(email, reason)
-        return
-
-    qs = models.BlacklistedEmail.objects.filter(email__in=reasons.keys())
-    blacklisted_emails = set(qs.values_list("email", flat=True))
-    unblacklisted_emails = [email for email in reasons if email not in blacklisted_emails]
-
-    # Try to bulk-insert the unblacklisted emails. If the operation fails (a
-    # possibility only when using Oracle because it doesn't support
-    # ignore_conflicts), fallback to one-by-one insertion.
-    try:
-        models.BlacklistedEmail.objects.bulk_create(
-            [models.BlacklistedEmail(email=email, reason=reasons[email]) for email in unblacklisted_emails],
-            ignore_conflicts=True,
-        )
-    except NotSupportedError:  # Oracle doesn't support "ignore_conflicts"
-        for email, reason in reasons.items():
-            blacklist_email(email, reason)
-        return
-
-    # ignore_conflicts leaves existing rows unchanged, so give a reason to the rows of this batch that have none.
-    blank = list(models.BlacklistedEmail.objects.filter(email__in=reasons.keys(), reason=""))
-    for obj in blank:
-        obj.reason = reasons[obj.email]
-    models.BlacklistedEmail.objects.bulk_update(blank, ["reason"])
